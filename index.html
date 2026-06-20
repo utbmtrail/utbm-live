@@ -280,19 +280,16 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <div class="overlay-icon">🖥️</div>
     <div class="overlay-title">PC Admin</div>
     <div class="overlay-sub">Accès complet sans restriction.</div>
+    <input type="hidden" id="ov-supa-url">
+    <input type="hidden" id="ov-supa-anon">
+    <input type="hidden" id="ov-supa-op">
     <hr class="overlay-divider">
-    <div class="overlay-section-title">☁️ Supabase (si déjà configuré)</div>
-    <div class="input-row">
-      <div class="input-label">URL Supabase</div>
-      <input class="input-field" id="ov-supa-url" type="text" placeholder="https://xxxx.supabase.co">
-    </div>
-    <div class="input-row">
-      <div class="input-label">Clé publique (anon key)</div>
-      <input class="input-field" id="ov-supa-anon" type="text" placeholder="eyJhbGci...">
-    </div>
-    <div class="input-row">
-      <div class="input-label">Clé opérateur (service role)</div>
-      <input class="input-field" id="ov-supa-op" type="password" placeholder="eyJhbGci...">
+    <div style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);border-radius:8px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:24px">&#9989;</span>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--green)">Base de données connectée</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:3px">Supabase · xxthgejhnxnzotgyxiaj</div>
+      </div>
     </div>
     <button class="btn-start-race" onclick="startAdmin()">🏁 Démarrer comme Admin</button>
     <button class="btn-demo" onclick="startWithDemo()">🧪 Mode démonstration</button>
@@ -303,27 +300,27 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   <div class="overlay-card" id="ov-step-checkpoint" style="display:none">
     <div class="overlay-icon">📡</div>
     <div class="overlay-title">Pi Checkpoint</div>
-    <div class="overlay-sub">Ce Pi sera dédié à la saisie RFID sur un seul checkpoint.</div>
+    <div class="overlay-sub">Saisissez le PIN pour activer ce checkpoint.</div>
+    <input type="hidden" id="ov-pi-url">
+    <input type="hidden" id="ov-pi-anon">
+    <input type="hidden" id="ov-pi-op">
     <hr class="overlay-divider">
-    <div class="overlay-section-title">☁️ Connexion Supabase</div>
-    <div class="input-row">
-      <div class="input-label">URL Supabase *</div>
-      <input class="input-field" id="ov-pi-url" type="text" placeholder="https://xxxx.supabase.co">
+    <div style="background:rgba(26,188,156,.1);border:1px solid rgba(26,188,156,.25);border-radius:8px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:24px">&#9989;</span>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--teal)">Base de données connectée</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:3px">Supabase · xxthgejhnxnzotgyxiaj</div>
+      </div>
     </div>
     <div class="input-row">
-      <div class="input-label">Clé publique (anon key) *</div>
-      <input class="input-field" id="ov-pi-anon" type="text" placeholder="eyJhbGci...">
-    </div>
-    <div class="input-row">
-      <div class="input-label">Clé opérateur (service role) *</div>
-      <input class="input-field" id="ov-pi-op" type="password" placeholder="eyJhbGci...">
-    </div>
-    <div class="input-row">
-      <div class="input-label">PIN opérateur *</div>
-      <input class="input-field" id="ov-pi-pin" type="password" placeholder="••••" style="letter-spacing:.2em">
+      <div class="input-label">&#128274; PIN opérateur</div>
+      <input class="input-field" id="ov-pi-pin" type="password" placeholder="••••"
+        style="letter-spacing:.3em;font-size:22px;text-align:center"
+        onkeydown="if(event.key==='Enter')startCheckpoint()"
+        autofocus>
     </div>
     <div id="ov-pi-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;padding:8px;background:rgba(231,76,60,.1);border-radius:4px"></div>
-    <button class="btn-start-race" style="background:var(--teal)" onclick="startCheckpoint()">📡 Configurer ce checkpoint</button>
+    <button class="btn-start-race" style="background:var(--teal)" onclick="startCheckpoint()">📡 Activer ce checkpoint</button>
     <button class="btn-demo" onclick="showStep('ov-step1')" style="margin-top:8px">← Retour</button>
   </div>
 </div>
@@ -639,22 +636,15 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 
         <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
         <div class="config-panel-title" style="margin-bottom:10px;color:var(--teal)">&#9729; Supabase (base de donnees cloud)</div>
-        <div class="input-row">
-          <div class="input-label">URL du projet Supabase</div>
-          <input class="input-field" id="cfg-supa-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co">
-        </div>
-        <div class="input-row">
-          <div class="input-label">Cle publique (anon key) — lecture</div>
-          <input class="input-field" id="cfg-supa-anon" type="text" placeholder="eyJhbGciOiJIUzI1NiIs...">
-        </div>
-        <div class="input-row">
-          <div class="input-label">Cle operateur (service role) — ecriture</div>
-          <input class="input-field" id="cfg-supa-op" type="password" placeholder="eyJhbGciOiJIUzI1NiIs...">
-          <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Protegee par le PIN — ne jamais partager</div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="saveSupaConfig()">Connecter Supabase</button>
-          <button class="btn-reset" onclick="disconnectSupa()">Deconnecter</button>
+        <input type="hidden" id="cfg-supa-url">
+        <input type="hidden" id="cfg-supa-anon">
+        <input type="hidden" id="cfg-supa-op">
+        <div style="background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">&#9989;</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:var(--green)">Connecté à Supabase</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Projet : xxthgejhnxnzotgyxiaj · Polling toutes les 5s</div>
+          </div>
         </div>
         <div class="confirm-msg" id="supa-confirm-msg"></div>
         <div id="supa-status-cfg" style="display:none;margin-top:10px;font-size:11px;padding:8px 10px;border-radius:4px"></div>
@@ -910,7 +900,7 @@ function saveState() {
       supaAnonKey:  SUPA_ANON_KEY,
       supaOpKey:    SUPA_OP_KEY,
       operatorPin:  OPERATOR_PIN,
-      lockedChk:    lockedCheckpoint,
+      lockedChk:    deviceType === 'checkpoint' ? lockedCheckpoint : null,
     }));
   } catch(e) { console.warn('saveState error', e); }
 }
@@ -1793,12 +1783,17 @@ let currentCheckpoint = 'DEPART';
 let manualScans = [];
 
 function setCheckpoint(chk) {
+  if (deviceType === 'checkpoint' && lockedCheckpoint && chk !== lockedCheckpoint) return;
   currentCheckpoint = chk;
-  document.getElementById('btn-dep').className = 'chk-btn' + (chk === 'DEPART' ? ' dep-on' : '');
-  document.getElementById('btn-arr').className = 'chk-btn' + (chk === 'ARRIVEE' ? ' arr-on' : '');
+  const bDep = document.getElementById('btn-dep');
+  const bArr = document.getElementById('btn-arr');
+  if (bDep) bDep.className = 'chk-btn' + (chk === 'DEPART'  ? ' dep-on' : '');
+  if (bArr) bArr.className = 'chk-btn' + (chk === 'ARRIVEE' ? ' arr-on' : '');
   const disp = document.getElementById('chk-display');
-  disp.textContent = chk === 'DEPART' ? 'DEPART' : 'ARRIVEE';
-  disp.style.color = chk === 'DEPART' ? 'var(--amber)' : 'var(--green)';
+  if (disp) {
+    disp.textContent = chk === 'DEPART' ? 'DEPART' : 'ARRIVEE';
+    disp.style.color  = chk === 'DEPART' ? 'var(--amber)' : 'var(--green)';
+  }
   focusBadgeInput();
 }
 
@@ -2041,11 +2036,13 @@ function updateSaisieUI() {
   const indic    = document.getElementById('lock-indicator');
 
   if (deviceType === 'admin') {
-    // Admin : toujours accès libre, boutons jamais bloqués
+    lockedCheckpoint = null;
     locked.style.display   = 'none';
     unlocked.style.display = 'block';
-    document.getElementById('btn-dep').disabled = false;
-    document.getElementById('btn-arr').disabled = false;
+    const bDep = document.getElementById('btn-dep');
+    const bArr = document.getElementById('btn-arr');
+    if (bDep) { bDep.disabled = false; bDep.style.opacity = '1'; bDep.style.cursor = 'pointer'; }
+    if (bArr) { bArr.disabled = false; bArr.style.opacity = '1'; bArr.style.cursor = 'pointer'; }
     indic.innerHTML = '<span style="color:var(--green);font-family:var(--mono)">&#128275; Admin</span>';
     focusBadgeInput();
   } else if (sessionUnlocked && lockedCheckpoint) {
@@ -2096,32 +2093,33 @@ function disconnectSupa() {
 }
 
 async function supaFetch(path, opts) {
-  const key = (opts && opts.write) ? SUPA_OP_KEY || SUPA_ANON_KEY : SUPA_ANON_KEY;
+  const key    = (opts && opts.write) ? SUPA_OP_KEY || SUPA_ANON_KEY : SUPA_ANON_KEY;
+  const method = (opts && opts.method) || 'GET';
   const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
     ...opts,
     headers: {
       'apikey':        key,
       'Authorization': 'Bearer ' + key,
       'Content-Type':  'application/json',
-      'Prefer':        (opts && opts.write) ? 'return=representation' : 'return=representation',
-      ...(opts ? opts.headers : {}),
+      ...(method === 'POST' || method === 'PUT' ? { 'Prefer': 'return=representation' } : {}),
+      ...(opts && opts.headers ? opts.headers : {}),
     }
   });
   if (!res.ok) {
     const txt = await res.text();
     throw new Error(res.status + ' ' + txt);
   }
-  return res.json();
+  if (res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 async function pushRaceConfig() {
-  // Stocker RACE_START dans Supabase pour synchroniser tous les appareils
   if (!SUPA_URL || !SUPA_OP_KEY || !RACE_START) return;
   try {
-    // Upsert : supprimer + recréer
-    await supaFetch('config?key=eq.race_start', { method:'DELETE', write:true });
     await supaFetch('config', {
       method: 'POST', write: true,
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify({ key: 'race_start', value: RACE_START.toISOString() })
     });
   } catch(e) { console.warn('pushRaceConfig error:', e.message); }
@@ -2264,10 +2262,10 @@ function startAdmin() {
   if (url)  SUPA_URL      = url.replace(/\/$/,'');
   if (anon) SUPA_ANON_KEY = anon;
   if (op)   SUPA_OP_KEY   = op;
-  deviceType = 'admin';
+  deviceType       = 'admin';
   sessionUnlocked  = true;
-  lockedCheckpoint = null; // admin n'a jamais de checkpoint verrouillé
-  RACE_START = RACE_START || new Date();
+  lockedCheckpoint = null;
+  RACE_START       = RACE_START || new Date();
   dataMode = 'supabase';
   allScans = [];
   clearInterval(simTimerId);
@@ -2281,25 +2279,15 @@ function startAdmin() {
 }
 
 function startCheckpoint() {
-  const url  = document.getElementById('ov-pi-url').value.trim();
-  const anon = document.getElementById('ov-pi-anon').value.trim();
-  const op   = document.getElementById('ov-pi-op').value.trim();
-  const pin  = document.getElementById('ov-pi-pin').value.trim();
+  const pin   = document.getElementById('ov-pi-pin').value.trim();
   const errEl = document.getElementById('ov-pi-error');
-
-  if (!url || !anon || !op) {
-    errEl.textContent = 'URL Supabase, clé anon et clé service_role sont obligatoires.';
-    errEl.style.display = 'block'; return;
-  }
   if (!pin) {
-    errEl.textContent = 'Le PIN opérateur est obligatoire sur un checkpoint.';
-    errEl.style.display = 'block'; return;
+    errEl.textContent = 'PIN obligatoire.';
+    errEl.style.display = 'block';
+    document.getElementById('ov-pi-pin').focus();
+    return;
   }
-
-  if (url)  SUPA_URL      = url.replace(/\/$/,'');
-  if (anon) SUPA_ANON_KEY = anon;
-  if (op)   SUPA_OP_KEY   = op;
-  OPERATOR_PIN  = pin;
+  OPERATOR_PIN = pin;
   deviceType    = 'checkpoint';
   RACE_START    = RACE_START || new Date();
   dataMode      = 'supabase';
@@ -2534,16 +2522,14 @@ async function syncParticipantsFromSupabase() {
 async function pushParticipantToSupabase(badge, p) {
   if (!SUPA_URL || !SUPA_OP_KEY) return;
   try {
-    await supaFetch('participants?badge_id=eq.' + encodeURIComponent(badge), {
-      method: 'DELETE', write: true,
-    });
     await supaFetch('participants', {
       method: 'POST', write: true,
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify({
         badge_id: badge,
-        nom:      p.nom,
-        prenom:   p.prenom,
-        name:     p.name,
+        nom:      p.nom    || '',
+        prenom:   p.prenom || '',
+        name:     p.name   || badge,
         cat:      p.cat,
         membres:  (p.membres || []).join('|'),
       })
