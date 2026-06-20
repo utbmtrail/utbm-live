@@ -235,6 +235,20 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .log-del:hover{color:var(--red)}
 .diag-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:12px;font-size:11px}
 .diag-title{color:var(--text-dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-size:10px}
+/* PI MODE */
+#pi-mode{display:none}
+#pi-mode.active{display:flex}
+.pi-scan-entry{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pi-scan-entry:last-child{border-bottom:none}
+.pi-scan-time{font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:55px}
+.pi-scan-chk{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700}
+.pi-scan-chk.d{background:rgba(245,166,35,.15);color:var(--amber)}
+.pi-scan-chk.a{background:rgba(46,204,113,.15);color:var(--green)}
+.pi-scan-name{flex:1;font-size:13px}
+@keyframes pi-flash-ok{0%{background:rgba(46,204,113,.3);border-color:var(--green)}100%{background:var(--surface);border-color:var(--border)}}
+@keyframes pi-flash-err{0%{background:rgba(231,76,60,.3);border-color:var(--red)}100%{background:var(--surface);border-color:var(--border)}}
+.pi-ok{animation:pi-flash-ok .8s ease-out forwards;color:var(--green)!important;border-color:var(--green)!important}
+.pi-err{animation:pi-flash-err .8s ease-out forwards;color:var(--red)!important;border-color:var(--red)!important}
 </style>
 </head>
 <body>
@@ -242,26 +256,75 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 
 <!-- START OVERLAY -->
 <div id="startOverlay">
-  <div class="overlay-card">
+  <!-- ÉTAPE 1 : choix du type d'appareil -->
+  <div class="overlay-card" id="ov-step1">
     <div class="overlay-icon">🏔️</div>
     <div class="overlay-title">UTBM — Trail 24H</div>
-    <div class="overlay-sub">Configurez la source de données puis démarrez le chronomètre officiel.</div>
+    <div class="overlay-sub">Quel est cet appareil ?</div>
     <hr class="overlay-divider">
-    <div class="overlay-section-title">🔗 Source de données (optionnel)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <button onclick="selectDeviceType('admin')"
+        style="padding:28px 16px;background:rgba(245,166,35,.12);border:2px solid var(--amber);border-radius:12px;color:var(--amber);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-align:center;font-family:var(--sans)">
+        🖥️<br><br>PC ADMIN<br><span style="font-size:11px;font-weight:400;color:var(--text-mid)">Accès complet,<br>classement, config</span>
+      </button>
+      <button onclick="selectDeviceType('checkpoint')"
+        style="padding:28px 16px;background:rgba(26,188,156,.12);border:2px solid var(--teal);border-radius:12px;color:var(--teal);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-align:center;font-family:var(--sans)">
+        📡<br><br>PI CHECKPOINT<br><span style="font-size:11px;font-weight:400;color:var(--text-mid)">Saisie RFID<br>uniquement</span>
+      </button>
+    </div>
+    <button class="btn-demo" onclick="selectDeviceType('demo')">🧪 Mode démonstration</button>
+  </div>
+
+  <!-- ÉTAPE 2a : config admin -->
+  <div class="overlay-card" id="ov-step-admin" style="display:none">
+    <div class="overlay-icon">🖥️</div>
+    <div class="overlay-title">PC Admin</div>
+    <div class="overlay-sub">Accès complet sans restriction.</div>
+    <hr class="overlay-divider">
+    <div class="overlay-section-title">☁️ Supabase (si déjà configuré)</div>
     <div class="input-row">
-      <div class="input-label">URL Google Sheets (CSV publié)</div>
-      <input class="input-field" id="ov-sheetsUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
-      <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Laisser vide pour utiliser les données de démonstration</div>
+      <div class="input-label">URL Supabase</div>
+      <input class="input-field" id="ov-supa-url" type="text" placeholder="https://xxxx.supabase.co">
     </div>
     <div class="input-row">
-      <div class="input-label">Intervalle de polling (secondes)</div>
-      <input class="input-field" id="ov-pollInterval" type="number" value="15" min="5" max="120">
+      <div class="input-label">Clé publique (anon key)</div>
+      <input class="input-field" id="ov-supa-anon" type="text" placeholder="eyJhbGci...">
     </div>
+    <div class="input-row">
+      <div class="input-label">Clé opérateur (service role)</div>
+      <input class="input-field" id="ov-supa-op" type="password" placeholder="eyJhbGci...">
+    </div>
+    <button class="btn-start-race" onclick="startAdmin()">🏁 Démarrer comme Admin</button>
+    <button class="btn-demo" onclick="startWithDemo()">🧪 Mode démonstration</button>
+    <button class="btn-demo" onclick="showStep('ov-step1')" style="margin-top:6px">← Retour</button>
+  </div>
+
+  <!-- ÉTAPE 2b : config checkpoint -->
+  <div class="overlay-card" id="ov-step-checkpoint" style="display:none">
+    <div class="overlay-icon">📡</div>
+    <div class="overlay-title">Pi Checkpoint</div>
+    <div class="overlay-sub">Ce Pi sera dédié à la saisie RFID sur un seul checkpoint.</div>
     <hr class="overlay-divider">
-    <div class="overlay-section-title">⏱ Démarrage chronomètre</div>
-    <button class="btn-start-race" onclick="startRaceNow()">🏁 &nbsp;DÉMARRER LA COURSE MAINTENANT</button>
-    <button class="btn-demo" onclick="startWithDemo()">Donnees de demonstration (course simulee)</button>
-    <button class="btn-demo" style="border-color:var(--amber);color:var(--amber);margin-top:6px" onclick="startReal()">Demarrer en mode reel (aucune donnee demo)</button>
+    <div class="overlay-section-title">☁️ Connexion Supabase</div>
+    <div class="input-row">
+      <div class="input-label">URL Supabase *</div>
+      <input class="input-field" id="ov-pi-url" type="text" placeholder="https://xxxx.supabase.co">
+    </div>
+    <div class="input-row">
+      <div class="input-label">Clé publique (anon key) *</div>
+      <input class="input-field" id="ov-pi-anon" type="text" placeholder="eyJhbGci...">
+    </div>
+    <div class="input-row">
+      <div class="input-label">Clé opérateur (service role) *</div>
+      <input class="input-field" id="ov-pi-op" type="password" placeholder="eyJhbGci...">
+    </div>
+    <div class="input-row">
+      <div class="input-label">PIN opérateur *</div>
+      <input class="input-field" id="ov-pi-pin" type="password" placeholder="••••" style="letter-spacing:.2em">
+    </div>
+    <div id="ov-pi-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;padding:8px;background:rgba(231,76,60,.1);border-radius:4px"></div>
+    <button class="btn-start-race" style="background:var(--teal)" onclick="startCheckpoint()">📡 Configurer ce checkpoint</button>
+    <button class="btn-demo" onclick="showStep('ov-step1')" style="margin-top:8px">← Retour</button>
   </div>
 </div>
 
@@ -674,6 +737,64 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
 </div>
 
+<!-- MODE PI CHECKPOINT : interface plein écran dédiée -->
+<div id="pi-mode" style="display:none;position:fixed;inset:0;background:var(--ink);z-index:500;flex-direction:column;align-items:stretch">
+
+  <!-- Header Pi -->
+  <div style="background:var(--panel);border-bottom:2px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)">UTBM Trail 24H</div>
+      <div id="pi-header-chk" style="font-size:22px;font-weight:800;color:var(--amber);letter-spacing:.06em">— CHECKPOINT —</div>
+    </div>
+    <div style="text-align:right">
+      <div class="timer-display not-started" id="pi-timer" style="font-size:22px">--:--:--</div>
+      <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em">Temps restant</div>
+    </div>
+  </div>
+
+  <!-- Connexion status -->
+  <div id="pi-conn-bar" style="padding:6px 24px;font-size:11px;display:flex;align-items:center;gap:8px;background:rgba(26,188,156,.08);border-bottom:1px solid rgba(26,188,156,.2)">
+    <span class="sheets-dot" id="pi-conn-dot"></span>
+    <span id="pi-conn-text" style="color:var(--text-mid);flex:1">Connexion...</span>
+    <span id="pi-conn-last" style="font-family:var(--mono);color:var(--text-dim);font-size:10px"></span>
+  </div>
+
+  <!-- Zone de scan principale -->
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px">
+
+    <!-- Feedback grand format -->
+    <div id="pi-feedback" style="width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;background:var(--surface);border:2px solid var(--border);color:var(--text-dim);text-align:center;transition:all .3s">
+      En attente d'un scan...
+    </div>
+
+    <!-- Champ badge -->
+    <div style="position:relative;width:100%;max-width:560px">
+      <input id="pi-badge-input" class="badge-input-big"
+        type="text" placeholder="Scanner le badge RFID..."
+        autocomplete="off" autocorrect="off" spellcheck="false"
+        onkeydown="handlePiBadgeKey(event)" oninput="this.value=this.value.toUpperCase()"
+        style="font-size:24px;padding:20px 60px 20px 20px;width:100%">
+      <button class="badge-clear" onclick="clearPiInput()" style="font-size:22px;right:16px">×</button>
+    </div>
+    <button class="btn-start" style="width:100%;max-width:560px;padding:16px;font-size:16px" onclick="submitPiScan()">
+      ✓ Valider le pointage
+    </button>
+
+    <!-- Dernier scan -->
+    <div id="pi-last-scan" style="width:100%;max-width:560px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:10px">Derniers pointages</div>
+      <div id="pi-scan-list" style="font-size:13px;color:var(--text-dim);text-align:center;padding:8px">Aucun scan enregistré</div>
+    </div>
+
+  </div>
+
+  <!-- Footer Pi -->
+  <div style="padding:10px 24px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    <div id="pi-scan-count" style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">0 scan</div>
+    <button onclick="exitPiMode()" style="background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:var(--sans)">Quitter (PIN requis)</button>
+  </div>
+</div>
+
 <!-- PIN OVERLAY -->
 <div id="pin-overlay" style="display:none;position:fixed;inset:0;background:rgba(11,15,20,.97);z-index:400;align-items:center;justify-content:center">
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;width:340px;max-width:94vw">
@@ -779,6 +900,7 @@ function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       raceStart:    RACE_START ? RACE_START.toISOString() : null,
+      deviceType,
       dataMode, sheetsUrl, pollIntervalSec,
       distanceTour: DISTANCE_TOUR,
       deniveleTour: DENIVELE_TOUR,
@@ -1513,9 +1635,17 @@ function saveParticipant() {
     entry = { nom: nomEq, prenom: '', name: nomEq, cat: 'equipe', membres };
   }
 
-  if (mode === 'edit' && oldBadge && oldBadge !== badge) delete PARTICIPANTS[oldBadge];
+  if (mode === 'edit' && oldBadge && oldBadge !== badge) {
+    delete PARTICIPANTS[oldBadge];
+    // Supprimer l'ancien badge dans Supabase
+    if (SUPA_URL && SUPA_OP_KEY) {
+      supaFetch('participants?badge_id=eq.' + encodeURIComponent(oldBadge), { method:'DELETE', write:true }).catch(()=>{});
+    }
+  }
   PARTICIPANTS[badge] = entry;
   saveState();
+  // Synchroniser vers Supabase pour que tous les appareils aient la liste à jour
+  if (SUPA_URL && SUPA_OP_KEY) pushParticipantToSupabase(badge, entry);
   closeModal();
   renderParticipantsTab();
   updateUI();
@@ -1533,6 +1663,9 @@ function deleteParticipant(badge) {
   const p = PARTICIPANTS[badge];
   if (!confirm(`Supprimer "${p?.name || badge}" (${badge}) ?`)) return;
   delete PARTICIPANTS[badge];
+  if (SUPA_URL && SUPA_OP_KEY) {
+    supaFetch('participants?badge_id=eq.' + encodeURIComponent(badge), { method:'DELETE', write:true }).catch(()=>{});
+  }
   saveState();
   renderParticipantsTab();
   updateUI();
@@ -1873,23 +2006,35 @@ function checkPin() {
 }
 
 function afterPinUnlock() {
-  // Si le checkpoint n'est pas encore verrouillé → demander
-  if (!lockedCheckpoint) {
-    document.getElementById('chk-lock-overlay').style.display = 'flex';
+  if (deviceType === 'checkpoint') {
+    // Pi → entrer dans le mode dédié
+    if (!lockedCheckpoint) {
+      document.getElementById('chk-lock-overlay').style.display = 'flex';
+    } else {
+      enterPiMode(lockedCheckpoint);
+    }
   } else {
-    // Déjà verrouillé → juste déverrouiller la saisie
-    setCheckpoint(lockedCheckpoint);
-    updateSaisieUI();
+    // Admin → simple déverrouillage UI
+    if (!lockedCheckpoint) {
+      document.getElementById('chk-lock-overlay').style.display = 'flex';
+    } else {
+      setCheckpoint(lockedCheckpoint);
+      updateSaisieUI();
+    }
   }
 }
 
 function lockCheckpoint(chk) {
-  lockedCheckpoint = chk;
+  lockedCheckpoint  = chk;
   currentCheckpoint = chk;
   document.getElementById('chk-lock-overlay').style.display = 'none';
   saveState();
-  setCheckpoint(chk);
-  updateSaisieUI();
+  if (deviceType === 'checkpoint') {
+    enterPiMode(chk);
+  } else {
+    setCheckpoint(chk);
+    updateSaisieUI();
+  }
 }
 
 function updateSaisieUI() {
@@ -1998,7 +2143,9 @@ async function fetchSupabase() {
     const supaIds = new Set(parsed.map(r => r.id).filter(Boolean));
     const localOnly = manualScans.filter(s => !s.supaId);
     allScans = [...parsed, ...localOnly].sort((a,b) => a.timestamp - b.timestamp);
-    updateUI();
+    if (deviceType !== 'checkpoint') updateUI();
+    else updatePiScanList(); // sur Pi, juste mettre à jour la liste locale
+    updatePiConn(true, 'Supabase · ' + parsed.length + ' scans');
 
     const bar = document.getElementById('sheetsStatusBar');
     bar.classList.remove('hidden');
@@ -2036,6 +2183,316 @@ function startSupaPolling() {
 }
 
 /* ================================================================
+   TYPES D'APPAREILS
+   ================================================================ */
+// 'admin' = PC organisateur, accès complet, pas de PIN/lock
+// 'checkpoint' = Pi dédié, interface simplifiée, checkpoint verrouillé
+// 'demo' = mode démonstration
+let deviceType = 'admin';
+let piScans    = []; // scans locaux du Pi
+
+function showStep(id) {
+  ['ov-step1','ov-step-admin','ov-step-checkpoint'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = (s === id) ? 'block' : 'none';
+  });
+}
+
+function selectDeviceType(type) {
+  if (type === 'demo') { startWithDemo(); return; }
+  deviceType = type;
+  if (type === 'admin') {
+    showStep('ov-step-admin');
+    // Pré-remplir si déjà configuré
+    if (SUPA_URL)       document.getElementById('ov-supa-url').value  = SUPA_URL;
+    if (SUPA_ANON_KEY)  document.getElementById('ov-supa-anon').value = SUPA_ANON_KEY;
+  } else {
+    showStep('ov-step-checkpoint');
+    if (SUPA_URL)       document.getElementById('ov-pi-url').value    = SUPA_URL;
+    if (SUPA_ANON_KEY)  document.getElementById('ov-pi-anon').value   = SUPA_ANON_KEY;
+    if (OPERATOR_PIN)   document.getElementById('ov-pi-pin').value    = OPERATOR_PIN;
+  }
+}
+
+function startAdmin() {
+  const url  = document.getElementById('ov-supa-url').value.trim();
+  const anon = document.getElementById('ov-supa-anon').value.trim();
+  const op   = document.getElementById('ov-supa-op').value.trim();
+  if (url)  { SUPA_URL = url.replace(/\/$/,''); }
+  if (anon) { SUPA_ANON_KEY = anon; }
+  if (op)   { SUPA_OP_KEY   = op;   }
+  deviceType = 'admin';
+  sessionUnlocked = true; // admin toujours déverrouillé
+  RACE_START = RACE_START || new Date();
+  dataMode = (SUPA_URL && SUPA_ANON_KEY) ? 'supabase' : 'live';
+  allScans = [];
+  clearInterval(simTimerId);
+  saveState();
+  document.getElementById('startOverlay').classList.add('hidden');
+  if (dataMode === 'supabase') {
+    startSupaPolling();
+    syncParticipantsFromSupabase(); // récupérer les participants depuis Supabase
+  }
+  startTimer();
+  updateUI();
+}
+
+function startCheckpoint() {
+  const url  = document.getElementById('ov-pi-url').value.trim();
+  const anon = document.getElementById('ov-pi-anon').value.trim();
+  const op   = document.getElementById('ov-pi-op').value.trim();
+  const pin  = document.getElementById('ov-pi-pin').value.trim();
+  const errEl = document.getElementById('ov-pi-error');
+
+  if (!url || !anon || !op) {
+    errEl.textContent = 'URL Supabase, clé anon et clé service_role sont obligatoires.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!pin) {
+    errEl.textContent = 'Le PIN opérateur est obligatoire sur un checkpoint.';
+    errEl.style.display = 'block'; return;
+  }
+
+  SUPA_URL      = url.replace(/\/$/,'');
+  SUPA_ANON_KEY = anon;
+  SUPA_OP_KEY   = op;
+  OPERATOR_PIN  = pin;
+  deviceType    = 'checkpoint';
+  RACE_START    = RACE_START || new Date();
+  dataMode      = 'supabase';
+  allScans      = [];
+  piScans       = [];
+  clearInterval(simTimerId);
+  saveState();
+  document.getElementById('startOverlay').classList.add('hidden');
+
+  // Sync participants depuis Supabase avant d'afficher l'overlay PIN
+  syncParticipantsFromSupabase().then(() => {
+    startSupaPolling();
+    startTimer();
+    // Montrer le PIN overlay pour choisir le checkpoint
+    showPinOverlay();
+  });
+}
+
+/* ================================================================
+   MODE PI — interface dédiée plein écran
+   ================================================================ */
+function enterPiMode(chk) {
+  lockedCheckpoint  = chk;
+  currentCheckpoint = chk;
+  sessionUnlocked   = true;
+  saveState();
+
+  // Masquer l'app normale, afficher l'interface Pi
+  document.getElementById('pi-mode').classList.add('active');
+  document.querySelector('header').style.display = 'none';
+  document.getElementById('sheetsStatusBar').style.display = 'none';
+  document.querySelector('.nav-tabs').style.display = 'none';
+  document.querySelector('.stats-banner').style.display = 'none';
+  document.querySelector('.content').style.display = 'none';
+  document.querySelector('footer').style.display = 'none';
+
+  // Configurer l'affichage
+  const isDepart = chk === 'DEPART';
+  const color    = isDepart ? 'var(--amber)' : 'var(--green)';
+  const label    = isDepart ? '🚦 CHECKPOINT DÉPART' : '🏁 CHECKPOINT ARRIVÉE';
+  document.getElementById('pi-header-chk').textContent = label;
+  document.getElementById('pi-header-chk').style.color = color;
+  document.getElementById('pi-mode').style.borderTop = '4px solid ' + color;
+
+  // Démarrer le polling Supabase pour cet écran aussi
+  startSupaPolling();
+  // Timer Pi
+  startPiTimer();
+
+  setTimeout(() => document.getElementById('pi-badge-input').focus(), 200);
+}
+
+function startPiTimer() {
+  function tick() {
+    if (!RACE_START) { requestAnimationFrame(tick); return; }
+    const rem = RACE_START.getTime() + DUREE_COURSE * 3600000 - Date.now();
+    const el  = document.getElementById('pi-timer');
+    if (!el) return;
+    if (rem <= 0) { el.textContent = 'TERMINÉ'; el.style.color = 'var(--red)'; return; }
+    const h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
+    el.textContent = pad(h)+':'+pad(m)+':'+pad(s);
+    el.className = 'timer-display';
+    el.style.color = rem < 3600000 ? 'var(--red)' : 'var(--amber)';
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function handlePiBadgeKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); submitPiScan(); }
+}
+
+function clearPiInput() {
+  const el = document.getElementById('pi-badge-input');
+  el.value = ''; el.className = 'badge-input-big'; el.focus();
+}
+
+async function submitPiScan() {
+  const input = document.getElementById('pi-badge-input');
+  const badge = (input.value || '').trim().toUpperCase();
+  const fb    = document.getElementById('pi-feedback');
+
+  if (!badge) { showPiFeedback('Saisissez ou scannez un badge.', false); return; }
+
+  const scan = { timestamp: new Date(), badge_id: badge, checkpoint: lockedCheckpoint || currentCheckpoint };
+  const p    = PARTICIPANTS[badge];
+
+  // Feedback immédiat
+  const chkLabel = scan.checkpoint === 'DEPART' ? '🚦' : '🏁';
+  if (p) {
+    showPiFeedback(chkLabel + ' ' + p.name, true);
+    input.classList.add('flash-ok');
+  } else {
+    showPiFeedback('⚠ Badge inconnu : ' + badge, false);
+    input.classList.add('flash-err');
+  }
+
+  // Enregistrer localement
+  piScans.unshift(scan);
+  allScans.push(scan);
+  allScans.sort((a,b) => a.timestamp - b.timestamp);
+  manualScans.push(scan);
+
+  // Envoyer à Supabase
+  const ok = await pushScanToSupabase(scan);
+  updatePiScanList();
+  updatePiCount();
+
+  // Reset input
+  setTimeout(() => {
+    input.value = '';
+    input.className = 'badge-input-big';
+    input.focus();
+  }, 350);
+}
+
+function showPiFeedback(msg, ok) {
+  const fb = document.getElementById('pi-feedback');
+  fb.textContent = msg;
+  fb.className   = ok ? 'pi-ok' : 'pi-err';
+  fb.style.cssText = 'width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;text-align:center;transition:all .3s;border:2px solid';
+  setTimeout(() => {
+    fb.className = '';
+    fb.style.cssText = 'width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;background:var(--surface);border:2px solid var(--border);color:var(--text-dim);text-align:center;transition:all .3s';
+    fb.textContent = 'En attente d\'un scan...';
+  }, 3000);
+}
+
+function updatePiScanList() {
+  const el = document.getElementById('pi-scan-list');
+  if (!el) return;
+  if (piScans.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:8px">Aucun scan enregistré</div>';
+    return;
+  }
+  el.innerHTML = piScans.slice(0, 8).map(s => {
+    const p   = PARTICIPANTS[s.badge_id];
+    const cls = s.checkpoint === 'DEPART' ? 'd' : 'a';
+    const lbl = s.checkpoint === 'DEPART' ? 'DÉP' : 'ARR';
+    return '<div class="pi-scan-entry">'
+      + '<span class="pi-scan-time">' + fmtHour(s.timestamp) + '</span>'
+      + '<span class="pi-scan-chk ' + cls + '">' + lbl + '</span>'
+      + '<span class="pi-scan-name">' + esc(p ? p.name : '⚠ ' + s.badge_id) + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+function updatePiCount() {
+  const el = document.getElementById('pi-scan-count');
+  if (el) el.textContent = piScans.length + ' scan' + (piScans.length > 1 ? 's' : '');
+}
+
+// Mettre à jour le statut réseau dans le Pi
+function updatePiConn(ok, msg) {
+  const dot  = document.getElementById('pi-conn-dot');
+  const text = document.getElementById('pi-conn-text');
+  const bar  = document.getElementById('pi-conn-bar');
+  const last = document.getElementById('pi-conn-last');
+  if (!dot) return;
+  if (ok) {
+    dot.className  = 'sheets-dot';
+    text.textContent = msg || 'Connecté à Supabase';
+    bar.style.background = 'rgba(46,204,113,.08)';
+    bar.style.borderColor = 'rgba(46,204,113,.2)';
+  } else {
+    dot.className  = 'sheets-dot err';
+    text.textContent = msg || 'Erreur de connexion';
+    bar.style.background = 'rgba(231,76,60,.08)';
+    bar.style.borderColor = 'rgba(231,76,60,.2)';
+  }
+  if (last) last.textContent = 'Màj ' + new Date().toLocaleTimeString('fr-FR');
+}
+
+function exitPiMode() {
+  // Demander le PIN pour sortir
+  const entered = prompt('PIN opérateur pour quitter ce mode :');
+  if (entered !== OPERATOR_PIN && OPERATOR_PIN) { alert('PIN incorrect.'); return; }
+  document.getElementById('pi-mode').classList.remove('active');
+  document.querySelector('header').style.display = '';
+  document.querySelector('.nav-tabs').style.display = '';
+  document.querySelector('.stats-banner').style.display = '';
+  document.querySelector('.content').style.display = '';
+  document.querySelector('footer').style.display = '';
+  sessionUnlocked   = false;
+  lockedCheckpoint  = null;
+  saveState();
+}
+
+/* ================================================================
+   SYNCHRONISATION PARTICIPANTS DEPUIS SUPABASE
+   ================================================================ */
+async function syncParticipantsFromSupabase() {
+  if (!SUPA_URL || !SUPA_ANON_KEY) return;
+  try {
+    const rows = await supaFetch('participants?select=*');
+    if (rows && rows.length > 0) {
+      PARTICIPANTS = {};
+      rows.forEach(r => {
+        PARTICIPANTS[r.badge_id] = {
+          nom:     r.nom     || '',
+          prenom:  r.prenom  || '',
+          name:    r.name    || (r.prenom + ' ' + r.nom).trim() || r.badge_id,
+          cat:     r.cat,
+          membres: r.membres ? r.membres.split('|') : [],
+        };
+      });
+      saveState();
+      renderParticipantsTab();
+      console.log('Participants synchronisés depuis Supabase :', Object.keys(PARTICIPANTS).length);
+    }
+  } catch(e) {
+    console.warn('Sync participants error:', e.message);
+  }
+}
+
+async function pushParticipantToSupabase(badge, p) {
+  if (!SUPA_URL || !SUPA_OP_KEY) return;
+  try {
+    await supaFetch('participants?badge_id=eq.' + encodeURIComponent(badge), {
+      method: 'DELETE', write: true,
+    });
+    await supaFetch('participants', {
+      method: 'POST', write: true,
+      body: JSON.stringify({
+        badge_id: badge,
+        nom:      p.nom,
+        prenom:   p.prenom,
+        name:     p.name,
+        cat:      p.cat,
+        membres:  (p.membres || []).join('|'),
+      })
+    });
+  } catch(e) { console.warn('Push participant error:', e.message); }
+}
+
+/* ================================================================
    NAVIGATION
    ================================================================ */
 function switchTab(name, btn) {
@@ -2060,6 +2517,7 @@ function switchTab(name, btn) {
   const saved = loadState();
   if (saved) {
     // Restaurer params course
+    if (saved.deviceType)   deviceType       = saved.deviceType;
     if (saved.distanceTour) DISTANCE_TOUR    = saved.distanceTour;
     if (saved.deniveleTour) DENIVELE_TOUR    = saved.deniveleTour;
     if (saved.dureeCourse)  DUREE_COURSE     = saved.dureeCourse;
@@ -2082,7 +2540,13 @@ function switchTab(name, btn) {
     document.getElementById('startOverlay').classList.add('hidden');
     startTimer();
     if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
-      startSupaPolling();
+      syncParticipantsFromSupabase().then(() => {
+        startSupaPolling();
+        if (deviceType === 'checkpoint' && lockedCheckpoint) {
+          sessionUnlocked = true;
+          enterPiMode(lockedCheckpoint);
+        }
+      });
     } else if (dataMode === 'sheets' && sheetsUrl) {
       startSheetsPolling();
     } else if (dataMode === 'live') {
