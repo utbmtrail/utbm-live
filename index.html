@@ -1409,6 +1409,7 @@ function applyRaceConfig() {
   }
   if (changed) {
     saveState();
+    if (startVal) pushRaceConfig(); // synchroniser la nouvelle heure de départ
     updateUI();
     showMsg('cfg-confirm-msg', '✓ Paramètres mis à jour — classement recalculé');
   }
@@ -2007,20 +2008,17 @@ function checkPin() {
 
 function afterPinUnlock() {
   if (deviceType === 'checkpoint') {
-    // Pi → entrer dans le mode dédié
     if (!lockedCheckpoint) {
       document.getElementById('chk-lock-overlay').style.display = 'flex';
     } else {
       enterPiMode(lockedCheckpoint);
     }
   } else {
-    // Admin → simple déverrouillage UI
-    if (!lockedCheckpoint) {
-      document.getElementById('chk-lock-overlay').style.display = 'flex';
-    } else {
-      setCheckpoint(lockedCheckpoint);
-      updateSaisieUI();
-    }
+    // Admin : accès complet, pas de verrouillage de checkpoint
+    lockedCheckpoint = null; // réinitialiser si quelque chose était mémorisé
+    sessionUnlocked  = true;
+    document.getElementById('chk-lock-overlay').style.display = 'none';
+    updateSaisieUI();
   }
 }
 
@@ -2042,14 +2040,22 @@ function updateSaisieUI() {
   const unlocked = document.getElementById('saisie-unlocked-content');
   const indic    = document.getElementById('lock-indicator');
 
-  if (sessionUnlocked && lockedCheckpoint) {
+  if (deviceType === 'admin') {
+    // Admin : toujours accès libre, boutons jamais bloqués
+    locked.style.display   = 'none';
+    unlocked.style.display = 'block';
+    document.getElementById('btn-dep').disabled = false;
+    document.getElementById('btn-arr').disabled = false;
+    indic.innerHTML = '<span style="color:var(--green);font-family:var(--mono)">&#128275; Admin</span>';
+    focusBadgeInput();
+  } else if (sessionUnlocked && lockedCheckpoint) {
+    // Pi déverrouillé avec checkpoint choisi
     locked.style.display   = 'none';
     unlocked.style.display = 'block';
     const color = lockedCheckpoint === 'DEPART' ? 'var(--amber)' : 'var(--green)';
     const icon  = lockedCheckpoint === 'DEPART' ? '&#128678;' : '&#127937;';
     indic.innerHTML = '<span style="color:' + color + ';font-family:var(--mono);font-weight:700">'
       + icon + ' ' + lockedCheckpoint + ' &#128275;</span>';
-    // Bloquer le toggle de checkpoint
     document.getElementById('btn-dep').disabled = true;
     document.getElementById('btn-arr').disabled = true;
     focusBadgeInput();
@@ -2108,6 +2114,37 @@ async function supaFetch(path, opts) {
   return res.json();
 }
 
+async function pushRaceConfig() {
+  // Stocker RACE_START dans Supabase pour synchroniser tous les appareils
+  if (!SUPA_URL || !SUPA_OP_KEY || !RACE_START) return;
+  try {
+    // Upsert : supprimer + recréer
+    await supaFetch('config?key=eq.race_start', { method:'DELETE', write:true });
+    await supaFetch('config', {
+      method: 'POST', write: true,
+      body: JSON.stringify({ key: 'race_start', value: RACE_START.toISOString() })
+    });
+  } catch(e) { console.warn('pushRaceConfig error:', e.message); }
+}
+
+async function fetchRaceConfig() {
+  if (!SUPA_URL || !SUPA_ANON_KEY) return;
+  try {
+    const rows = await supaFetch('config?select=*');
+    if (rows && rows.length > 0) {
+      const rs = rows.find(r => r.key === 'race_start');
+      if (rs && rs.value) {
+        const parsed = new Date(rs.value);
+        if (!isNaN(parsed)) {
+          RACE_START = parsed;
+          startTimer();
+          saveState();
+        }
+      }
+    }
+  } catch(e) { console.warn('fetchRaceConfig error:', e.message); }
+}
+
 async function pushScanToSupabase(scan) {
   if (!SUPA_URL || !SUPA_OP_KEY) return false;
   try {
@@ -2131,6 +2168,10 @@ async function fetchSupabase() {
   if (!SUPA_URL || !SUPA_ANON_KEY) return;
   const statusEl = document.getElementById('supa-status-cfg');
   try {
+    // Synchroniser l'heure de départ si on est un Pi (ou si pas encore démarrée)
+    if (deviceType === 'checkpoint' || !RACE_START) {
+      await fetchRaceConfig();
+    }
     const rows = await supaFetch('scans?select=*&order=timestamp.asc');
     const parsed = rows.map(r => ({
       timestamp: new Date(r.timestamp),
@@ -2224,7 +2265,8 @@ function startAdmin() {
   if (anon) SUPA_ANON_KEY = anon;
   if (op)   SUPA_OP_KEY   = op;
   deviceType = 'admin';
-  sessionUnlocked = true;
+  sessionUnlocked  = true;
+  lockedCheckpoint = null; // admin n'a jamais de checkpoint verrouillé
   RACE_START = RACE_START || new Date();
   dataMode = 'supabase';
   allScans = [];
@@ -2233,6 +2275,7 @@ function startAdmin() {
   document.getElementById('startOverlay').classList.add('hidden');
   startSupaPolling();
   syncParticipantsFromSupabase();
+  pushRaceConfig(); // partager l'heure de départ avec tous les appareils
   startTimer();
   updateUI();
 }
@@ -2284,29 +2327,45 @@ function enterPiMode(chk) {
   sessionUnlocked   = true;
   saveState();
 
-  // Masquer l'app normale, afficher l'interface Pi
-  document.getElementById('pi-mode').classList.add('active');
-  document.querySelector('header').style.display = 'none';
-  document.getElementById('sheetsStatusBar').style.display = 'none';
-  document.querySelector('.nav-tabs').style.display = 'none';
-  document.querySelector('.stats-banner').style.display = 'none';
-  document.querySelector('.content').style.display = 'none';
-  document.querySelector('footer').style.display = 'none';
+  // Afficher l'interface Pi (flex column)
+  const piEl = document.getElementById('pi-mode');
+  piEl.style.display = 'flex';
+  piEl.classList.add('active');
 
-  // Configurer l'affichage
+  // Masquer tout le reste
+  const hide = ['header', '.nav-tabs', '.stats-banner', '.content', 'footer'];
+  hide.forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+  const sb = document.getElementById('sheetsStatusBar');
+  if (sb) sb.style.display = 'none';
+  // Masquer aussi les overlays PIN si ouverts
+  document.getElementById('pin-overlay').style.display = 'none';
+  document.getElementById('chk-lock-overlay').style.display = 'none';
+
+  // Configurer couleur et label
   const isDepart = chk === 'DEPART';
   const color    = isDepart ? 'var(--amber)' : 'var(--green)';
-  const label    = isDepart ? '🚦 CHECKPOINT DÉPART' : '🏁 CHECKPOINT ARRIVÉE';
-  document.getElementById('pi-header-chk').textContent = label;
-  document.getElementById('pi-header-chk').style.color = color;
-  document.getElementById('pi-mode').style.borderTop = '4px solid ' + color;
+  const label    = isDepart ? '🚦  CHECKPOINT DÉPART' : '🏁  CHECKPOINT ARRIVÉE';
+  const hdrEl    = document.getElementById('pi-header-chk');
+  if (hdrEl) { hdrEl.textContent = label; hdrEl.style.color = color; }
+  piEl.style.borderTop = '4px solid ' + color;
 
-  // Démarrer le polling Supabase pour cet écran aussi
-  startSupaPolling();
-  // Timer Pi
+  // Connexion Supabase + participants
+  syncParticipantsFromSupabase().then(() => {
+    startSupaPolling();
+    updatePiScanList();
+  });
+
+  // Timer
   startPiTimer();
 
-  setTimeout(() => document.getElementById('pi-badge-input').focus(), 200);
+  // Focus champ badge
+  setTimeout(() => {
+    const inp = document.getElementById('pi-badge-input');
+    if (inp) inp.focus();
+  }, 300);
 }
 
 function startPiTimer() {
@@ -2501,7 +2560,11 @@ function switchTab(name, btn) {
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
   if (name === 'saisie') {
-    if (OPERATOR_PIN && !sessionUnlocked) {
+    if (deviceType === 'admin') {
+      // Admin : toujours accès direct
+      updateSaisieUI();
+      setTimeout(focusBadgeInput, 80);
+    } else if (OPERATOR_PIN && !sessionUnlocked) {
       setTimeout(() => showPinOverlay(), 80);
     } else {
       updateSaisieUI();
