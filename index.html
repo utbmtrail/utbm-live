@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTBM 24H — Classement Live</title>
+<style>
+:root {
+  --ink:#0B0F14; --surface:#111820; --panel:#16202B; --border:#1E2D3D;
+  --muted:#2A3D52; --text-dim:#5A7A96; --text-mid:#8AAFC8; --text:#C8DCF0;
+  --white:#EBF4FF; --amber:#F5A623; --amber-dim:#7A5010; --green:#2ECC71;
+  --red:#E74C3C; --purple:#9B59B6; --teal:#1ABC9C;
+  --mono:'Courier New','Lucida Console',monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+
+body::before{content:'';position:fixed;inset:0;
+  background-image:radial-gradient(ellipse 120% 60% at 70% 20%,rgba(245,166,35,.04) 0%,transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Cg fill='none' stroke='%231E2D3D' stroke-width='1'%3E%3Cellipse cx='400' cy='200' rx='380' ry='180'/%3E%3Cellipse cx='400' cy='200' rx='320' ry='150'/%3E%3Cellipse cx='400' cy='200' rx='260' ry='120'/%3E%3Cellipse cx='400' cy='200' rx='200' ry='90'/%3E%3Cellipse cx='400' cy='200' rx='140' ry='60'/%3E%3Cellipse cx='400' cy='200' rx='80' ry='30'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:cover,800px 400px;background-position:center;pointer-events:none;z-index:0;opacity:.6}
+
+#app{position:relative;z-index:1}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(11,15,20,.92);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:baseline;gap:12px}
+.logo-title{font-size:22px;font-weight:800;color:var(--white);letter-spacing:.06em;text-transform:uppercase}
+.logo-sub{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.12em;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.live-badge{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--green);text-transform:uppercase}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.timer-block{text-align:right}
+.timer-display{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--amber);letter-spacing:.05em;line-height:1}
+.timer-display.not-started{color:var(--text-dim);font-size:18px}
+.timer-display.finished{color:var(--red)}
+.timer-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+
+/* BUTTONS */
+.btn-start{display:inline-flex;align-items:center;gap:8px;background:var(--amber);color:#000;border:none;border-radius:6px;padding:10px 18px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.btn-start:hover{background:#ffc045;transform:translateY(-1px)}
+.btn-reset{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:8px 14px;font-size:11px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s;font-family:var(--sans)}
+.btn-reset:hover{border-color:var(--red);color:var(--red)}
+
+/* START OVERLAY */
+#startOverlay{position:fixed;inset:0;background:rgba(11,15,20,.97);z-index:200;display:flex;align-items:center;justify-content:center}
+#startOverlay.hidden{display:none}
+.overlay-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:48px 56px;text-align:center;max-width:520px;width:90%}
+.overlay-icon{font-size:56px;margin-bottom:20px}
+.overlay-title{font-size:28px;font-weight:800;color:var(--white);margin-bottom:8px;letter-spacing:.04em}
+.overlay-sub{color:var(--text-mid);font-size:14px;margin-bottom:32px;line-height:1.6}
+.overlay-divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+.overlay-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px}
+.input-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;text-align:left}
+.input-label{font-size:11px;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase}
+.input-field{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:10px 12px;font-size:12px;font-family:var(--mono);width:100%;transition:border-color .15s}
+.input-field:focus{outline:none;border-color:var(--amber)}
+.input-field::placeholder{color:var(--text-dim)}
+.btn-start-race{width:100%;padding:16px;background:var(--amber);color:#000;border:none;border-radius:8px;font-size:16px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-top:8px;font-family:var(--sans)}
+.btn-start-race:hover{background:#ffc045}
+.btn-demo{width:100%;padding:12px;background:none;color:var(--text-mid);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;margin-top:10px;font-family:var(--sans)}
+.btn-demo:hover{border-color:var(--text-mid);color:var(--white)}
+.source-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:3px 8px;border-radius:4px;text-transform:uppercase;margin-top:10px}
+.source-badge.demo{background:rgba(26,188,156,.15);color:var(--teal);border:1px solid rgba(26,188,156,.3)}
+.source-badge.sheets{background:rgba(46,204,113,.15);color:var(--green);border:1px solid rgba(46,204,113,.3)}
+
+/* SHEETS STATUS */
+#sheetsStatusBar{background:rgba(46,204,113,.08);border-bottom:1px solid rgba(46,204,113,.2);padding:6px 28px;display:flex;align-items:center;gap:12px;font-size:11px}
+#sheetsStatusBar.hidden{display:none}
+#sheetsStatusBar.error{background:rgba(231,76,60,.08);border-bottom-color:rgba(231,76,60,.2)}
+.sheets-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+.sheets-dot.err{background:var(--red);animation:none}
+#sheetsStatusText{color:var(--text-mid);flex:1}
+#sheetsLastFetch{font-family:var(--mono);color:var(--text-dim)}
+.btn-sheets-refresh{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:all .15s;font-family:var(--sans)}
+.btn-sheets-refresh:hover{border-color:var(--green);color:var(--green)}
+
+/* NAV TABS */
+.nav-tabs{display:flex;gap:0;padding:0 28px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab-btn{padding:12px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber)}
+
+/* STATS BANNER */
+.stats-banner{display:flex;flex-wrap:wrap;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat-cell{flex:1;min-width:110px;background:var(--panel);padding:10px 16px;display:flex;flex-direction:column;gap:3px}
+.stat-val{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--white)}
+.stat-val.amber{color:var(--amber)}.stat-val.green{color:var(--green)}.stat-val.teal{color:var(--teal)}.stat-val.red{color:var(--red)}
+.stat-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)}
+
+/* CONTENT */
+.content{padding:20px 28px}
+.tab-section{display:none}
+.tab-section.active{display:block}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{display:flex;align-items:center;gap:10px}
+.section-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.section-icon.solo{background:rgba(245,166,35,.15)}
+.section-icon.equipe{background:rgba(155,89,182,.15)}
+.section-name{font-size:14px;font-weight:700;color:var(--white);letter-spacing:.06em;text-transform:uppercase}
+.section-count{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);margin-bottom:28px}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+thead tr{background:var(--surface);border-bottom:1px solid var(--border)}
+th{padding:10px 14px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);text-align:left}
+th:first-child{text-align:center;width:50px}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+tbody tr.on-course{background:rgba(245,166,35,.05)}
+tbody tr.on-course:hover{background:rgba(245,166,35,.09)}
+td{padding:11px 14px;font-size:13px;color:var(--text)}
+td:first-child{text-align:center;padding:11px 8px}
+.rank-cell{display:flex;flex-direction:column;align-items:center;gap:2px}
+.rank-num{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text-mid)}
+.rank-num.gold{color:#F5C518}.rank-num.silver{color:#A0B0C0}.rank-num.bronze{color:#CD7F32}
+.rank-delta{font-size:9px;font-family:var(--mono);line-height:1}
+.rank-delta.up{color:var(--green)}.rank-delta.down{color:var(--red)}.rank-delta.same{color:var(--text-dim)}
+.name-cell{display:flex;flex-direction:column;gap:2px}
+.name-primary{font-weight:600;color:var(--white);font-size:13px}
+.name-badge{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:.06em}
+.on-course-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--amber);background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.25);border-radius:3px;padding:1px 5px;text-transform:uppercase}
+.on-course-badge::before{content:'▶';font-size:7px}
+.mono{font-family:var(--mono);font-size:12px}
+.tours-num{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--white)}
+.tours-open{font-family:var(--mono);font-size:10px;color:var(--amber)}
+.dist-val{font-family:var(--mono);font-size:13px;color:var(--teal)}
+.dist-open{font-size:10px;color:var(--text-dim)}
+.time-good{color:var(--green)}.elapsed-warn{color:var(--amber)}.elapsed-ok{color:var(--text-mid)}
+
+/* SPEAKER */
+.speaker-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.speaker-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px}
+.speaker-panel-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.arrival-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.arrival-item:last-child{border-bottom:none}
+.arrival-time{font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:55px}
+.arrival-name{flex:1;font-weight:600;color:var(--white);font-size:13px}
+.arrival-lap{font-family:var(--mono);font-size:11px;color:var(--amber)}
+.arrival-laptime{font-family:var(--mono);font-size:12px;color:var(--text-mid);min-width:60px;text-align:right}
+.record-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.record-item:last-child{border-bottom:none}
+.record-icon{font-size:18px}.record-info{flex:1}
+.record-label{font-size:11px;color:var(--text-dim);margin-bottom:2px}
+.record-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--amber)}
+.record-who{font-size:11px;color:var(--text-mid)}
+.leader-big{text-align:center;padding:16px}
+.leader-big-cat{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
+.leader-big-name{font-size:26px;font-weight:800;color:var(--white);margin-bottom:4px}
+.leader-big-stat{font-family:var(--mono);font-size:18px;color:var(--amber)}
+
+/* CONFIG */
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.config-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px}
+.config-panel-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.config-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.config-row:last-child{border-bottom:none}
+.config-key{font-size:13px;color:var(--text)}
+.config-val{font-family:var(--mono);font-size:13px;color:var(--amber);font-weight:700}
+.config-note{font-size:10px;color:var(--text-dim);margin-top:2px}
+
+/* ANOMALIES */
+.anomalies-panel{background:var(--panel);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:16px;margin-bottom:20px}
+.anomalies-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:12px}
+.anomaly-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(231,76,60,.1);font-size:12px}
+.anomaly-item:last-child{border-bottom:none}
+.anomaly-msg{color:var(--text-mid);flex:1}
+.anomaly-badge{font-family:var(--mono);font-size:10px;color:var(--text-dim)}
+.anomaly-time{font-family:var(--mono);font-size:10px;color:var(--text-dim)}
+.no-anomalies{text-align:center;padding:20px;color:var(--green);font-size:13px}
+
+/* PARTICIPANTS */
+.p-action-btn{background:none;border:1px solid var(--border);color:var(--text-mid);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.p-action-btn:hover{border-color:var(--amber);color:var(--amber)}
+.p-delete-btn{background:none;border:1px solid rgba(231,76,60,.3);color:var(--red);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.p-delete-btn:hover{background:rgba(231,76,60,.1)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(11,15,20,.92);z-index:300;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:32px;width:460px;max-width:94vw;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-size:15px;font-weight:700;color:var(--white)}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;line-height:1;padding:0}
+.modal-error{display:none;color:var(--red);font-size:11px;margin-bottom:12px;padding:8px 10px;background:rgba(231,76,60,.1);border-radius:4px}
+.radio-group{display:flex;gap:16px}
+.radio-label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)}
+
+/* CONFIRM MSG */
+.confirm-msg{display:none;margin-top:10px;font-size:11px;color:var(--green);font-family:var(--mono)}
+
+/* LAYOUT */
+.dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1100px){.dual-grid,.config-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.speaker-layout{grid-template-columns:1fr}}
+footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-dim);letter-spacing:.06em;background:var(--surface)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
+@keyframes flash-green{0%{background:rgba(46,204,113,.25)}100%{background:transparent}}
+
+/* SAISIE MANUELLE */
+.saisie-layout{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+@media(max-width:900px){.saisie-layout{grid-template-columns:1fr}}
+.saisie-panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:16px}
+.saisie-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.chk-toggle{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:20px}
+.chk-btn{padding:14px;border:none;background:var(--surface);color:var(--text-dim);font-size:13px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .15s;font-family:var(--sans);text-transform:uppercase}
+.chk-btn.dep-on{background:var(--amber);color:#000}
+.chk-btn.arr-on{background:var(--green);color:#000}
+.badge-input-wrap{position:relative;margin-bottom:14px}
+.badge-input-big{width:100%;background:var(--surface);border:2px solid var(--border);color:var(--white);border-radius:8px;padding:16px 50px 16px 16px;font-family:var(--mono);font-size:20px;letter-spacing:.1em;transition:border-color .2s;text-transform:uppercase}
+.badge-input-big:focus{outline:none;border-color:var(--amber)}
+.flash-ok{border-color:var(--green)!important;background:rgba(46,204,113,.1)!important}
+.flash-err{border-color:var(--red)!important;background:rgba(231,76,60,.1)!important}
+.badge-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px;line-height:1}
+.scan-fb{min-height:44px;border-radius:6px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.scan-fb.ok{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);color:var(--green)}
+.scan-fb.err{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red)}
+.scan-fb.idle{background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+.log-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px}
+.log-item:last-child{border-bottom:none}
+.log-time{font-family:var(--mono);font-size:10px;color:var(--text-dim);min-width:55px;flex-shrink:0}
+.log-chk{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:700}
+.log-chk.d{background:rgba(245,166,35,.15);color:var(--amber)}
+.log-chk.a{background:rgba(46,204,113,.15);color:var(--green)}
+.log-name{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-bid{font-family:var(--mono);font-size:10px;color:var(--text-dim);flex-shrink:0}
+.log-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:3px;flex-shrink:0;line-height:1}
+.log-del:hover{color:var(--red)}
+.diag-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:12px;font-size:11px}
+.diag-title{color:var(--text-dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-size:10px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- START OVERLAY -->
+<div id="startOverlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">🏔️</div>
+    <div class="overlay-title">UTBM — Trail 24H</div>
+    <div class="overlay-sub">Configurez la source de données puis démarrez le chronomètre officiel.</div>
+    <hr class="overlay-divider">
+    <div class="overlay-section-title">🔗 Source de données (optionnel)</div>
+    <div class="input-row">
+      <div class="input-label">URL Google Sheets (CSV publié)</div>
+      <input class="input-field" id="ov-sheetsUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
+      <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Laisser vide pour utiliser les données de démonstration</div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">Intervalle de polling (secondes)</div>
+      <input class="input-field" id="ov-pollInterval" type="number" value="15" min="5" max="120">
+    </div>
+    <hr class="overlay-divider">
+    <div class="overlay-section-title">⏱ Démarrage chronomètre</div>
+    <button class="btn-start-race" onclick="startRaceNow()">🏁 &nbsp;DÉMARRER LA COURSE MAINTENANT</button>
+    <button class="btn-demo" onclick="startWithDemo()">Donnees de demonstration (course simulee)</button>
+    <button class="btn-demo" style="border-color:var(--amber);color:var(--amber);margin-top:6px" onclick="startReal()">Demarrer en mode reel (aucune donnee demo)</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-title">UTBM</div>
+    <div class="logo-sub">Trail 24H — Classement Live</div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>Live</div>
+    <div id="sourceIndicator"></div>
+    <div class="timer-block">
+      <div class="timer-display not-started" id="timerDisplay">--:--:--</div>
+      <div class="timer-label" id="timerLabel">En attente du départ</div>
+    </div>
+    <button class="btn-reset" onclick="resetRace()">↺ Réinitialiser</button>
+  </div>
+</header>
+
+<!-- SHEETS STATUS BAR -->
+<div id="sheetsStatusBar" class="hidden">
+  <span class="sheets-dot" id="sheetsDot"></span>
+  <span id="sheetsStatusText">Connecté à Google Sheets</span>
+  <span id="sheetsLastFetch"></span>
+  <button class="btn-sheets-refresh" onclick="fetchGoogleSheets()">↻ Actualiser</button>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="tab-btn active"  onclick="switchTab('classement',this)">Classement</button>
+  <button class="tab-btn"         onclick="switchTab('solo',this)">Solo</button>
+  <button class="tab-btn"         onclick="switchTab('equipes',this)">Équipes</button>
+  <button class="tab-btn"         onclick="switchTab('speaker',this)">Mode Speaker</button>
+  <button class="tab-btn"         onclick="switchTab('participants',this)">Participants <span id="participantCount"></span></button>
+  <button class="tab-btn"         onclick="switchTab('saisie',this)">&#9000; Saisie <span id="saisieCount"></span></button>
+  <button class="tab-btn"         onclick="switchTab('config',this)">Configuration</button>
+  <button class="tab-btn"         onclick="switchTab('anomalies',this)">Anomalies <span id="anomalyCount"></span></button>
+</div>
+
+<!-- STATS BANNER -->
+<div class="stats-banner">
+  <div class="stat-cell"><div class="stat-val"       id="s-participants">—</div><div class="stat-lbl">Participants</div></div>
+  <div class="stat-cell"><div class="stat-val"       id="s-equipes">—</div><div class="stat-lbl">Équipes</div></div>
+  <div class="stat-cell"><div class="stat-val amber" id="s-tours">—</div><div class="stat-lbl">Tours validés</div></div>
+  <div class="stat-cell"><div class="stat-val teal"  id="s-km">—</div><div class="stat-lbl">Km cumulés</div></div>
+  <div class="stat-cell"><div class="stat-val teal"  id="s-dplus">—</div><div class="stat-lbl">D+ cumulé</div></div>
+  <div class="stat-cell"><div class="stat-val green" id="s-best">—</div><div class="stat-lbl">Meilleur tour</div></div>
+  <div class="stat-cell"><div class="stat-val amber" id="s-leader">—</div><div class="stat-lbl">Leader</div></div>
+  <div class="stat-cell"><div class="stat-val red"   id="s-open">—</div><div class="stat-lbl">Tours ouverts</div></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- TAB: Classement général -->
+  <div id="tab-classement" class="tab-section active">
+    <div class="dual-grid">
+      <div>
+        <div class="section-header"><div class="section-title">
+          <div class="section-icon solo">🏃</div>
+          <div><div class="section-name">Solo</div><div class="section-count" id="solo-count-main">—</div></div>
+        </div></div>
+        <div class="table-wrap" id="table-solo-main"></div>
+      </div>
+      <div>
+        <div class="section-header"><div class="section-title">
+          <div class="section-icon equipe">👥</div>
+          <div><div class="section-name">Équipes</div><div class="section-count" id="equipe-count-main">—</div></div>
+        </div></div>
+        <div class="table-wrap" id="table-equipe-main"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Solo -->
+  <div id="tab-solo" class="tab-section">
+    <div class="section-header"><div class="section-title">
+      <div class="section-icon solo">🏃</div>
+      <div><div class="section-name">Classement Solo</div><div class="section-count" id="solo-count-full">—</div></div>
+    </div></div>
+    <div class="table-wrap" id="table-solo-full"></div>
+  </div>
+
+  <!-- TAB: Équipes -->
+  <div id="tab-equipes" class="tab-section">
+    <div class="section-header"><div class="section-title">
+      <div class="section-icon equipe">👥</div>
+      <div><div class="section-name">Classement Équipes</div><div class="section-count" id="equipe-count-full">—</div></div>
+    </div></div>
+    <div class="table-wrap" id="table-equipe-full"></div>
+  </div>
+
+  <!-- TAB: Speaker -->
+  <div id="tab-speaker" class="tab-section">
+    <div class="speaker-layout">
+      <div>
+        <div class="speaker-panel">
+          <div class="speaker-panel-title">🏆 Leaders actuels</div>
+          <div class="leader-big" id="speaker-leader-solo">—</div>
+          <div class="leader-big" id="speaker-leader-equipe">—</div>
+        </div>
+        <div class="speaker-panel" style="margin-top:16px">
+          <div class="speaker-panel-title">⏱ Records de l'événement</div>
+          <div id="speaker-records">—</div>
+        </div>
+      </div>
+      <div>
+        <div class="speaker-panel">
+          <div class="speaker-panel-title">🏁 Dernières arrivées</div>
+          <div id="speaker-arrivals">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Participants -->
+  <div id="tab-participants" class="tab-section">
+
+    <!-- Solo -->
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon solo">🏃</div>
+        <div><div class="section-name">Participants Solo</div><div class="section-count" id="p-solo-count">0 inscrit</div></div>
+      </div>
+      <button class="btn-start" style="font-size:11px;padding:8px 16px" onclick="openModal('solo')">+ Ajouter un solo</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:40px">#</th><th>Nom</th><th>Prénom</th><th>Badge RFID</th><th>Actions</th></tr></thead>
+        <tbody id="p-solo-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Équipes -->
+    <div class="section-header">
+      <div class="section-title">
+        <div class="section-icon equipe">👥</div>
+        <div><div class="section-name">Équipes</div><div class="section-count" id="p-equipe-count">0 équipe</div></div>
+      </div>
+      <button class="btn-start" style="font-size:11px;padding:8px 16px;background:rgba(155,89,182,0.85)" onclick="openModal('equipe')">+ Ajouter une équipe</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:40px">#</th><th>Nom d'équipe</th><th>Badge RFID</th><th>Membres</th><th>Actions</th></tr></thead>
+        <tbody id="p-equipe-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Import / Export -->
+    <div class="config-grid" style="margin-top:8px">
+      <div class="config-panel">
+        <div class="config-panel-title">📥 Import CSV</div>
+        <div style="font-size:11px;color:var(--text-mid);margin-bottom:12px;line-height:1.8">
+          Format attendu (avec en-têtes) :<br>
+          <span style="font-family:var(--mono);color:var(--amber)">nom,prenom,badge_id,equipe,categorie</span><br>
+          <span style="color:var(--text-dim)">categorie = <b>solo</b> ou <b>equipe</b> — colonne membres séparée par |</span>
+        </div>
+        <input type="file" id="p-csv-input" accept=".csv" style="display:none" onchange="importCSV(event)">
+        <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="document.getElementById('p-csv-input').click()">📂 Choisir un fichier CSV</button>
+        <div id="p-import-msg" class="confirm-msg"></div>
+      </div>
+      <div class="config-panel">
+        <div class="config-panel-title">📤 Export &amp; Actions</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="exportCSV()">💾 Exporter la liste (CSV)</button>
+          <button class="btn-reset" style="color:var(--red);border-color:rgba(231,76,60,.4)" onclick="clearAllParticipants()">🗑 Effacer tous les participants</button>
+        </div>
+        <div style="margin-top:14px;font-size:11px;color:var(--text-dim);line-height:1.7">
+          ⚠ Effacer les participants ne supprime pas les scans RFID déjà enregistrés.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Saisie manuelle -->
+  <div id="tab-saisie" class="tab-section">
+    <div class="saisie-layout">
+
+      <div>
+        <div class="saisie-panel">
+          <div class="saisie-title">
+            <span>&#128225; Pointage RFID / Manuel</span>
+            <span id="lock-indicator" style="font-size:10px;letter-spacing:.06em"></span>
+          </div>
+          <div id="saisie-locked-msg" style="display:none;text-align:center;padding:32px;color:var(--text-dim)">
+            <div style="font-size:32px;margin-bottom:12px">&#128274;</div>
+            <div style="font-size:14px;color:var(--white);margin-bottom:6px">Saisie verrouilee</div>
+            <div style="font-size:12px;margin-bottom:20px">Saisissez le PIN operateur pour activer le pointage.</div>
+            <button class="btn-start" style="padding:12px 24px" onclick="showPinOverlay()">Saisir le PIN</button>
+          </div>
+          <div id="saisie-unlocked-content">
+          <div class="chk-toggle">
+            <button class="chk-btn dep-on" id="btn-dep" onclick="setCheckpoint('DEPART')">&#128678; Depart</button>
+            <button class="chk-btn" id="btn-arr" onclick="setCheckpoint('ARRIVEE')">&#127937; Arrivee</button>
+          </div>
+          <div class="badge-input-wrap">
+            <input class="badge-input-big" id="badge-input" type="text"
+              placeholder="Scanner ou saisir le badge..."
+              autocomplete="off" autocorrect="off" spellcheck="false"
+              onkeydown="handleBadgeKey(event)" oninput="this.value=this.value.toUpperCase()">
+            <button class="badge-clear" onclick="clearBadgeInput()">x</button>
+          </div>
+          <div class="scan-fb idle" id="scan-fb"><span>En attente d'un scan...</span></div>
+          <button class="btn-start" style="width:100%;justify-content:center;padding:13px;font-size:14px;margin-bottom:14px" onclick="submitScan()">
+            &#10003; Valider le pointage
+          </button>
+          <div style="text-align:center;font-size:10px;color:var(--text-dim);line-height:1.7">
+            Le lecteur RFID (mode clavier) valide via <span style="font-family:var(--mono);background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:1px 6px">Enter</span><br>
+            Cliquez dans le champ ci-dessus puis scannez.
+          </div>
+          </div><!-- #saisie-unlocked-content -->
+        </div>
+
+        <div class="saisie-panel">
+          <div class="saisie-title">Checkpoint actif</div>
+          <div style="text-align:center;padding:8px 0">
+            <div id="chk-display" style="font-size:32px;font-weight:800;color:var(--amber);letter-spacing:.06em">DEPART</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn-reset" style="flex:1" onclick="focusBadgeInput()">&#127919; Focus clavier</button>
+            <button class="btn-reset" style="flex:1;color:var(--red);border-color:rgba(231,76,60,.3)" onclick="clearScanLog()">&#128465; Vider l'historique</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="saisie-panel" style="margin-bottom:0">
+          <div class="saisie-title">
+            <span>&#128220; Historique des pointages manuels</span>
+            <span id="manual-scan-count" style="font-family:var(--mono);color:var(--amber);font-weight:700">0 scan</span>
+          </div>
+          <div id="scan-log" style="max-height:580px;overflow-y:auto">
+            <div style="color:var(--text-dim);text-align:center;padding:40px 0;font-size:13px">
+              Aucun pointage enregistre.<br>
+              <span style="font-size:11px">Les scans apparaissent ici en temps reel.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Configuration -->
+  <div id="tab-config" class="tab-section">
+    <div class="config-grid">
+      <div class="config-panel">
+        <div class="config-panel-title">⚙ Paramètres de course</div>
+        <div class="config-row">
+          <span class="config-key">Distance par tour<br><span class="config-note">Recalcule toutes les distances</span></span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="input-field" id="cfg-dist-input" type="number" step="0.1" min="0.1" style="width:80px;text-align:right">
+            <span style="color:var(--text-dim);font-size:12px">km</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <span class="config-key">Dénivelé par tour (D+)<br><span class="config-note">Recalcule le D+ cumulé</span></span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="input-field" id="cfg-dplus-input" type="number" step="1" min="0" style="width:80px;text-align:right">
+            <span style="color:var(--text-dim);font-size:12px">m</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <span class="config-key">Durée de la course<br><span class="config-note">Recalcule le compte à rebours</span></span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="input-field" id="cfg-dur-input" type="number" step="1" min="1" max="72" style="width:80px;text-align:right">
+            <span style="color:var(--text-dim);font-size:12px">h</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <span class="config-key">Heure de départ officiel<br><span class="config-note">Recale le chronomètre</span></span>
+          <input class="input-field" id="cfg-start-input" type="datetime-local" style="width:200px">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn-start" style="font-size:11px;padding:8px 16px" onclick="applyRaceConfig()">✓ Appliquer</button>
+          <button class="btn-reset" onclick="resetRaceConfig()">↺ Défauts</button>
+        </div>
+        <div class="confirm-msg" id="cfg-confirm-msg"></div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px">📋 Résumé</div>
+        <div class="config-row"><span class="config-key">Fin de course prévue</span><span class="config-val" id="cfg-end">—</span></div>
+        <div class="config-row"><span class="config-key">Participants inscrits</span><span class="config-val" id="cfg-nb">—</span></div>
+        <div class="config-row"><span class="config-key">Scans traités</span><span class="config-val" id="cfg-scans">—</span></div>
+      </div>
+      <div class="config-panel">
+        <div class="config-panel-title">🔗 Source de données</div>
+        <div class="config-row"><span class="config-key">Mode actif</span><span class="config-val" id="cfg-mode">—</span></div>
+        <div class="config-row"><span class="config-key">Polling</span><span class="config-val" id="cfg-poll">—</span></div>
+        <div style="margin-top:16px">
+          <div class="input-row">
+            <div class="input-label">URL Google Sheets (CSV publié)</div>
+            <input class="input-field" id="cfg-sheets-url" type="text" placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv">
+          </div>
+          <div class="input-row">
+            <div class="input-label">Intervalle de polling (secondes)</div>
+            <input class="input-field" id="cfg-poll-input" type="number" value="15" min="5" max="120">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="applySheetsConfig()">Connecter</button>
+            <button class="btn-reset" onclick="disconnectSheets()">Déconnecter</button>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px;color:var(--amber)">&#128274; Securite Operateur</div>
+        <div class="input-row">
+          <div class="input-label">PIN operateur (4+ chiffres)</div>
+          <input class="input-field" id="cfg-pin" type="password" placeholder="••••" style="width:120px;letter-spacing:.2em">
+          <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Protege la saisie sur les Pi. Chaque operateur devra le saisir pour pointer.</div>
+        </div>
+        <button class="btn-start" style="font-size:11px;padding:8px 14px;margin-top:4px" onclick="savePinConfig()">Definir le PIN</button>
+        <div class="confirm-msg" id="pin-confirm-msg"></div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px;color:var(--teal)">&#9729; Supabase (base de donnees cloud)</div>
+        <div class="input-row">
+          <div class="input-label">URL du projet Supabase</div>
+          <input class="input-field" id="cfg-supa-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co">
+        </div>
+        <div class="input-row">
+          <div class="input-label">Cle publique (anon key) — lecture</div>
+          <input class="input-field" id="cfg-supa-anon" type="text" placeholder="eyJhbGciOiJIUzI1NiIs...">
+        </div>
+        <div class="input-row">
+          <div class="input-label">Cle operateur (service role) — ecriture</div>
+          <input class="input-field" id="cfg-supa-op" type="password" placeholder="eyJhbGciOiJIUzI1NiIs...">
+          <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Protegee par le PIN — ne jamais partager</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="saveSupaConfig()">Connecter Supabase</button>
+          <button class="btn-reset" onclick="disconnectSupa()">Deconnecter</button>
+        </div>
+        <div class="confirm-msg" id="supa-confirm-msg"></div>
+        <div id="supa-status-cfg" style="display:none;margin-top:10px;font-size:11px;padding:8px 10px;border-radius:4px"></div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px">&#128218; Guide Google Sheets</div>
+        <div style="font-size:11px;color:var(--text-mid);line-height:1.8">
+          ① Colonnes : <span style="font-family:var(--mono);color:var(--amber)">timestamp | badge_id | checkpoint</span><br>
+          ② Fichier → Partager → <b style="color:var(--white)">Publier sur le Web</b> → CSV<br>
+          ③ Coller l'URL ci-dessus → Connecter<br>
+          <span style="color:var(--text-dim)">En local : <span style="font-family:var(--mono)">python -m http.server 8080</span></span>
+        </div>
+        <div class="diag-box" id="sheets-diag" style="display:none">
+          <div class="diag-title">Diagnostic colonnes</div>
+          <div id="sheets-diag-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Anomalies -->
+  <div id="tab-anomalies" class="tab-section">
+    <div id="anomalies-container"></div>
+  </div>
+
+</div><!-- .content -->
+
+<!-- MODAL PARTICIPANT -->
+<div class="modal-overlay" id="p-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Ajouter un participant</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <input type="hidden" id="modal-mode">
+    <input type="hidden" id="modal-edit-badge">
+    <input type="hidden" id="modal-cat">
+
+    <!-- Champs Solo -->
+    <div id="modal-solo-fields">
+      <div class="input-row">
+        <div class="input-label">Nom *</div>
+        <input class="input-field" id="modal-nom" type="text" placeholder="Dupont">
+      </div>
+      <div class="input-row">
+        <div class="input-label">Prénom *</div>
+        <input class="input-field" id="modal-prenom" type="text" placeholder="Jean">
+      </div>
+      <div class="input-row">
+        <div class="input-label">ID Badge RFID *</div>
+        <input class="input-field" id="modal-badge" type="text" placeholder="RFID001" style="font-family:var(--mono);text-transform:uppercase">
+        <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Doit correspondre exactement aux scans RFID</div>
+      </div>
+    </div>
+
+    <!-- Champs Équipe -->
+    <div id="modal-equipe-fields" style="display:none">
+      <div class="input-row">
+        <div class="input-label">Nom de l'équipe *</div>
+        <input class="input-field" id="modal-equipe-nom" type="text" placeholder="Les Bouquetons">
+      </div>
+      <div class="input-row">
+        <div class="input-label">ID Badge RFID *</div>
+        <input class="input-field" id="modal-equipe-badge" type="text" placeholder="RFID101" style="font-family:var(--mono);text-transform:uppercase">
+      </div>
+      <div class="input-row">
+        <div class="input-label">Membres de l'équipe <span style="color:var(--text-dim)">(optionnel)</span></div>
+        <div id="membres-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px"></div>
+        <button onclick="addMembreField()" style="background:none;border:1px dashed var(--border);color:var(--text-dim);border-radius:6px;padding:7px;font-size:11px;cursor:pointer;width:100%;transition:border-color .15s" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border)'">+ Ajouter un membre</button>
+      </div>
+    </div>
+
+    <div class="modal-error" id="modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn-start" style="flex:1;font-size:13px;padding:12px" onclick="saveParticipant()">✓ Enregistrer</button>
+      <button class="btn-reset" onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div id="pin-overlay" style="display:none;position:fixed;inset:0;background:rgba(11,15,20,.97);z-index:400;align-items:center;justify-content:center">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;width:340px;max-width:94vw">
+    <div style="font-size:36px;margin-bottom:16px">&#128274;</div>
+    <div style="font-size:18px;font-weight:800;color:var(--white);margin-bottom:6px">Acces operateur</div>
+    <div style="font-size:13px;color:var(--text-mid);margin-bottom:24px" id="pin-overlay-msg">Saisissez le PIN pour deverrouiller la saisie.</div>
+    <input id="pin-input" type="password" class="input-field"
+      style="text-align:center;font-size:28px;letter-spacing:.3em;margin-bottom:16px"
+      placeholder="••••" maxlength="8"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="btn-start" style="width:100%;padding:13px;font-size:14px;margin-bottom:10px" onclick="checkPin()">Deverrouiller</button>
+    <button class="btn-reset" style="width:100%" onclick="closePinOverlay()">Annuler</button>
+    <div id="pin-error" style="display:none;color:var(--red);font-size:12px;margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- CHECKPOINT LOCK OVERLAY -->
+<div id="chk-lock-overlay" style="display:none;position:fixed;inset:0;background:rgba(11,15,20,.97);z-index:400;align-items:center;justify-content:center">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;width:400px;max-width:94vw">
+    <div style="font-size:36px;margin-bottom:16px">&#127915;</div>
+    <div style="font-size:18px;font-weight:800;color:var(--white);margin-bottom:8px">Choisir le checkpoint</div>
+    <div style="font-size:13px;color:var(--text-mid);margin-bottom:28px">Ce choix sera verrouille sur cet appareil.<br>Pour changer, resaisir le PIN.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button onclick="lockCheckpoint('DEPART')"
+        style="padding:24px 16px;background:rgba(245,166,35,.15);border:2px solid var(--amber);border-radius:10px;color:var(--amber);font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase">
+        &#128678;<br>DEPART
+      </button>
+      <button onclick="lockCheckpoint('ARRIVEE')"
+        style="padding:24px 16px;background:rgba(46,204,113,.15);border:2px solid var(--green);border-radius:10px;color:var(--green);font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase">
+        &#127937;<br>ARRIVEE
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>UTBM 24H Trail · Système de classement live</span>
+  <span style="font-family:var(--mono)">Mise à jour : <span id="lastUpdate">—</span></span>
+</footer>
+</div><!-- #app -->
+
+<script>
+/* ================================================================
+   PARAMÈTRES DE COURSE
+   ================================================================ */
+const DEFAULTS = { distance: 6.5, denivele: 180, duree: 24 };
+let DISTANCE_TOUR = DEFAULTS.distance;
+let DENIVELE_TOUR = DEFAULTS.denivele;
+let DUREE_COURSE  = DEFAULTS.duree;
+
+/* ================================================================
+   PARTICIPANTS — structure : { badge_id → { nom, prenom, name, cat, membres? } }
+   ================================================================ */
+const DEMO_PARTICIPANTS = {
+  'RFID001': { nom:'Moreau',   prenom:'Lucas',  name:'Lucas Moreau',   cat:'solo' },
+  'RFID002': { nom:'Dupont',   prenom:'Emma',   name:'Emma Dupont',    cat:'solo' },
+  'RFID003': { nom:'Bernard',  prenom:'Théo',   name:'Théo Bernard',   cat:'solo' },
+  'RFID004': { nom:'Petit',    prenom:'Chloé',  name:'Chloé Petit',    cat:'solo' },
+  'RFID005': { nom:'Girard',   prenom:'Nathan', name:'Nathan Girard',  cat:'solo' },
+  'RFID006': { nom:'Laurent',  prenom:'Manon',  name:'Manon Laurent',  cat:'solo' },
+  'RFID007': { nom:'Martin',   prenom:'Hugo',   name:'Hugo Martin',    cat:'solo' },
+  'RFID008': { nom:'Leroy',    prenom:'Inès',   name:'Inès Leroy',     cat:'solo' },
+  'RFID101': { nom:'Les Bouquetons', prenom:'', name:'Les Bouquetons', cat:'equipe', membres:['Alice M.','Bob T.','Carla D.'] },
+  'RFID102': { nom:'Trail Blazers',  prenom:'', name:'Trail Blazers',  cat:'equipe', membres:['David R.','Eva S.'] },
+  'RFID103': { nom:'Krypto Runners', prenom:'', name:'Krypto Runners', cat:'equipe', membres:['Fanny L.','Gaël P.','Hugo N.'] },
+  'RFID104': { nom:'Les Chamois',    prenom:'', name:'Les Chamois',    cat:'equipe', membres:['Iris C.','Jules V.'] },
+  'RFID105': { nom:'Team Altitude',  prenom:'', name:'Team Altitude',  cat:'equipe', membres:['Kévin B.','Laura M.','Marc A.'] },
+};
+let PARTICIPANTS = Object.assign({}, DEMO_PARTICIPANTS);
+
+/* ================================================================
+   ÉTAT GLOBAL
+   ================================================================ */
+let RACE_START      = null;
+let allScans        = [];
+let anomalies       = [];
+let previousRanks   = {};
+let dataMode        = 'none';
+let sheetsUrl       = '';
+let pollIntervalSec = 15;
+let sheetsTimerId   = null;
+let simTimerId      = null;
+let simStep         = 0;
+let timerRafId      = null;
+
+/* Supabase */
+let SUPA_URL        = '';   // ex: https://xxxx.supabase.co
+let SUPA_ANON_KEY   = '';   // clé publique (lecture seule)
+let SUPA_OP_KEY     = '';   // clé opérateur (écriture, protégée par PIN)
+let supaTimerId     = null;
+
+/* Sécurité opérateur */
+let OPERATOR_PIN    = '';   // PIN défini par l'organisateur
+let sessionUnlocked = false;// true après saisie correcte du PIN
+let lockedCheckpoint = null;// 'DEPART' | 'ARRIVEE' | null (verrouillé après choix)
+
+/* ================================================================
+   PERSISTANCE
+   ================================================================ */
+const LS_KEY = 'utbm_race_v2';
+
+function saveState() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      raceStart:    RACE_START ? RACE_START.toISOString() : null,
+      dataMode, sheetsUrl, pollIntervalSec,
+      distanceTour: DISTANCE_TOUR,
+      deniveleTour: DENIVELE_TOUR,
+      dureeCourse:  DUREE_COURSE,
+      participants: PARTICIPANTS,
+      supaUrl:      SUPA_URL,
+      supaAnonKey:  SUPA_ANON_KEY,
+      supaOpKey:    SUPA_OP_KEY,
+      operatorPin:  OPERATOR_PIN,
+      lockedChk:    lockedCheckpoint,
+    }));
+  } catch(e) { console.warn('saveState error', e); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+/* ================================================================
+   DÉMARRAGE
+   ================================================================ */
+function startRaceNow() {
+  const url  = document.getElementById('ov-sheetsUrl').value.trim();
+  const poll = parseInt(document.getElementById('ov-pollInterval').value) || 15;
+  sheetsUrl = url;
+  pollIntervalSec = Math.max(5, poll);
+  RACE_START = new Date();
+  saveState();
+  document.getElementById('startOverlay').classList.add('hidden');
+  if (sheetsUrl) {
+    dataMode = 'sheets';
+    startSheetsPolling();
+  } else {
+    dataMode = 'demo';
+    allScans = buildDemoScans();
+    startSimulation();
+  }
+  startTimer();
+  updateUI();
+}
+
+function startWithDemo() {
+  RACE_START = new Date(Date.now() - 14 * 3600000);
+  dataMode = 'demo';
+  sheetsUrl = '';
+  saveState();
+  document.getElementById('startOverlay').classList.add('hidden');
+  allScans = buildDemoScans();
+  startSimulation();
+  startTimer();
+  updateUI();
+}
+
+function resetRace() {
+  if (!confirm('Réinitialiser la course ? Le chronomètre et les scans seront effacés.')) return;
+  RACE_START = null;
+  allScans = [];
+  dataMode = 'none';
+  sheetsUrl = '';
+  previousRanks = {};
+  clearInterval(sheetsTimerId);
+  clearInterval(simTimerId);
+  cancelAnimationFrame(timerRafId);
+  // Garder les participants et la config
+  saveState();
+  document.getElementById('startOverlay').classList.remove('hidden');
+  document.getElementById('timerDisplay').textContent = '--:--:--';
+  document.getElementById('timerDisplay').className = 'timer-display not-started';
+  document.getElementById('timerLabel').textContent = 'En attente du départ';
+  document.getElementById('sheetsStatusBar').classList.add('hidden');
+  updateUI();
+}
+
+/* ================================================================
+   TIMER
+   ================================================================ */
+function startTimer() {
+  cancelAnimationFrame(timerRafId);
+  function tick() {
+    if (!RACE_START) return;
+    const raceEnd = RACE_START.getTime() + DUREE_COURSE * 3600000;
+    const remaining = raceEnd - Date.now();
+    const el  = document.getElementById('timerDisplay');
+    const lbl = document.getElementById('timerLabel');
+    if (remaining <= 0) {
+      el.textContent = '00:00:00';
+      el.className = 'timer-display finished';
+      lbl.textContent = 'Course terminée';
+      return;
+    }
+    const s = Math.ceil(remaining / 1000);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    el.textContent = `${pad(h)}:${pad(m)}:${pad(sec)}`;
+    el.className = 'timer-display';
+    lbl.textContent = 'Temps restant';
+    timerRafId = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+/* ================================================================
+   DONNÉES DÉMO
+   ================================================================ */
+function buildDemoScans() {
+  const scans = [];
+  function addLap(badge, depOffMin, lapMin) {
+    const dep = new Date(RACE_START.getTime() + depOffMin * 60000);
+    const arr = new Date(dep.getTime() + lapMin * 60000);
+    scans.push({ timestamp: dep, badge_id: badge, checkpoint: 'DEPART' });
+    scans.push({ timestamp: arr, badge_id: badge, checkpoint: 'ARRIVEE' });
+    return depOffMin + lapMin;
+  }
+  const elapsed = (Date.now() - RACE_START) / 60000;
+  function addRunner(badge, start, base, jitter) {
+    let t = start;
+    while (true) {
+      const lap = base + Math.floor(Math.random() * jitter);
+      if (t + lap >= elapsed) break;
+      t = addLap(badge, t, lap);
+      t += Math.floor(2 + Math.random() * 5);
+    }
+    if (t + 5 < elapsed) {
+      scans.push({ timestamp: new Date(RACE_START.getTime() + t * 60000), badge_id: badge, checkpoint: 'DEPART' });
+    }
+  }
+  addRunner('RFID001', 2,  43, 6);
+  addRunner('RFID002', 5,  46, 5);
+  addRunner('RFID003', 3,  50, 8);
+  addRunner('RFID004', 8,  52, 7);
+  addRunner('RFID005', 10, 55, 10);
+  addRunner('RFID006', 12, 58, 8);
+  addRunner('RFID007', 0,  62, 10);
+  addRunner('RFID008', 15, 65, 12);
+  addRunner('RFID101', 1,  41, 5);
+  addRunner('RFID102', 2,  43, 6);
+  addRunner('RFID103', 4,  45, 7);
+  addRunner('RFID104', 6,  48, 8);
+  addRunner('RFID105', 8,  50, 10);
+  // Anomalies démo
+  scans.push({ timestamp: new Date(RACE_START.getTime() + 15 * 60000), badge_id: 'RFID007', checkpoint: 'DEPART' });
+  scans.push({ timestamp: new Date(RACE_START.getTime() + 200 * 60000), badge_id: 'RFID008', checkpoint: 'ARRIVEE' });
+  scans.push({ timestamp: new Date(RACE_START.getTime() + 400 * 60000), badge_id: 'RFID999', checkpoint: 'DEPART' });
+  scans.sort((a, b) => a.timestamp - b.timestamp);
+  return scans;
+}
+
+/* ================================================================
+   SIMULATION LIVE
+   ================================================================ */
+function startSimulation() {
+  clearInterval(simTimerId);
+  simTimerId = setInterval(() => {
+    const { solos, equipes } = processScans(allScans);
+    const open = [...solos, ...equipes].filter(r => r.onCourse);
+    if (open.length > 0) {
+      const target = open[simStep % open.length];
+      const depScan = [...allScans].reverse().find(s => s.badge_id === target.badge_id && s.checkpoint === 'DEPART');
+      if (depScan) {
+        const lapSec = (40 + Math.floor(Math.random() * 25)) * 60;
+        allScans.push({ timestamp: new Date(depScan.timestamp.getTime() + lapSec * 1000), badge_id: target.badge_id, checkpoint: 'ARRIVEE' });
+        allScans.sort((a, b) => a.timestamp - b.timestamp);
+      }
+      simStep++;
+    }
+    updateUI();
+  }, 20000);
+}
+
+/* ================================================================
+   GOOGLE SHEETS
+   ================================================================ */
+async function fetchGoogleSheets() {
+  if (!sheetsUrl) return;
+  const dot    = document.getElementById('sheetsDot');
+  const status = document.getElementById('sheetsStatusText');
+  const last   = document.getElementById('sheetsLastFetch');
+  const bar    = document.getElementById('sheetsStatusBar');
+  try {
+    status.textContent = 'Récupération…';
+    dot.className = 'sheets-dot';
+    const url = sheetsUrl + (sheetsUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const csv = await res.text();
+    const parsed = parseCSV(csv);
+    diagSheets(csv);
+    if (parsed.length > 0) {
+      allScans = [...parsed, ...manualScans].sort((a,b)=>a.timestamp-b.timestamp);
+      updateUI();
+      status.textContent = `Google Sheets · ${parsed.length} scans`;
+      dot.className = 'sheets-dot';
+      bar.classList.remove('error');
+    } else {
+      status.textContent = 'Feuille vide ou format incorrect';
+      dot.className = 'sheets-dot err';
+      bar.classList.add('error');
+    }
+    last.textContent = 'Màj ' + new Date().toLocaleTimeString('fr-FR');
+  } catch(e) {
+    status.textContent = `Erreur : ${e.message}`;
+    dot.className = 'sheets-dot err';
+    bar.classList.add('error');
+    last.textContent = new Date().toLocaleTimeString('fr-FR');
+  }
+}
+
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g,''));
+  const iTs  = headers.indexOf('timestamp');
+  const iBid = headers.indexOf('badge_id');
+  const iChk = headers.indexOf('checkpoint');
+  if (iTs < 0 || iBid < 0 || iChk < 0) return [];
+  const scans = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(sep).map(c => c.trim().replace(/"/g,''));
+    if (cols.length < 3) continue;
+    const date = new Date(cols[iTs].replace(' ','T'));
+    const chk  = cols[iChk].toUpperCase();
+    if (isNaN(date) || (chk !== 'DEPART' && chk !== 'ARRIVEE')) continue;
+    scans.push({ timestamp: date, badge_id: cols[iBid], checkpoint: chk });
+  }
+  scans.sort((a, b) => a.timestamp - b.timestamp);
+  return scans;
+}
+
+function startSheetsPolling() {
+  const bar = document.getElementById('sheetsStatusBar');
+  bar.classList.remove('hidden');
+  clearInterval(sheetsTimerId);
+  fetchGoogleSheets();
+  sheetsTimerId = setInterval(fetchGoogleSheets, pollIntervalSec * 1000);
+}
+
+function applySheetsConfig() {
+  const url  = document.getElementById('cfg-sheets-url').value.trim();
+  const poll = parseInt(document.getElementById('cfg-poll-input').value) || 15;
+  if (!url) { alert('Veuillez saisir une URL Google Sheets valide.'); return; }
+  sheetsUrl = url;
+  pollIntervalSec = Math.max(5, poll);
+  dataMode = 'sheets';
+  clearInterval(simTimerId);
+  saveState();
+  startSheetsPolling();
+  updateConfigTab();
+}
+
+function disconnectSheets() {
+  sheetsUrl = '';
+  clearInterval(sheetsTimerId);
+  document.getElementById('sheetsStatusBar').classList.add('hidden');
+  dataMode = 'demo';
+  saveState();
+  updateConfigTab();
+}
+
+/* ================================================================
+   TRAITEMENT DES SCANS
+   ================================================================ */
+function processScans(scans) {
+  anomalies = [];
+  const state = {};
+  for (const badge in PARTICIPANTS) {
+    state[badge] = { name: PARTICIPANTS[badge].name, cat: PARTICIPANTS[badge].cat, openLapStart: null, laps: [] };
+  }
+  for (const scan of scans) {
+    const { timestamp, badge_id, checkpoint } = scan;
+    if (!PARTICIPANTS[badge_id]) {
+      anomalies.push({ type:'badge_inconnu', badge_id, timestamp, msg:`Badge inconnu "${badge_id}" — checkpoint ${checkpoint}` });
+      continue;
+    }
+    const s = state[badge_id];
+    if (checkpoint === 'DEPART') {
+      if (s.openLapStart !== null) {
+        anomalies.push({ type:'double_depart', badge_id, timestamp, msg:`Double départ sans arrivée — ${s.name}` });
+      } else {
+        s.openLapStart = timestamp;
+      }
+    } else if (checkpoint === 'ARRIVEE') {
+      if (s.openLapStart === null) {
+        anomalies.push({ type:'arrivee_sans_depart', badge_id, timestamp, msg:`Arrivée sans tour ouvert — ${s.name}` });
+      } else {
+        s.laps.push({ start: s.openLapStart, end: timestamp, duration: (timestamp - s.openLapStart) / 1000 });
+        s.openLapStart = null;
+      }
+    }
+  }
+  const results = [];
+  for (const [badge_id, s] of Object.entries(state)) {
+    const n = s.laps.length;
+    results.push({
+      badge_id, name: s.name, cat: s.cat,
+      tours: n, onCourse: s.openLapStart !== null, openStart: s.openLapStart,
+      totalTime:   n > 0 ? (s.laps[n-1].end - s.laps[0].start) / 1000 : 0,
+      lastLapTime: n > 0 ? s.laps[n-1].duration : null,
+      bestLapTime: n > 0 ? Math.min(...s.laps.map(l => l.duration)) : null,
+      avgLapTime:  n > 0 ? s.laps.reduce((a, l) => a + l.duration, 0) / n : null,
+      lastArrival: n > 0 ? s.laps[n-1].end : null,
+      distance:    n * DISTANCE_TOUR,
+      dplus:       n * DENIVELE_TOUR,
+    });
+  }
+  const solos   = results.filter(r => r.cat === 'solo').sort(sortFn);
+  const equipes = results.filter(r => r.cat === 'equipe').sort(sortFn);
+  return { solos, equipes };
+}
+
+function sortFn(a, b) {
+  if (b.tours !== a.tours) return b.tours - a.tours;
+  if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
+  if (a.lastArrival && b.lastArrival) return a.lastArrival - b.lastArrival;
+  return 0;
+}
+
+/* ================================================================
+   FORMATAGE
+   ================================================================ */
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function fmtTime(sec) {
+  if (sec === null || sec === undefined || isNaN(sec)) return '—';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+function fmtHour(date) {
+  if (!date) return '—';
+  return date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function rankColor(i) { return ['gold','silver','bronze'][i] || ''; }
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ================================================================
+   TABLEAUX CLASSEMENT
+   ================================================================ */
+function buildTable(data, compact) {
+  const cols = compact
+    ? ['Rang','Nom','Tours','Distance','Meilleur','Tps moyen','Tps total']
+    : ['Rang','Nom','Tours','Distance','Dernier tour','Meilleur tour','Tps moyen','Total course'];
+  let html = `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  data.forEach((r, i) => {
+    const prev = previousRanks[r.badge_id];
+    let delta = '';
+    if (prev !== undefined) {
+      const d = prev - (i+1);
+      if (d > 0)      delta = `<div class="rank-delta up">▲${d}</div>`;
+      else if (d < 0) delta = `<div class="rank-delta down">▼${Math.abs(d)}</div>`;
+      else            delta = `<div class="rank-delta same">—</div>`;
+    }
+    const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
+    const toursHtml = r.onCourse
+      ? `<div class="tours-num">${r.tours}</div><div class="tours-open">+1 en cours</div>`
+      : `<div class="tours-num">${r.tours}</div>`;
+    const badge = r.onCourse ? `<span class="on-course-badge">En parcours</span>` : '';
+    const rowCls = r.onCourse ? 'on-course' : '';
+    if (compact) {
+      html += `<tr class="${rowCls}">
+        <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
+        <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge">${esc(r.badge_id)} ${badge}</div></div></td>
+        <td>${toursHtml}</td>
+        <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open">+${DISTANCE_TOUR}km estimé</div>`:''}</td>
+        <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
+        <td class="mono">${fmtTime(r.avgLapTime)}</td>
+        <td class="mono">${fmtTime(r.totalTime)}</td>
+      </tr>`;
+    } else {
+      html += `<tr class="${rowCls}">
+        <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
+        <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge">${esc(r.badge_id)} ${badge}</div></div></td>
+        <td>${toursHtml}</td>
+        <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open">+${DISTANCE_TOUR}km estimé</div>`:''}</td>
+        <td class="mono elapsed-ok">${fmtTime(r.lastLapTime)}<br><small style="color:var(--text-dim)">${fmtHour(r.lastArrival)}</small></td>
+        <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
+        <td class="mono">${fmtTime(r.avgLapTime)}</td>
+        <td class="mono">${fmtTime(r.totalTime)}</td>
+      </tr>`;
+    }
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+/* ================================================================
+   STATS GLOBALES
+   ================================================================ */
+function computeGlobalStats(solos, equipes) {
+  const all = [...solos, ...equipes];
+  let bestLap = null, bestLapWho = null;
+  for (const r of all) {
+    if (r.bestLapTime !== null && (bestLap === null || r.bestLapTime < bestLap)) {
+      bestLap = r.bestLapTime; bestLapWho = r.name;
+    }
+  }
+  return {
+    totalTours:  all.reduce((s,r) => s + r.tours, 0),
+    totalKm:     all.reduce((s,r) => s + r.distance, 0),
+    totalDplus:  all.reduce((s,r) => s + r.dplus, 0),
+    openTours:   all.filter(r => r.onCourse).length,
+    bestLap, bestLapWho,
+    leaderSolo:   solos.length  > 0 ? solos[0].name  : '—',
+    leaderEquipe: equipes.length > 0 ? equipes[0].name : '—',
+  };
+}
+
+/* ================================================================
+   UPDATE UI
+   ================================================================ */
+function updateUI() {
+  const { solos, equipes } = processScans(allScans);
+
+  document.getElementById('table-solo-main').innerHTML   = buildTable(solos,   true);
+  document.getElementById('table-equipe-main').innerHTML = buildTable(equipes, true);
+  document.getElementById('table-solo-full').innerHTML   = buildTable(solos,   false);
+  document.getElementById('table-equipe-full').innerHTML = buildTable(equipes, false);
+
+  const sc = `${solos.length} participant${solos.length>1?'s':''}`;
+  const ec = `${equipes.length} équipe${equipes.length>1?'s':''}`;
+  ['solo-count-main','solo-count-full'].forEach(id => document.getElementById(id).textContent = sc);
+  ['equipe-count-main','equipe-count-full'].forEach(id => document.getElementById(id).textContent = ec);
+
+  solos.forEach((r,i)   => previousRanks[r.badge_id] = i+1);
+  equipes.forEach((r,i) => previousRanks[r.badge_id] = i+1);
+
+  const gs = computeGlobalStats(solos, equipes);
+  document.getElementById('s-participants').textContent = solos.length;
+  document.getElementById('s-equipes').textContent      = equipes.length;
+  document.getElementById('s-tours').textContent        = gs.totalTours;
+  document.getElementById('s-km').textContent           = gs.totalKm.toFixed(0) + ' km';
+  document.getElementById('s-dplus').textContent        = gs.totalDplus.toFixed(0) + ' m';
+  document.getElementById('s-best').textContent         = fmtTime(gs.bestLap);
+  document.getElementById('s-leader').textContent       = gs.leaderSolo;
+  document.getElementById('s-open').textContent         = gs.openTours;
+
+  renderSpeaker(solos, equipes, gs);
+  renderAnomalies();
+  renderParticipantsTab();
+  updateConfigTab();
+
+  const countBadge = anomalies.length > 0
+    ? `<span style="color:var(--red);font-family:var(--mono)">(${anomalies.length})</span>` : '';
+  document.getElementById('anomalyCount').innerHTML = countBadge;
+
+  const si = document.getElementById('sourceIndicator');
+  si.innerHTML = dataMode === 'sheets'
+    ? `<span class="source-badge sheets">📊 Google Sheets</span>`
+    : dataMode === 'demo' ? `<span class="source-badge demo">🧪 Démo</span>` : '';
+
+  document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('fr-FR');
+  renderScanLog();
+  updateSaisieCount();
+}
+
+/* ================================================================
+   CONFIG TAB
+   ================================================================ */
+function updateConfigTab() {
+  const distEl  = document.getElementById('cfg-dist-input');
+  const dplusEl = document.getElementById('cfg-dplus-input');
+  const durEl   = document.getElementById('cfg-dur-input');
+  const startEl = document.getElementById('cfg-start-input');
+  if (distEl  && document.activeElement !== distEl)  distEl.value  = DISTANCE_TOUR;
+  if (dplusEl && document.activeElement !== dplusEl) dplusEl.value = DENIVELE_TOUR;
+  if (durEl   && document.activeElement !== durEl)   durEl.value   = DUREE_COURSE;
+  if (startEl && document.activeElement !== startEl && RACE_START) {
+    const d = RACE_START;
+    startEl.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  if (RACE_START) {
+    const end = new Date(RACE_START.getTime() + DUREE_COURSE * 3600000);
+    document.getElementById('cfg-end').textContent = end.toLocaleString('fr-FR');
+  } else {
+    document.getElementById('cfg-end').textContent = '—';
+  }
+  document.getElementById('cfg-mode').textContent  = dataMode === 'supabase' ? 'Supabase' : dataMode === 'sheets' ? 'Google Sheets' : dataMode === 'demo' ? 'Démonstration' : dataMode === 'live' ? 'Mode réel (local)' : '—';
+  document.getElementById('cfg-poll').textContent  = dataMode === 'sheets' ? `Toutes les ${pollIntervalSec}s` : 'Inactif';
+  document.getElementById('cfg-nb').textContent    = Object.keys(PARTICIPANTS).length;
+  document.getElementById('cfg-scans').textContent = allScans.length;
+  if (sheetsUrl) document.getElementById('cfg-sheets-url').value = sheetsUrl;
+}
+
+function applyRaceConfig() {
+  const dist  = parseFloat(document.getElementById('cfg-dist-input').value);
+  const dplus = parseInt(document.getElementById('cfg-dplus-input').value);
+  const dur   = parseInt(document.getElementById('cfg-dur-input').value);
+  const startVal = document.getElementById('cfg-start-input').value;
+  let changed = false;
+  if (!isNaN(dist)  && dist  > 0)  { DISTANCE_TOUR = dist;  changed = true; }
+  if (!isNaN(dplus) && dplus >= 0) { DENIVELE_TOUR = dplus; changed = true; }
+  if (!isNaN(dur)   && dur   > 0)  { DUREE_COURSE  = dur;   changed = true; startTimer(); }
+  if (startVal) {
+    const parsed = new Date(startVal);
+    if (!isNaN(parsed)) { RACE_START = parsed; changed = true; startTimer(); }
+  }
+  if (changed) {
+    saveState();
+    updateUI();
+    showMsg('cfg-confirm-msg', '✓ Paramètres mis à jour — classement recalculé');
+  }
+}
+
+function resetRaceConfig() {
+  DISTANCE_TOUR = DEFAULTS.distance;
+  DENIVELE_TOUR = DEFAULTS.denivele;
+  DUREE_COURSE  = DEFAULTS.duree;
+  saveState();
+  updateUI();
+  showMsg('cfg-confirm-msg', '↺ Valeurs par défaut restaurées');
+}
+
+/* ================================================================
+   SPEAKER
+   ================================================================ */
+function renderSpeaker(solos, equipes, gs) {
+  const ls = solos.length  > 0 ? solos[0]  : null;
+  const le = equipes.length > 0 ? equipes[0] : null;
+  document.getElementById('speaker-leader-solo').innerHTML = ls
+    ? `<div class="leader-big-cat">🏃 Solo</div><div class="leader-big-name">${esc(ls.name)}</div><div class="leader-big-stat">${ls.tours} tours · ${ls.distance.toFixed(1)} km</div>` : '—';
+  document.getElementById('speaker-leader-equipe').innerHTML = le
+    ? `<div class="leader-big-cat" style="margin-top:20px">👥 Équipe</div><div class="leader-big-name">${esc(le.name)}</div><div class="leader-big-stat">${le.tours} tours · ${le.distance.toFixed(1)} km</div>` : '—';
+
+  document.getElementById('speaker-records').innerHTML = `
+    <div class="record-item"><div class="record-icon">⚡</div><div class="record-info">
+      <div class="record-label">Meilleur tour de l'événement</div>
+      <div class="record-val">${fmtTime(gs.bestLap)}</div>
+      <div class="record-who">${esc(gs.bestLapWho||'—')}</div>
+    </div></div>
+    <div class="record-item"><div class="record-icon">🔢</div><div class="record-info">
+      <div class="record-label">Total tours validés</div>
+      <div class="record-val">${gs.totalTours}</div>
+      <div class="record-who">${gs.totalKm.toFixed(0)} km · ${gs.totalDplus.toFixed(0)} m D+</div>
+    </div></div>`;
+
+  // Feed dernières arrivées
+  const temp = {};
+  const feed = [];
+  for (const s of allScans) {
+    if (!PARTICIPANTS[s.badge_id]) continue;
+    if (!temp[s.badge_id]) temp[s.badge_id] = { open: null, n: 0 };
+    const t = temp[s.badge_id];
+    if (s.checkpoint === 'DEPART' && !t.open) { t.open = s.timestamp; }
+    else if (s.checkpoint === 'ARRIVEE' && t.open) {
+      t.n++;
+      feed.push({ name: PARTICIPANTS[s.badge_id].name, lapNum: t.n, end: s.timestamp, duration: (s.timestamp - t.open) / 1000 });
+      t.open = null;
+    }
+  }
+  feed.sort((a,b) => b.end - a.end);
+  document.getElementById('speaker-arrivals').innerHTML = feed.slice(0,10).map(l =>
+    `<div class="arrival-item">
+      <div class="arrival-time">${fmtHour(l.end)}</div>
+      <div class="arrival-name">${esc(l.name)}</div>
+      <div class="arrival-lap">Tour ${l.lapNum}</div>
+      <div class="arrival-laptime">${fmtTime(l.duration)}</div>
+    </div>`
+  ).join('') || '<div style="color:var(--text-dim);padding:16px;text-align:center">Aucune arrivée</div>';
+}
+
+/* ================================================================
+   ANOMALIES
+   ================================================================ */
+function renderAnomalies() {
+  const c = document.getElementById('anomalies-container');
+  if (anomalies.length === 0) {
+    c.innerHTML = `<div class="anomalies-panel"><div class="no-anomalies">✅ Aucune anomalie détectée</div></div>`;
+    return;
+  }
+  const icons  = { double_depart:'⚠️', arrivee_sans_depart:'🔴', badge_inconnu:'❓' };
+  const labels = { double_depart:'Double départ', arrivee_sans_depart:'Arrivée sans départ', badge_inconnu:'Badge inconnu' };
+  c.innerHTML = `<div class="anomalies-panel">
+    <div class="anomalies-title">⚠ Anomalies (${anomalies.length})</div>
+    ${anomalies.map(a => `
+      <div class="anomaly-item">
+        <div>${icons[a.type]||'⚠'}</div>
+        <div>
+          <div class="anomaly-msg">${esc(a.msg)}</div>
+          <div style="display:flex;gap:10px;margin-top:3px">
+            <span class="anomaly-badge">${esc(a.badge_id)}</span>
+            <span class="anomaly-time">${fmtHour(a.timestamp)}</span>
+            <span style="font-size:10px;color:var(--amber);background:rgba(245,166,35,.1);padding:1px 5px;border-radius:3px">${labels[a.type]||a.type}</span>
+          </div>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ================================================================
+   GESTION DES PARTICIPANTS
+   ================================================================ */
+function renderParticipantsTab() {
+  const solos   = Object.entries(PARTICIPANTS).filter(([,p]) => p.cat === 'solo');
+  const equipes = Object.entries(PARTICIPANTS).filter(([,p]) => p.cat === 'equipe');
+
+  // Solo
+  const sb = document.getElementById('p-solo-tbody');
+  if (sb) {
+    if (solos.length === 0) {
+      sb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">Aucun participant solo — cliquez sur + Ajouter un solo</td></tr>';
+    } else {
+      sb.innerHTML = solos.map(([badge, p], i) => `<tr>
+        <td style="color:var(--text-dim);font-family:var(--mono)">${i+1}</td>
+        <td><b style="color:var(--white)">${esc(p.nom)}</b></td>
+        <td>${esc(p.prenom)}</td>
+        <td><span style="font-family:var(--mono);font-size:11px;background:rgba(245,166,35,.1);color:var(--amber);padding:2px 8px;border-radius:3px">${esc(badge)}</span></td>
+        <td><div style="display:flex;gap:6px">
+          <button class="p-action-btn" onclick="editParticipant('${esc(badge)}')">✏ Modifier</button>
+          <button class="p-delete-btn" onclick="deleteParticipant('${esc(badge)}')">✕</button>
+        </div></td>
+      </tr>`).join('');
+    }
+  }
+
+  // Équipes
+  const eb = document.getElementById('p-equipe-tbody');
+  if (eb) {
+    if (equipes.length === 0) {
+      eb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">Aucune équipe — cliquez sur + Ajouter une équipe</td></tr>';
+    } else {
+      eb.innerHTML = equipes.map(([badge, p], i) => {
+        const membres = (p.membres||[]).filter(m=>m.trim()).join(', ') || '<span style="color:var(--text-dim)">—</span>';
+        return `<tr>
+          <td style="color:var(--text-dim);font-family:var(--mono)">${i+1}</td>
+          <td><b style="color:var(--white)">${esc(p.nom)}</b></td>
+          <td><span style="font-family:var(--mono);font-size:11px;background:rgba(155,89,182,.12);color:#C39BD3;padding:2px 8px;border-radius:3px">${esc(badge)}</span></td>
+          <td style="font-size:12px;color:var(--text-mid);white-space:normal;max-width:200px">${membres}</td>
+          <td><div style="display:flex;gap:6px">
+            <button class="p-action-btn" onclick="editParticipant('${esc(badge)}')">✏ Modifier</button>
+            <button class="p-delete-btn" onclick="deleteParticipant('${esc(badge)}')">✕</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  // Compteurs
+  const ps = document.getElementById('p-solo-count');
+  const pe = document.getElementById('p-equipe-count');
+  if (ps) ps.textContent = `${solos.length} inscrit${solos.length>1?'s':''}`;
+  if (pe) pe.textContent = `${equipes.length} équipe${equipes.length>1?'s':''}`;
+  const pc = document.getElementById('participantCount');
+  const total = Object.keys(PARTICIPANTS).length;
+  if (pc) pc.innerHTML = total > 0 ? `<span style="color:var(--amber);font-family:var(--mono)">(${total})</span>` : '';
+}
+
+/* ── MODAL ── */
+function openModal(cat, badgeToEdit) {
+  const modal = document.getElementById('p-modal');
+  modal.classList.add('open');
+  document.getElementById('modal-error').style.display = 'none';
+
+  // Reset
+  ['modal-nom','modal-prenom','modal-badge','modal-equipe-nom','modal-equipe-badge'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('membres-list').innerHTML = '';
+
+  if (badgeToEdit) {
+    const p = PARTICIPANTS[badgeToEdit];
+    cat = p.cat;
+    document.getElementById('modal-title').textContent = 'Modifier';
+    document.getElementById('modal-mode').value = 'edit';
+    document.getElementById('modal-edit-badge').value = badgeToEdit;
+    if (cat === 'solo') {
+      document.getElementById('modal-nom').value    = p.nom || '';
+      document.getElementById('modal-prenom').value = p.prenom || '';
+      document.getElementById('modal-badge').value  = badgeToEdit;
+    } else {
+      document.getElementById('modal-equipe-nom').value   = p.nom || '';
+      document.getElementById('modal-equipe-badge').value = badgeToEdit;
+      (p.membres || []).forEach(m => addMembreField(m));
+    }
+  } else {
+    document.getElementById('modal-title').textContent = cat === 'solo' ? 'Ajouter un participant Solo' : 'Ajouter une Équipe';
+    document.getElementById('modal-mode').value = 'add';
+    document.getElementById('modal-edit-badge').value = '';
+  }
+
+  document.getElementById('modal-cat').value = cat;
+  document.getElementById('modal-solo-fields').style.display   = cat === 'solo'   ? 'block' : 'none';
+  document.getElementById('modal-equipe-fields').style.display = cat === 'equipe' ? 'block' : 'none';
+}
+
+function closeModal() {
+  document.getElementById('p-modal').classList.remove('open');
+}
+
+function addMembreField(val) {
+  const list = document.getElementById('membres-list');
+  const row  = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;align-items:center';
+  row.innerHTML = `<input class="input-field" type="text" placeholder="Prénom Nom" value="${esc(val||'')}" style="flex:1">
+    <button onclick="this.parentElement.remove()" style="background:none;border:1px solid rgba(231,76,60,.3);color:var(--red);border-radius:4px;padding:5px 9px;cursor:pointer;font-size:12px;flex-shrink:0">✕</button>`;
+  list.appendChild(row);
+}
+
+function saveParticipant() {
+  const mode     = document.getElementById('modal-mode').value;
+  const oldBadge = document.getElementById('modal-edit-badge').value;
+  const cat      = document.getElementById('modal-cat').value;
+  document.getElementById('modal-error').style.display = 'none';
+
+  let badge, entry;
+
+  if (cat === 'solo') {
+    const nom    = document.getElementById('modal-nom').value.trim();
+    const prenom = document.getElementById('modal-prenom').value.trim();
+    badge = document.getElementById('modal-badge').value.trim().toUpperCase();
+    if (!nom || !prenom || !badge) { showModalError('Nom, prénom et badge sont obligatoires.'); return; }
+    if (mode === 'add' && PARTICIPANTS[badge]) { showModalError(`Le badge ${badge} est déjà attribué à ${PARTICIPANTS[badge].name}.`); return; }
+    if (mode === 'edit' && badge !== oldBadge && PARTICIPANTS[badge]) { showModalError(`Le badge ${badge} est déjà utilisé.`); return; }
+    entry = { nom, prenom, name: `${prenom} ${nom}`, cat: 'solo' };
+  } else {
+    const nomEq = document.getElementById('modal-equipe-nom').value.trim();
+    badge = document.getElementById('modal-equipe-badge').value.trim().toUpperCase();
+    if (!nomEq || !badge) { showModalError("Nom d'équipe et badge sont obligatoires."); return; }
+    if (mode === 'add' && PARTICIPANTS[badge]) { showModalError(`Le badge ${badge} est déjà attribué à ${PARTICIPANTS[badge].name}.`); return; }
+    if (mode === 'edit' && badge !== oldBadge && PARTICIPANTS[badge]) { showModalError(`Le badge ${badge} est déjà utilisé.`); return; }
+    const membres = Array.from(document.getElementById('membres-list').querySelectorAll('input'))
+      .map(i => i.value.trim()).filter(Boolean);
+    entry = { nom: nomEq, prenom: '', name: nomEq, cat: 'equipe', membres };
+  }
+
+  if (mode === 'edit' && oldBadge && oldBadge !== badge) delete PARTICIPANTS[oldBadge];
+  PARTICIPANTS[badge] = entry;
+  saveState();
+  closeModal();
+  renderParticipantsTab();
+  updateUI();
+}
+
+function showModalError(msg) {
+  const el = document.getElementById('modal-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function editParticipant(badge) { openModal(PARTICIPANTS[badge]?.cat || 'solo', badge); }
+
+function deleteParticipant(badge) {
+  const p = PARTICIPANTS[badge];
+  if (!confirm(`Supprimer "${p?.name || badge}" (${badge}) ?`)) return;
+  delete PARTICIPANTS[badge];
+  saveState();
+  renderParticipantsTab();
+  updateUI();
+}
+
+function clearAllParticipants() {
+  if (!confirm('Effacer TOUS les participants ? Action irréversible.')) return;
+  PARTICIPANTS = {};
+  saveState();
+  renderParticipantsTab();
+  updateUI();
+}
+
+/* ── IMPORT CSV ── */
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.trim().split('\n');
+    if (lines.length < 2) { showImportMsg('Fichier vide.', false); return; }
+    const sep = lines[0].includes(';') ? ';' : ',';
+    const hdrs = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g,''));
+    const iN = hdrs.indexOf('nom'), iP = hdrs.indexOf('prenom'),
+          iB = hdrs.indexOf('badge_id'), iC = hdrs.indexOf('categorie'),
+          iE = hdrs.indexOf('equipe'),   iM = hdrs.indexOf('membres');
+    if (iB < 0 || iC < 0) { showImportMsg('Colonnes badge_id et categorie obligatoires.', false); return; }
+    let added = 0, skipped = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(sep).map(c => c.trim().replace(/"/g,''));
+      const badge = (cols[iB]||'').toUpperCase();
+      const cat   = (cols[iC]||'').toLowerCase();
+      if (!badge || (cat !== 'solo' && cat !== 'equipe')) { skipped++; continue; }
+      const nom = iN >= 0 ? (cols[iN]||'') : '';
+      const pre = iP >= 0 ? (cols[iP]||'') : '';
+      const eq  = iE >= 0 ? (cols[iE]||'') : '';
+      const mem = iM >= 0 ? (cols[iM]||'').split('|').map(m=>m.trim()).filter(Boolean) : [];
+      if (cat === 'solo') {
+        PARTICIPANTS[badge] = { nom, prenom: pre, name: `${pre} ${nom}`.trim() || badge, cat: 'solo' };
+      } else {
+        const nomEq = eq || nom || badge;
+        PARTICIPANTS[badge] = { nom: nomEq, prenom:'', name: nomEq, cat: 'equipe', membres: mem };
+      }
+      added++;
+    }
+    saveState();
+    renderParticipantsTab();
+    updateUI();
+    showImportMsg(`✓ ${added} importé(s)${skipped ? `, ${skipped} ignoré(s)` : ''}.`, true);
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function showImportMsg(msg, ok) {
+  const el = document.getElementById('p-import-msg');
+  el.textContent = msg;
+  el.style.color = ok ? 'var(--green)' : 'var(--red)';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function exportCSV() {
+  const rows = ['nom,prenom,badge_id,equipe,categorie,membres'];
+  for (const [badge, p] of Object.entries(PARTICIPANTS)) {
+    const mem = (p.membres||[]).join('|');
+    if (p.cat === 'solo') rows.push(`"${p.nom}","${p.prenom}","${badge}","","solo",""`);
+    else rows.push(`"${p.nom}","","${badge}","${p.nom}","equipe","${mem}"`);
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type:'text/csv;charset=utf-8;' }));
+  a.download = 'utbm_participants.csv';
+  a.click();
+}
+
+/* ================================================================
+   UTILITAIRE MESSAGES
+   ================================================================ */
+function showMsg(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+/* ================================================================
+   MODE REEL
+   ================================================================ */
+function startReal() {
+  const url  = document.getElementById('ov-sheetsUrl').value.trim();
+  const poll = parseInt(document.getElementById('ov-pollInterval').value) || 15;
+  sheetsUrl = url;
+  pollIntervalSec = Math.max(5, poll);
+  RACE_START = new Date();
+  allScans = [];
+  manualScans = [];
+  clearInterval(simTimerId);
+
+  if (SUPA_URL && SUPA_ANON_KEY) {
+    dataMode = 'supabase';
+  } else if (sheetsUrl) {
+    dataMode = 'sheets';
+  } else {
+    dataMode = 'live';
+  }
+
+  saveState();
+  document.getElementById('startOverlay').classList.add('hidden');
+
+  if (dataMode === 'supabase')     startSupaPolling();
+  else if (dataMode === 'sheets')  startSheetsPolling();
+
+  startTimer();
+  updateUI();
+  const btn = document.querySelector('.tab-btn:nth-child(6)');
+  switchTab('saisie', btn);
+}
+
+/* ================================================================
+   SAISIE MANUELLE RFID
+   ================================================================ */
+let currentCheckpoint = 'DEPART';
+let manualScans = [];
+
+function setCheckpoint(chk) {
+  currentCheckpoint = chk;
+  document.getElementById('btn-dep').className = 'chk-btn' + (chk === 'DEPART' ? ' dep-on' : '');
+  document.getElementById('btn-arr').className = 'chk-btn' + (chk === 'ARRIVEE' ? ' arr-on' : '');
+  const disp = document.getElementById('chk-display');
+  disp.textContent = chk === 'DEPART' ? 'DEPART' : 'ARRIVEE';
+  disp.style.color = chk === 'DEPART' ? 'var(--amber)' : 'var(--green)';
+  focusBadgeInput();
+}
+
+function focusBadgeInput() {
+  const el = document.getElementById('badge-input');
+  if (el) el.focus();
+}
+
+function clearBadgeInput() {
+  const el = document.getElementById('badge-input');
+  el.value = '';
+  el.className = 'badge-input-big';
+  el.focus();
+}
+
+function handleBadgeKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); submitScan(); }
+}
+
+function submitScan() {
+  const input = document.getElementById('badge-input');
+  const badge = (input.value || '').trim().toUpperCase();
+
+  if (!badge) { showFb('Saisissez ou scannez un badge.', 'err'); return; }
+  if (!RACE_START) { showFb("La course n'est pas encore demarree.", 'err'); return; }
+
+  const scan = { timestamp: new Date(), badge_id: badge, checkpoint: currentCheckpoint };
+  const p = PARTICIPANTS[badge];
+
+  manualScans.push(scan);
+  allScans.push(scan);
+  allScans.sort((a, b) => a.timestamp - b.timestamp);
+
+  if (p) {
+    showFb((currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name + ' — ' + currentCheckpoint, 'ok');
+    input.classList.add('flash-ok');
+  } else {
+    showFb('Badge inconnu : ' + badge, 'err');
+    input.classList.add('flash-err');
+  }
+
+  renderScanLog();
+  updateUI();
+
+  // Push vers Supabase si connecté
+  if (SUPA_URL && SUPA_OP_KEY) {
+    pushScanToSupabase(scan).then(ok => {
+      if (ok) {
+        scan.supaId = 'pushed'; // marqué comme envoyé
+        showFb((currentCheckpoint === 'DEPART' ? '&#128678; ' : '&#127937; ')
+          + (p ? p.name : scan.badge_id) + ' — enregistre en ligne', 'ok');
+      } else {
+        showFb('Enregistre localement (erreur Supabase)', 'err');
+      }
+    });
+  }
+
+  setTimeout(() => {
+    input.value = '';
+    input.className = 'badge-input-big';
+    input.focus();
+  }, 400);
+}
+
+function showFb(msg, type) {
+  const el = document.getElementById('scan-fb');
+  el.className = 'scan-fb ' + type;
+  el.textContent = msg;
+  if (type !== 'idle') setTimeout(() => {
+    el.className = 'scan-fb idle';
+    el.textContent = "En attente d'un scan...";
+  }, 3000);
+}
+
+function renderScanLog() {
+  const log = document.getElementById('scan-log');
+  if (!log) return;
+  const cnt = document.getElementById('manual-scan-count');
+  if (cnt) cnt.textContent = manualScans.length + ' scan' + (manualScans.length > 1 ? 's' : '');
+  if (manualScans.length === 0) {
+    log.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:40px 0;font-size:13px">Aucun pointage enregistre.</div>';
+    return;
+  }
+  const rev = [...manualScans].reverse();
+  log.innerHTML = rev.map((s, ri) => {
+    const realIdx = manualScans.length - 1 - ri;
+    const p   = PARTICIPANTS[s.badge_id];
+    const cls = s.checkpoint === 'DEPART' ? 'd' : 'a';
+    const lbl = s.checkpoint === 'DEPART' ? 'DEP' : 'ARR';
+    const nameHtml = p
+      ? '<span class="log-name">' + esc(p.name) + '</span>'
+      : '<span class="log-name" style="color:var(--red)">' + esc(s.badge_id) + ' (inconnu)</span>';
+    return '<div class="log-item">'
+      + '<div class="log-time">' + fmtHour(s.timestamp) + '</div>'
+      + '<span class="log-chk ' + cls + '">' + lbl + '</span>'
+      + nameHtml
+      + '<div class="log-bid">' + esc(s.badge_id) + '</div>'
+      + '<button class="log-del" onclick="deleteScan(' + realIdx + ')">x</button>'
+      + '</div>';
+  }).join('');
+}
+
+function deleteScan(idx) {
+  const scan = manualScans[idx];
+  if (!scan) return;
+  if (!confirm('Supprimer ce scan ?\n' + scan.badge_id + ' - ' + scan.checkpoint + ' - ' + fmtHour(scan.timestamp))) return;
+  const ai = allScans.indexOf(scan);
+  if (ai >= 0) allScans.splice(ai, 1);
+  manualScans.splice(idx, 1);
+  renderScanLog(); updateUI(); updateSaisieCount();
+}
+
+function clearScanLog() {
+  if (!manualScans.length) return;
+  if (!confirm('Supprimer les ' + manualScans.length + ' scans manuels ?')) return;
+  manualScans.forEach(s => { const i = allScans.indexOf(s); if (i >= 0) allScans.splice(i, 1); });
+  manualScans = [];
+  renderScanLog(); updateUI(); updateSaisieCount();
+}
+
+function updateSaisieCount() {
+  const el = document.getElementById('saisieCount');
+  if (el) el.innerHTML = manualScans.length > 0
+    ? '<span style="color:var(--amber);font-family:var(--mono)">(' + manualScans.length + ')</span>' : '';
+  renderScanLog();
+}
+
+/* ================================================================
+   DIAGNOSTIC GOOGLE SHEETS
+   ================================================================ */
+function diagSheets(csv) {
+  const diag    = document.getElementById('sheets-diag');
+  const diagCnt = document.getElementById('sheets-diag-content');
+  if (!diag || !diagCnt) return;
+  const lines = csv.trim().split('\n');
+  if (!lines.length) { diag.style.display = 'none'; return; }
+  const sep     = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g,''));
+  const required = ['timestamp','badge_id','checkpoint'];
+  const rows    = lines.length - 1;
+  const checks  = required.map(col => {
+    const ok = headers.includes(col);
+    return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0">'
+      + '<span>' + (ok ? '&#9989;' : '&#10060;') + '</span>'
+      + '<span style="font-family:var(--mono);color:' + (ok ? 'var(--green)' : 'var(--red)') + '">' + col + '</span>'
+      + (!ok ? '<span style="color:var(--text-dim)">— colonne manquante</span>' : '')
+      + '</div>';
+  }).join('');
+  const allOk  = required.every(c => headers.includes(c));
+  const extras = headers.filter(h => h && !required.includes(h));
+  diagCnt.innerHTML = checks
+    + (extras.length ? '<div style="margin-top:6px;color:var(--text-dim);font-size:10px">Colonnes ignorees : ' + extras.join(', ') + '</div>' : '')
+    + '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);color:var(--text-mid)">'
+    + rows + ' ligne(s) · sep: ' + (sep === ',' ? 'virgule' : 'point-virgule')
+    + (allOk ? ' <span style="color:var(--green)">&#10003; Format correct</span>' : ' <span style="color:var(--red)">&#9888; Colonnes manquantes</span>')
+    + '</div>';
+  diag.style.display = 'block';
+}
+
+/* ================================================================
+   PIN & SECURITE OPERATEUR
+   ================================================================ */
+function savePinConfig() {
+  const pin = document.getElementById('cfg-pin').value.trim();
+  if (pin.length < 4) { showMsg('pin-confirm-msg', 'PIN trop court (minimum 4 caracteres)'); return; }
+  OPERATOR_PIN = pin;
+  saveState();
+  showMsg('pin-confirm-msg', 'PIN defini — les operateurs devront le saisir pour pointer.');
+  document.getElementById('cfg-pin').value = '';
+}
+
+function showPinOverlay(afterUnlock) {
+  const ov = document.getElementById('pin-overlay');
+  ov.style.display = 'flex';
+  ov.dataset.callback = afterUnlock || '';
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').style.display = 'none';
+  setTimeout(() => document.getElementById('pin-input').focus(), 100);
+}
+
+function closePinOverlay() {
+  document.getElementById('pin-overlay').style.display = 'none';
+}
+
+function checkPin() {
+  const entered = document.getElementById('pin-input').value.trim();
+  if (!OPERATOR_PIN) {
+    // Pas de PIN configuré = accès direct
+    sessionUnlocked = true;
+    closePinOverlay();
+    afterPinUnlock();
+    return;
+  }
+  if (entered === OPERATOR_PIN) {
+    sessionUnlocked = true;
+    closePinOverlay();
+    document.getElementById('pin-error').style.display = 'none';
+    afterPinUnlock();
+  } else {
+    const err = document.getElementById('pin-error');
+    err.textContent = 'PIN incorrect. Reessayez.';
+    err.style.display = 'block';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
+  }
+}
+
+function afterPinUnlock() {
+  // Si le checkpoint n'est pas encore verrouillé → demander
+  if (!lockedCheckpoint) {
+    document.getElementById('chk-lock-overlay').style.display = 'flex';
+  } else {
+    // Déjà verrouillé → juste déverrouiller la saisie
+    setCheckpoint(lockedCheckpoint);
+    updateSaisieUI();
+  }
+}
+
+function lockCheckpoint(chk) {
+  lockedCheckpoint = chk;
+  currentCheckpoint = chk;
+  document.getElementById('chk-lock-overlay').style.display = 'none';
+  saveState();
+  setCheckpoint(chk);
+  updateSaisieUI();
+}
+
+function updateSaisieUI() {
+  const locked   = document.getElementById('saisie-locked-msg');
+  const unlocked = document.getElementById('saisie-unlocked-content');
+  const indic    = document.getElementById('lock-indicator');
+
+  if (sessionUnlocked && lockedCheckpoint) {
+    locked.style.display   = 'none';
+    unlocked.style.display = 'block';
+    const color = lockedCheckpoint === 'DEPART' ? 'var(--amber)' : 'var(--green)';
+    const icon  = lockedCheckpoint === 'DEPART' ? '&#128678;' : '&#127937;';
+    indic.innerHTML = '<span style="color:' + color + ';font-family:var(--mono);font-weight:700">'
+      + icon + ' ' + lockedCheckpoint + ' &#128275;</span>';
+    // Bloquer le toggle de checkpoint
+    document.getElementById('btn-dep').disabled = true;
+    document.getElementById('btn-arr').disabled = true;
+    focusBadgeInput();
+  } else {
+    locked.style.display   = OPERATOR_PIN ? 'block' : 'none';
+    unlocked.style.display = OPERATOR_PIN ? 'none' : 'block';
+    if (!OPERATOR_PIN) indic.innerHTML = '<span style="color:var(--text-dim)">&#128275; Pas de PIN</span>';
+  }
+}
+
+/* ================================================================
+   SUPABASE
+   ================================================================ */
+function saveSupaConfig() {
+  const url  = document.getElementById('cfg-supa-url').value.trim();
+  const anon = document.getElementById('cfg-supa-anon').value.trim();
+  const op   = document.getElementById('cfg-supa-op').value.trim();
+  if (!url || !anon) { showMsg('supa-confirm-msg', 'URL et cle publique obligatoires.'); return; }
+  SUPA_URL      = url.replace(/\/$/, '');
+  SUPA_ANON_KEY = anon;
+  if (op) SUPA_OP_KEY = op;
+  dataMode = 'supabase';
+  clearInterval(sheetsTimerId);
+  clearInterval(simTimerId);
+  saveState();
+  startSupaPolling();
+  showMsg('supa-confirm-msg', 'Supabase connecte — polling toutes les 5s.');
+  updateConfigTab();
+}
+
+function disconnectSupa() {
+  SUPA_URL = ''; SUPA_ANON_KEY = ''; SUPA_OP_KEY = '';
+  clearInterval(supaTimerId);
+  dataMode = 'live';
+  saveState();
+  updateConfigTab();
+  showMsg('supa-confirm-msg', 'Supabase deconnecte.');
+}
+
+async function supaFetch(path, opts) {
+  const key = (opts && opts.write) ? SUPA_OP_KEY || SUPA_ANON_KEY : SUPA_ANON_KEY;
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      'apikey':        key,
+      'Authorization': 'Bearer ' + key,
+      'Content-Type':  'application/json',
+      'Prefer':        (opts && opts.write) ? 'return=representation' : 'return=representation',
+      ...(opts ? opts.headers : {}),
+    }
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(res.status + ' ' + txt);
+  }
+  return res.json();
+}
+
+async function pushScanToSupabase(scan) {
+  if (!SUPA_URL || !SUPA_OP_KEY) return false;
+  try {
+    await supaFetch('scans', {
+      method: 'POST',
+      write: true,
+      body: JSON.stringify({
+        badge_id:   scan.badge_id,
+        checkpoint: scan.checkpoint,
+        timestamp:  scan.timestamp.toISOString(),
+      })
+    });
+    return true;
+  } catch(e) {
+    console.warn('Supabase push error:', e.message);
+    return false;
+  }
+}
+
+async function fetchSupabase() {
+  if (!SUPA_URL || !SUPA_ANON_KEY) return;
+  const statusEl = document.getElementById('supa-status-cfg');
+  try {
+    const rows = await supaFetch('scans?select=*&order=timestamp.asc');
+    const parsed = rows.map(r => ({
+      timestamp: new Date(r.timestamp),
+      badge_id:  r.badge_id,
+      checkpoint: r.checkpoint.toUpperCase(),
+      id: r.id,
+    })).filter(r => !isNaN(r.timestamp));
+
+    // Fusionner avec scans manuels locaux (éviter doublons par id Supabase)
+    const supaIds = new Set(parsed.map(r => r.id).filter(Boolean));
+    const localOnly = manualScans.filter(s => !s.supaId);
+    allScans = [...parsed, ...localOnly].sort((a,b) => a.timestamp - b.timestamp);
+    updateUI();
+
+    const bar = document.getElementById('sheetsStatusBar');
+    bar.classList.remove('hidden');
+    document.getElementById('sheetsDot').className = 'sheets-dot';
+    document.getElementById('sheetsStatusText').textContent = 'Supabase · ' + parsed.length + ' scans';
+    document.getElementById('sheetsLastFetch').textContent  = 'Maj ' + new Date().toLocaleTimeString('fr-FR');
+
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'rgba(46,204,113,.1)';
+      statusEl.style.border = '1px solid rgba(46,204,113,.3)';
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = 'Connecte · ' + parsed.length + ' scans en base';
+    }
+  } catch(e) {
+    console.warn('Supabase fetch error:', e.message);
+    const bar = document.getElementById('sheetsStatusBar');
+    bar.classList.remove('hidden');
+    document.getElementById('sheetsDot').className = 'sheets-dot err';
+    document.getElementById('sheetsStatusText').textContent = 'Supabase erreur : ' + e.message;
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'rgba(231,76,60,.1)';
+      statusEl.style.border = '1px solid rgba(231,76,60,.3)';
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = 'Erreur : ' + e.message;
+    }
+  }
+}
+
+function startSupaPolling() {
+  clearInterval(supaTimerId);
+  fetchSupabase();
+  supaTimerId = setInterval(fetchSupabase, 5000); // toutes les 5s
+}
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'saisie') {
+    if (OPERATOR_PIN && !sessionUnlocked) {
+      setTimeout(() => showPinOverlay(), 80);
+    } else {
+      updateSaisieUI();
+      setTimeout(focusBadgeInput, 80);
+    }
+  }
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+(function init() {
+  const saved = loadState();
+  if (saved) {
+    // Restaurer params course
+    if (saved.distanceTour) DISTANCE_TOUR    = saved.distanceTour;
+    if (saved.deniveleTour) DENIVELE_TOUR    = saved.deniveleTour;
+    if (saved.dureeCourse)  DUREE_COURSE     = saved.dureeCourse;
+    if (saved.supaUrl)      SUPA_URL         = saved.supaUrl;
+    if (saved.supaAnonKey)  SUPA_ANON_KEY    = saved.supaAnonKey;
+    if (saved.supaOpKey)    SUPA_OP_KEY      = saved.supaOpKey;
+    if (saved.operatorPin)  OPERATOR_PIN     = saved.operatorPin;
+    if (saved.lockedChk)    lockedCheckpoint = saved.lockedChk;
+    // Restaurer participants
+    if (saved.participants && Object.keys(saved.participants).length > 0) {
+      PARTICIPANTS = saved.participants;
+    }
+  }
+
+  if (saved && saved.raceStart) {
+    RACE_START = new Date(saved.raceStart);
+    dataMode   = saved.dataMode || 'demo';
+    sheetsUrl  = saved.sheetsUrl || '';
+    pollIntervalSec = saved.pollIntervalSec || 15;
+    document.getElementById('startOverlay').classList.add('hidden');
+    startTimer();
+    if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
+      startSupaPolling();
+    } else if (dataMode === 'sheets' && sheetsUrl) {
+      startSheetsPolling();
+    } else if (dataMode === 'live') {
+      // mode reel sans backend, scans locaux uniquement
+    } else {
+      dataMode = 'demo';
+      allScans = buildDemoScans();
+      startSimulation();
+    }
+    updateUI();
+  }
+  // Sinon l'overlay reste visible
+
+  // Rafraîchissement léger (hors sheets polling)
+  setInterval(() => { if (dataMode !== 'sheets') updateUI(); }, 30000);
+})();
+</script>
+</body>
+</html>
