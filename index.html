@@ -880,10 +880,10 @@ let simTimerId      = null;
 let simStep         = 0;
 let timerRafId      = null;
 
-/* Supabase */
-let SUPA_URL        = '';   // ex: https://xxxx.supabase.co
-let SUPA_ANON_KEY   = '';   // clé publique (lecture seule)
-let SUPA_OP_KEY     = '';   // clé opérateur (écriture, protégée par PIN)
+/* Supabase — credentials pré-configurés */
+let SUPA_URL        = 'https://xxthgejhnxnzotgyxiaj.supabase.co';
+let SUPA_ANON_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dGhnZWpobnhuem90Z3l4aWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjI0NzgsImV4cCI6MjA5NzQ5ODQ3OH0.lVO6E0e0BX9fR_9-o1CK8eQtLpGk4X6gitABiO-wUKY';
+let SUPA_OP_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dGhnZWpobnhuem90Z3l4aWFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTkyMjQ3OCwiZXhwIjoyMDk3NDk4NDc4fQ.vZK_8IngUOoCSD56Ip9HjccSv1-W07ejLPC3ESP3u3o';
 let supaTimerId     = null;
 
 /* Sécurité opérateur */
@@ -2215,24 +2215,24 @@ function selectDeviceType(type) {
 }
 
 function startAdmin() {
+  // Récupérer les valeurs des champs (peuvent avoir été modifiées)
   const url  = document.getElementById('ov-supa-url').value.trim();
   const anon = document.getElementById('ov-supa-anon').value.trim();
   const op   = document.getElementById('ov-supa-op').value.trim();
-  if (url)  { SUPA_URL = url.replace(/\/$/,''); }
-  if (anon) { SUPA_ANON_KEY = anon; }
-  if (op)   { SUPA_OP_KEY   = op;   }
+  // Utiliser les champs si remplis, sinon garder les valeurs hardcodées
+  if (url)  SUPA_URL      = url.replace(/\/$/,'');
+  if (anon) SUPA_ANON_KEY = anon;
+  if (op)   SUPA_OP_KEY   = op;
   deviceType = 'admin';
-  sessionUnlocked = true; // admin toujours déverrouillé
+  sessionUnlocked = true;
   RACE_START = RACE_START || new Date();
-  dataMode = (SUPA_URL && SUPA_ANON_KEY) ? 'supabase' : 'live';
+  dataMode = 'supabase';
   allScans = [];
   clearInterval(simTimerId);
   saveState();
   document.getElementById('startOverlay').classList.add('hidden');
-  if (dataMode === 'supabase') {
-    startSupaPolling();
-    syncParticipantsFromSupabase(); // récupérer les participants depuis Supabase
-  }
+  startSupaPolling();
+  syncParticipantsFromSupabase();
   startTimer();
   updateUI();
 }
@@ -2253,9 +2253,9 @@ function startCheckpoint() {
     errEl.style.display = 'block'; return;
   }
 
-  SUPA_URL      = url.replace(/\/$/,'');
-  SUPA_ANON_KEY = anon;
-  SUPA_OP_KEY   = op;
+  if (url)  SUPA_URL      = url.replace(/\/$/,'');
+  if (anon) SUPA_ANON_KEY = anon;
+  if (op)   SUPA_OP_KEY   = op;
   OPERATOR_PIN  = pin;
   deviceType    = 'checkpoint';
   RACE_START    = RACE_START || new Date();
@@ -2514,6 +2514,9 @@ function switchTab(name, btn) {
    INIT
    ================================================================ */
 (function init() {
+  // Supabase est pré-configuré — dataMode par défaut
+  if (!dataMode || dataMode === 'none') dataMode = 'supabase';
+
   const saved = loadState();
   if (saved) {
     // Restaurer params course
@@ -2521,9 +2524,11 @@ function switchTab(name, btn) {
     if (saved.distanceTour) DISTANCE_TOUR    = saved.distanceTour;
     if (saved.deniveleTour) DENIVELE_TOUR    = saved.deniveleTour;
     if (saved.dureeCourse)  DUREE_COURSE     = saved.dureeCourse;
-    if (saved.supaUrl)      SUPA_URL         = saved.supaUrl;
-    if (saved.supaAnonKey)  SUPA_ANON_KEY    = saved.supaAnonKey;
-    if (saved.supaOpKey)    SUPA_OP_KEY      = saved.supaOpKey;
+    // Utiliser les creds sauvegardés seulement s'ils existent,
+    // sinon les valeurs hardcodées restent en place
+    if (saved.supaUrl     && saved.supaUrl.length > 10)     SUPA_URL      = saved.supaUrl;
+    if (saved.supaAnonKey && saved.supaAnonKey.length > 10) SUPA_ANON_KEY = saved.supaAnonKey;
+    if (saved.supaOpKey   && saved.supaOpKey.length > 10)   SUPA_OP_KEY   = saved.supaOpKey;
     if (saved.operatorPin)  OPERATOR_PIN     = saved.operatorPin;
     if (saved.lockedChk)    lockedCheckpoint = saved.lockedChk;
     // Restaurer participants
@@ -2539,6 +2544,9 @@ function switchTab(name, btn) {
     pollIntervalSec = saved.pollIntervalSec || 15;
     document.getElementById('startOverlay').classList.add('hidden');
     startTimer();
+    // Forcer supabase si les creds sont disponibles
+    if (SUPA_URL && SUPA_ANON_KEY) dataMode = 'supabase';
+
     if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
       syncParticipantsFromSupabase().then(() => {
         startSupaPolling();
@@ -2558,7 +2566,17 @@ function switchTab(name, btn) {
     }
     updateUI();
   }
-  // Sinon l'overlay reste visible
+  // Sinon l'overlay reste visible — pré-remplir les champs Supabase
+  const fillField = (id, val) => { const el=document.getElementById(id); if(el && val) el.value=val; };
+  fillField('ov-supa-url',  SUPA_URL);
+  fillField('ov-supa-anon', SUPA_ANON_KEY);
+  fillField('ov-supa-op',   SUPA_OP_KEY);
+  fillField('ov-pi-url',    SUPA_URL);
+  fillField('ov-pi-anon',   SUPA_ANON_KEY);
+  fillField('ov-pi-op',     SUPA_OP_KEY);
+  // Pré-remplir les champs de configuration aussi
+  fillField('cfg-supa-url',  SUPA_URL);
+  fillField('cfg-supa-anon', SUPA_ANON_KEY);
 
   // Rafraîchissement léger (hors sheets polling)
   setInterval(() => { if (dataMode !== 'sheets') updateUI(); }, 30000);
