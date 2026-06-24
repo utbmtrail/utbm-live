@@ -1025,24 +1025,29 @@ async function resetRace() {
 function startTimer() {
   cancelAnimationFrame(timerRafId);
   function tick() {
-    if (!RACE_START) return;
-    const raceEnd = RACE_START.getTime() + DUREE_COURSE * 3600000;
-    const remaining = raceEnd - Date.now();
     const el  = document.getElementById('timerDisplay');
     const lbl = document.getElementById('timerLabel');
-    if (remaining <= 0) {
-      el.textContent = '00:00:00';
-      el.className = 'timer-display finished';
-      lbl.textContent = 'Course terminée';
+    if (!RACE_START) {
+      // Pas encore de course — afficher l'attente et continuer à boucler
+      // (le polling mettra à jour RACE_START dès qu'il sera disponible)
+      if (el) { el.textContent = '--:--:--'; el.className = 'timer-display not-started'; }
+      if (lbl) lbl.textContent = 'En attente du départ...';
+      timerRafId = requestAnimationFrame(tick);
       return;
     }
-    const s = Math.ceil(remaining / 1000);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
+    const raceEnd  = RACE_START.getTime() + DUREE_COURSE * 3600000;
+    const remaining = raceEnd - Date.now();
+    if (remaining <= 0) {
+      if (el)  { el.textContent = '00:00:00'; el.className = 'timer-display finished'; }
+      if (lbl) lbl.textContent = 'Course terminée';
+      return;
+    }
+    const s   = Math.ceil(remaining / 1000);
+    const h   = Math.floor(s / 3600);
+    const m   = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    el.textContent = `${pad(h)}:${pad(m)}:${pad(sec)}`;
-    el.className = 'timer-display';
-    lbl.textContent = 'Temps restant';
+    if (el)  { el.textContent = `${pad(h)}:${pad(m)}:${pad(sec)}`; el.className = 'timer-display'; }
+    if (lbl) lbl.textContent = 'Temps restant';
     timerRafId = requestAnimationFrame(tick);
   }
   tick();
@@ -2425,20 +2430,21 @@ function startCheckpoint() {
     document.getElementById('ov-pi-pin').focus();
     return;
   }
-  OPERATOR_PIN = pin;
+  OPERATOR_PIN  = pin;
   deviceType    = 'checkpoint';
-  RACE_START    = RACE_START || new Date();
+  RACE_START    = null; // sera récupéré depuis Supabase, jamais créé localement
   dataMode      = 'supabase';
   allScans      = [];
   piScans       = [];
+  raceStartOverride = false; // le Pi suit toujours Supabase
   clearInterval(simTimerId);
-  saveState();
   document.getElementById('startOverlay').classList.add('hidden');
 
-  // Récupérer participants + config depuis Supabase, puis montrer le PIN
+  // Récupérer participants + RACE_START + scans depuis Supabase, puis PIN
   syncParticipantsFromSupabase().then(() => {
-    startSupaPolling(); // polling continu toutes les 5s
-    startTimer();
+    saveState();
+    startSupaPolling();
+    startTimer(); // démarre avec le RACE_START récupéré (ou attend s'il est null)
     showPinOverlay();
   });
 }
@@ -2495,14 +2501,25 @@ function enterPiMode(chk) {
 
 function startPiTimer() {
   function tick() {
-    if (!RACE_START) { requestAnimationFrame(tick); return; }
-    const rem = RACE_START.getTime() + DUREE_COURSE * 3600000 - Date.now();
-    const el  = document.getElementById('pi-timer');
+    const el = document.getElementById('pi-timer');
     if (!el) return;
-    if (rem <= 0) { el.textContent = 'TERMINÉ'; el.style.color = 'var(--red)'; return; }
-    const h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
-    el.textContent = pad(h)+':'+pad(m)+':'+pad(s);
-    el.className = 'timer-display';
+    if (!RACE_START) {
+      el.textContent = '--:--:--';
+      el.style.color = 'var(--text-dim)';
+      el.className   = 'timer-display not-started';
+      requestAnimationFrame(tick);
+      return;
+    }
+    const rem = RACE_START.getTime() + DUREE_COURSE * 3600000 - Date.now();
+    if (rem <= 0) {
+      el.textContent = 'TERMINÉ';
+      el.style.color = 'var(--red)';
+      return;
+    }
+    const h = Math.floor(rem/3600000);
+    const m = Math.floor((rem % 3600000) / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
     el.style.color = rem < 3600000 ? 'var(--red)' : 'var(--amber)';
     requestAnimationFrame(tick);
   }
@@ -2659,7 +2676,11 @@ async function syncParticipantsFromSupabase() {
       const rs = cfgRows.find(r => r.key === 'race_start');
       if (rs && rs.value) {
         const parsed = new Date(rs.value);
-        if (!isNaN(parsed)) { RACE_START = parsed; startTimer(); saveState(); }
+        if (!isNaN(parsed) && (!RACE_START || Math.abs(parsed - RACE_START) > 1000)) {
+          RACE_START = parsed;
+          startTimer();
+          saveState();
+        }
       }
     }
   } catch(e) { console.warn('Sync error:', e.message); }
@@ -2743,6 +2764,10 @@ function switchTab(name, btn) {
     if (SUPA_URL && SUPA_ANON_KEY) dataMode = 'supabase';
 
     if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
+      // Pour le Pi : ne jamais utiliser le RACE_START du localStorage
+      // Il sera toujours récupéré depuis Supabase
+      if (deviceType === 'checkpoint') RACE_START = null;
+
       syncParticipantsFromSupabase().then(() => {
         startSupaPolling();
         if (deviceType === 'checkpoint' && lockedCheckpoint) {
