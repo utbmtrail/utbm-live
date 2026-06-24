@@ -236,21 +236,41 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .diag-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:12px;font-size:11px}
 .diag-title{color:var(--text-dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-size:10px}
 /* CLASSEMENT DÉFILANT */
-.leaderboard-wrap{border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:28px;background:var(--surface)}
-.lb-header{display:grid;grid-template-columns:44px 1fr 72px 80px 72px 72px 76px;padding:7px 14px;gap:8px;background:var(--panel);border-bottom:1px solid var(--border)}
-.lb-header span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
-.lb-viewport{overflow:hidden;position:relative}
-.lb-track{display:flex;flex-direction:column;transition:transform 0.7s cubic-bezier(.4,0,.2,1)}
-.lb-row{display:grid;grid-template-columns:44px 1fr 72px 80px 72px 72px 76px;align-items:center;border-bottom:1px solid var(--border);padding:7px 14px;gap:8px;min-height:46px}
-.lb-row:last-child{border-bottom:none}
-.lb-row.on-course{background:rgba(245,166,35,.04)}
-.lb-row.rank-1{background:rgba(245,197,24,.07)}
-.lb-row.rank-2{background:rgba(160,176,192,.04)}
-.lb-row.rank-3{background:rgba(205,127,50,.04)}
+.lb-wrap{border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px;background:var(--surface)}
+.lb-head{display:grid;grid-template-columns:44px 1fr 80px 76px 68px 68px 72px;padding:7px 14px;gap:6px;background:var(--panel);border-bottom:1px solid var(--border)}
+.lb-head span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+/* La fenêtre défilante — height fixée par JS */
+.lb-window{overflow:hidden;position:relative}
+/* Le ruban qui se déplace — position:relative pour que transform marche */
+.lb-ribbon{position:relative;top:0;will-change:transform;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+/* Une ligne */
+.lb-r{display:grid;grid-template-columns:44px 1fr 80px 76px 68px 68px 72px;align-items:center;border-bottom:1px solid var(--border);padding:7px 14px;gap:6px;box-sizing:border-box}
+.lb-r:last-child{border-bottom:none}
+.lb-r.oc {background:rgba(245,166,35,.05)}
+.lb-r.r1 {background:rgba(245,197,24,.08)}
+.lb-r.r2 {background:rgba(160,176,192,.05)}
+.lb-r.r3 {background:rgba(205,127,50,.05)}
 @media(max-width:900px){
-  .lb-row,.lb-header{grid-template-columns:36px 1fr 52px 64px}
-  .lb-row>*:nth-child(n+5),.lb-header>*:nth-child(n+5){display:none}
+  .lb-r,.lb-head{grid-template-columns:38px 1fr 60px 60px}
+  .lb-r>*:nth-child(n+5),.lb-head>*:nth-child(n+5){display:none}
 }
+
+/* MODE PLEIN ÉCRAN */
+#fs-overlay{display:none;position:fixed;inset:0;background:var(--ink);z-index:600;flex-direction:column}
+#fs-overlay.open{display:flex}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.fs-title{font-size:18px;font-weight:800;color:var(--white);letter-spacing:.04em}
+.fs-timer{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--amber)}
+.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:var(--sans)}
+.fs-close:hover{border-color:var(--red);color:var(--red)}
+.fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px;overflow:hidden;min-height:0}
+.fs-col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.fs-col-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.fs-lb{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.fs-stats{display:flex;gap:0;background:var(--border);border-top:1px solid var(--border);flex-shrink:0}
+.fs-stat{flex:1;background:var(--panel);padding:8px 14px;display:flex;flex-direction:column;gap:2px}
+.fs-stat-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--white)}
+.fs-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)}
 
 /* PI MODE */
 #pi-mode{display:none}
@@ -354,7 +374,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.17.0
+    v1.18.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -363,6 +383,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       <div class="timer-display not-started" id="timerDisplay">--:--:--</div>
       <div class="timer-label" id="timerLabel">En attente du départ</div>
     </div>
+    <button class="btn-start" style="font-size:11px;padding:7px 14px" onclick="openFullscreen()">⛶ Plein écran</button>
     <button class="btn-reset" onclick="resetRace()">↺ Réinitialiser</button>
   </div>
 </header>
@@ -863,6 +884,37 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         &#127937;<br>ARRIVEE
       </button>
     </div>
+  </div>
+</div>
+
+<!-- PLEIN ÉCRAN CLASSEMENT -->
+<div id="fs-overlay">
+  <div class="fs-header">
+    <div class="fs-title" id="fs-title">UTBM — Classement Live</div>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div>
+        <div class="fs-timer" id="fs-timer">--:--:--</div>
+        <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em">Temps restant</div>
+      </div>
+      <button class="fs-close" onclick="closeFullscreen()">✕ Quitter</button>
+    </div>
+  </div>
+  <div class="fs-body">
+    <div class="fs-col">
+      <div class="fs-col-title">🏃 Solo</div>
+      <div class="fs-lb" id="fs-lb-solo"></div>
+    </div>
+    <div class="fs-col">
+      <div class="fs-col-title">👥 Équipes</div>
+      <div class="fs-lb" id="fs-lb-equipe"></div>
+    </div>
+  </div>
+  <div class="fs-stats">
+    <div class="fs-stat"><div class="fs-stat-val" id="fs-pts">—</div><div class="fs-stat-lbl">Points cumulés</div></div>
+    <div class="fs-stat"><div class="fs-stat-val" id="fs-km">—</div><div class="fs-stat-lbl">Km cumulés</div></div>
+    <div class="fs-stat"><div class="fs-stat-val" id="fs-best">—</div><div class="fs-stat-lbl">Meilleur tour</div></div>
+    <div class="fs-stat"><div class="fs-stat-val" id="fs-open">—</div><div class="fs-stat-lbl">En parcours</div></div>
+    <div class="fs-stat"><div class="fs-stat-val" id="fs-leader">—</div><div class="fs-stat-lbl">Leader solo</div></div>
   </div>
 </div>
 
@@ -1470,8 +1522,8 @@ function updateUI() {
   });
 
   // Onglet classement : leaderboard défilant
-  buildLeaderboard(solos,   'lb-solo-main',   'solo');
-  buildLeaderboard(equipes, 'lb-equipe-main', 'equipe');
+  buildLeaderboard(solos,   'lb-solo-main',   'solo',   SCROLL_ROWS);
+  buildLeaderboard(equipes, 'lb-equipe-main', 'equipe', SCROLL_ROWS);
   // Onglets Solo / Équipes : tableau complet classique
   document.getElementById('table-solo-full').innerHTML   = buildTable(solos,   false);
   document.getElementById('table-equipe-full').innerHTML = buildTable(equipes, false);
@@ -2919,99 +2971,180 @@ const SCROLL_MS    = 2500; // ms entre chaque défilement
 
 let scrollStates = {}; // { 'solo': { offset, timer }, 'equipe': { offset, timer } }
 
-function buildLeaderboard(data, containerId, cat) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+const ROW_H = 46; // hauteur fixe de chaque ligne en px — doit correspondre au CSS
 
-  const cols = ['Rang','Nom','Tours','Distance','Meilleur','Tps moyen','Tps total'];
-
-  // Header
-  const headerHtml = '<div class="lb-header">'
-    + cols.map(col => `<span>${col}</span>`).join('')
-    + '</div>';
-
-  // Fonction pour construire une ligne
-  function rowHtml(r, i, extraClass) {
-    const delta    = storedDeltas[r.badge_id] || '';
-    const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
-    const nightLapsN = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
-    const ptsHtml    = nightLapsN > 0
-      ? `<div style="font-family:var(--mono);font-size:10px;color:var(--teal)">${r.points}pts</div><div style="font-size:9px;color:var(--purple)">&#9790;${nightLapsN}</div>`
-      : `<div style="font-family:var(--mono);font-size:10px;color:var(--teal)">${r.points}pts</div>`;
-    const inCourse = r.onCourse
-      ? '<span class="on-course-badge" style="font-size:8px">En cours</span>' : '';
-    const rc  = rankColor(i);
-    const onC = r.onCourse ? ' on-course' : '';
-    const rCls = i < 3 ? ` rank-${i+1}` : '';
-    return `<div class="lb-row${onC}${rCls}">
-      <div class="rank-cell">
-        <div class="rank-num ${rc}" style="font-size:${i < 3 ? 16 : 13}px">${i+1}</div>
-        ${delta}
-      </div>
-      <div class="name-cell">
-        <div class="name-primary" style="font-size:${i < 3 ? 13 : 12}px">${esc(r.name)}</div>
-        <div class="name-badge">${esc(r.badge_id)} ${inCourse}</div>
-      </div>
-      <div>
-        <div class="tours-num" style="font-size:${i < 3 ? 17 : 14}px">${r.tours}</div>
-        ${ptsHtml}
-      </div>
-      <div class="dist-val" style="font-size:12px">${distTotal.toFixed(1)} km</div>
-      <div class="mono time-good" style="font-size:11px">${fmtTime(r.bestLapTime)}</div>
-      <div class="mono" style="font-size:11px">${fmtTime(r.avgLapTime)}</div>
-      <div class="mono" style="font-size:11px">${fmtTime(r.totalTime)}</div>
-    </div>`;
-  }
-
-  // Top 5 fixes
-  const topRows    = data.slice(0, TOP_FIXED);
-  const scrollData = data.slice(TOP_FIXED);
-
-  const fixedHtml = '<div class="lb-fixed">'
-    + topRows.map((r, i) => rowHtml(r, i, 'top-row')).join('')
-    + '</div>';
-
-  // Zone défilante
-  let scrollHtml = '';
-  if (scrollData.length > 0) {
-    const rowHeight = 48; // px, doit correspondre à min-height dans CSS
-    const visibleH  = SCROLL_ROWS * rowHeight;
-    scrollHtml = `<div class="lb-sep"></div>
-      <div class="lb-scroll-container" style="height:${visibleH}px">
-        <div class="lb-scroll-track" id="lb-track-${cat}">
-          ${scrollData.map((r, i) => rowHtml(r, i + TOP_FIXED, '')).join('')}
-        </div>
-      </div>`;
-  }
-
-  container.innerHTML = '<div class="leaderboard-wrap">' + headerHtml + fixedHtml + scrollHtml + '</div>';
-
-  // Démarrer ou reprendre le scroll pour cette catégorie
-  startScroll(cat, scrollData.length);
+function makeLbRow(r, i) {
+  const delta   = storedDeltas[r.badge_id] || '';
+  const distTot = (r.onCourse ? r.distance + DISTANCE_TOUR : r.distance).toFixed(1);
+  const nlaps   = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
+  const ptsHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--teal);line-height:1">${r.points}pts</div>`
+    + (nlaps > 0 ? `<div style="font-size:9px;color:var(--purple)">&#9790;${nlaps}</div>` : '');
+  const inCourse = r.onCourse ? '<span class="on-course-badge" style="font-size:8px">&#9654;</span>' : '';
+  const rc  = rankColor(i);
+  const cls = [r.onCourse ? 'oc' : '', i===0 ? 'r1' : i===1 ? 'r2' : i===2 ? 'r3' : ''].filter(Boolean).join(' ');
+  return `<div class="lb-r ${cls}" style="height:${ROW_H}px;box-sizing:border-box;overflow:hidden">
+    <div class="rank-cell">
+      <div class="rank-num ${rc}" style="font-size:${i<3?15:12}px">${i+1}</div>${delta}
+    </div>
+    <div class="name-cell">
+      <div class="name-primary" style="font-size:12px">${esc(r.name)} ${inCourse}</div>
+      <div class="name-badge">${esc(r.badge_id)}</div>
+    </div>
+    <div><div class="tours-num" style="font-size:${i<3?16:13}px">${r.tours}</div>${ptsHtml}</div>
+    <div class="dist-val" style="font-size:11px">${distTot} km</div>
+    <div class="mono time-good" style="font-size:10px">${fmtTime(r.bestLapTime)}</div>
+    <div class="mono" style="font-size:10px">${fmtTime(r.avgLapTime)}</div>
+    <div class="mono" style="font-size:10px">${fmtTime(r.totalTime)}</div>
+  </div>`;
 }
 
-function startScroll(cat, totalScrollRows) {
-  if (totalScrollRows === 0) return;
+function buildLeaderboard(data, containerId, cat, visibleRows) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  visibleRows = visibleRows || SCROLL_ROWS;
+
+  if (data.length === 0) {
+    container.innerHTML = '<div class="lb-wrap" style="padding:24px;text-align:center;color:var(--text-dim)">Aucune donnée</div>';
+    return;
+  }
+
+  const cols    = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
+  const headHtml = '<div class="lb-head">' + cols.map(h => `<span>${h}</span>`).join('') + '</div>';
+  const rowsHtml = data.map((r, i) => makeLbRow(r, i)).join('');
+  const winH     = visibleRows * ROW_H;
+
+  container.innerHTML =
+    `<div class="lb-wrap">${headHtml}`
+    + `<div class="lb-window" style="height:${winH}px">`
+    + `<div class="lb-ribbon" id="lb-ribbon-${cat}">${rowsHtml}</div>`
+    + `</div></div>`;
+
+  startScroll(cat, data.length, visibleRows);
+}
+function startScroll(cat, total, visible) {
   if (!scrollStates[cat]) scrollStates[cat] = { offset: 0 };
   const state = scrollStates[cat];
-
-  // Annuler le timer précédent
   if (state.timer) clearInterval(state.timer);
+  if (total <= visible) return;
 
-  const rowHeight = 48;
   state.timer = setInterval(() => {
-    const track = document.getElementById('lb-track-' + cat);
-    if (!track) { clearInterval(state.timer); return; }
-    state.offset = (state.offset + 1) % totalScrollRows;
-    track.style.transform = `translateY(-${state.offset * rowHeight}px)`;
+    const ribbon = document.getElementById('lb-ribbon-' + cat);
+    if (!ribbon) { clearInterval(state.timer); return; }
+    state.offset = (state.offset + 1) % total;
+    ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
+  }, SCROLL_MS);
+}
+function stopAllScrolls() {
+  for (const cat in scrollStates) {
+    if (scrollStates[cat] && scrollStates[cat].timer) clearInterval(scrollStates[cat].timer);
+  }
+  scrollStates = {};
+}
+
+/* ================================================================
+   MODE PLEIN ÉCRAN
+   ================================================================ */
+let fsTimerRaf = null;
+let fsScrollStates = {};
+
+function openFullscreen() {
+  const ov = document.getElementById('fs-overlay');
+  ov.classList.add('open');
+  // Demander le vrai fullscreen navigateur
+  if (ov.requestFullscreen) ov.requestFullscreen().catch(()=>{});
+  else if (ov.webkitRequestFullscreen) ov.webkitRequestFullscreen();
+  startFsTimer();
+  updateFsLeaderboard();
+}
+
+function closeFullscreen() {
+  document.getElementById('fs-overlay').classList.remove('open');
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  cancelAnimationFrame(fsTimerRaf);
+  stopFsScrolls();
+}
+
+// Quitter si l'utilisateur appuie sur Échap
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) closeFullscreen();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeFullscreen();
+});
+
+function startFsTimer() {
+  cancelAnimationFrame(fsTimerRaf);
+  function tick() {
+    const el = document.getElementById('fs-timer');
+    if (!el || !document.getElementById('fs-overlay').classList.contains('open')) return;
+    if (!RACE_START) { el.textContent = '--:--:--'; fsTimerRaf = requestAnimationFrame(tick); return; }
+    const rem = RACE_START.getTime() + DUREE_COURSE * 3600000 - Date.now();
+    if (rem <= 0) { el.textContent = '00:00:00'; el.style.color = 'var(--red)'; return; }
+    const h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
+    el.textContent = pad(h)+':'+pad(m)+':'+pad(s);
+    el.style.color = rem < 3600000 ? 'var(--red)' : 'var(--amber)';
+    fsTimerRaf = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function stopFsScrolls() {
+  for (const k in fsScrollStates) {
+    if (fsScrollStates[k] && fsScrollStates[k].timer) clearInterval(fsScrollStates[k].timer);
+  }
+  fsScrollStates = {};
+}
+
+function buildFsLeaderboard(data, elId, cat) {
+  const container = document.getElementById(elId);
+  if (!container) return;
+  if (data.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-dim);padding:20px;text-align:center">Aucune donnée</div>';
+    return;
+  }
+
+  // Calculer la hauteur disponible
+  const winH = container.clientHeight || 400;
+  const vis   = Math.max(1, Math.floor(winH / ROW_H));
+
+  const cols    = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
+  const headHtml = '<div class="lb-head">' + cols.map(h=>`<span>${h}</span>`).join('') + '</div>';
+  const rowsHtml = data.map((r,i) => makeLbRow(r,i)).join('');
+
+  container.innerHTML =
+    `<div class="lb-wrap" style="height:100%;display:flex;flex-direction:column">${headHtml}`
+    + `<div class="lb-window" style="flex:1;overflow:hidden">`
+    + `<div class="lb-ribbon" id="fs-ribbon-${cat}">${rowsHtml}</div>`
+    + `</div></div>`;
+
+  // Scroll FS (états séparés du scroll principal)
+  if (!fsScrollStates[cat]) fsScrollStates[cat] = { offset: 0 };
+  const state = fsScrollStates[cat];
+  if (state.timer) clearInterval(state.timer);
+  if (data.length <= vis) return;
+
+  state.timer = setInterval(() => {
+    const ribbon = document.getElementById('fs-ribbon-' + cat);
+    if (!ribbon) { clearInterval(state.timer); return; }
+    state.offset = (state.offset + 1) % data.length;
+    ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
   }, SCROLL_MS);
 }
 
-function stopAllScrolls() {
-  for (const cat in scrollStates) {
-    if (scrollStates[cat].timer) clearInterval(scrollStates[cat].timer);
-  }
-  scrollStates = {};
+function updateFsLeaderboard() {
+  if (!document.getElementById('fs-overlay').classList.contains('open')) return;
+  const { solos, equipes } = processScans(allScans);
+  buildFsLeaderboard(solos,   'fs-lb-solo',   'fs-solo');
+  buildFsLeaderboard(equipes, 'fs-lb-equipe', 'fs-equipe');
+  // Stats
+  const gs = computeGlobalStats(solos, equipes);
+  const setTxt = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setTxt('fs-pts',    gs.totalPoints + ' pts');
+  setTxt('fs-km',     gs.totalKm.toFixed(0) + ' km');
+  setTxt('fs-best',   fmtTime(gs.bestLap));
+  setTxt('fs-open',   gs.openTours + ' en cours');
+  setTxt('fs-leader', gs.leaderSolo);
+  setTimeout(updateFsLeaderboard, 5000); // rafraîchir toutes les 5s si ouvert
 }
 
 /* ================================================================
