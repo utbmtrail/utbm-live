@@ -237,6 +237,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .diag-title{color:var(--text-dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-size:10px}
 /* CLASSEMENT DÉFILANT */
 .lb-wrap{border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px;background:var(--surface)}
+.lb-fixed-zone{background:var(--panel)}
 .lb-head{display:grid;grid-template-columns:44px 1fr 80px 76px 68px 68px 72px;padding:7px 14px;gap:6px;background:var(--panel);border-bottom:1px solid var(--border)}
 .lb-head span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
 /* La fenêtre défilante — height fixée par JS */
@@ -258,19 +259,14 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 /* MODE PLEIN ÉCRAN */
 #fs-overlay{display:none;position:fixed;inset:0;background:var(--ink);z-index:600;flex-direction:column}
 #fs-overlay.open{display:flex}
-.fs-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
-.fs-title{font-size:18px;font-weight:800;color:var(--white);letter-spacing:.04em}
-.fs-timer{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--amber)}
-.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:var(--sans)}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;gap:16px}
+.fs-timer{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--amber);line-height:1}
+.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
 .fs-close:hover{border-color:var(--red);color:var(--red)}
-.fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px;overflow:hidden;min-height:0}
+.fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;overflow:hidden;min-height:0}
 .fs-col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.fs-col-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.fs-col-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0}
 .fs-lb{flex:1;overflow:hidden;display:flex;flex-direction:column}
-.fs-stats{display:flex;gap:0;background:var(--border);border-top:1px solid var(--border);flex-shrink:0}
-.fs-stat{flex:1;background:var(--panel);padding:8px 14px;display:flex;flex-direction:column;gap:2px}
-.fs-stat-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--white)}
-.fs-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)}
 
 /* PI MODE */
 #pi-mode{display:none}
@@ -374,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.18.0
+    v1.19.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -889,33 +885,78 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 
 <!-- PLEIN ÉCRAN CLASSEMENT -->
 <div id="fs-overlay">
+
+  <!-- EN-TÊTE PLEIN ÉCRAN -->
   <div class="fs-header">
-    <div class="fs-title" id="fs-title">UTBM — Classement Live</div>
-    <div style="display:flex;align-items:center;gap:20px">
+    <!-- Gauche : logo + titre -->
+    <div style="display:flex;align-items:center;gap:16px">
       <div>
+        <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);font-family:var(--mono)">UTBM TRAIL</div>
+        <div style="font-size:20px;font-weight:800;color:var(--white);letter-spacing:.04em">Classement Live</div>
+      </div>
+    </div>
+
+    <!-- Centre : fun stats -->
+    <div style="display:flex;align-items:center;gap:28px;padding:0 20px">
+
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km parcourus</div>
+      </div>
+
+      <div style="width:1px;height:36px;background:var(--border)"></div>
+
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+ cumulé</div>
+      </div>
+
+      <div style="width:1px;height:36px;background:var(--border)"></div>
+
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green)" id="fs-best-time">—</div>
+        <div style="font-family:var(--sans);font-size:11px;font-weight:600;color:var(--white);margin-top:1px" id="fs-best-who" style="white-space:nowrap">—</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Record tour</div>
+      </div>
+
+      <div style="width:1px;height:36px;background:var(--border)"></div>
+
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber)" id="fs-pts">—</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Points cumulés</div>
+      </div>
+
+      <div style="width:1px;height:36px;background:var(--border)"></div>
+
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--red)" id="fs-open">—</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">En parcours</div>
+      </div>
+
+    </div>
+
+    <!-- Droite : chrono + bouton -->
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="text-align:right">
         <div class="fs-timer" id="fs-timer">--:--:--</div>
         <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em">Temps restant</div>
       </div>
-      <button class="fs-close" onclick="closeFullscreen()">✕ Quitter</button>
+      <button class="fs-close" onclick="closeFullscreen()">✕</button>
     </div>
   </div>
+
+  <!-- CLASSEMENTS -->
   <div class="fs-body">
     <div class="fs-col">
-      <div class="fs-col-title">🏃 Solo</div>
+      <div class="fs-col-title">🏃 Solo — <span id="fs-solo-count" style="color:var(--text-dim);font-weight:400">—</span></div>
       <div class="fs-lb" id="fs-lb-solo"></div>
     </div>
     <div class="fs-col">
-      <div class="fs-col-title">👥 Équipes</div>
+      <div class="fs-col-title">👥 Équipes — <span id="fs-equipe-count" style="color:var(--text-dim);font-weight:400">—</span></div>
       <div class="fs-lb" id="fs-lb-equipe"></div>
     </div>
   </div>
-  <div class="fs-stats">
-    <div class="fs-stat"><div class="fs-stat-val" id="fs-pts">—</div><div class="fs-stat-lbl">Points cumulés</div></div>
-    <div class="fs-stat"><div class="fs-stat-val" id="fs-km">—</div><div class="fs-stat-lbl">Km cumulés</div></div>
-    <div class="fs-stat"><div class="fs-stat-val" id="fs-best">—</div><div class="fs-stat-lbl">Meilleur tour</div></div>
-    <div class="fs-stat"><div class="fs-stat-val" id="fs-open">—</div><div class="fs-stat-lbl">En parcours</div></div>
-    <div class="fs-stat"><div class="fs-stat-val" id="fs-leader">—</div><div class="fs-stat-lbl">Leader solo</div></div>
-  </div>
+
 </div>
 
 <footer>
@@ -2965,9 +3006,10 @@ async function pushParticipantToSupabase(badge, p) {
 /* ================================================================
    CLASSEMENT DÉFILANT
    ================================================================ */
-const TOP_FIXED    = 5;   // nombre de lignes fixes en haut
-const SCROLL_ROWS  = 3;   // lignes visibles dans la zone défilante
-const SCROLL_MS    = 2500; // ms entre chaque défilement
+const TOP_FIXED    = 3;    // top 3 toujours visible en haut
+const SCROLL_ROWS  = 10;   // lignes visibles dans la zone défilante
+const SCROLL_STEP  = 5;    // avance de N lignes à chaque tick
+const SCROLL_MS    = 10000; // ms entre chaque défilement (10s)
 
 let scrollStates = {}; // { 'solo': { offset, timer }, 'equipe': { offset, timer } }
 
@@ -3008,29 +3050,47 @@ function buildLeaderboard(data, containerId, cat, visibleRows) {
     return;
   }
 
-  const cols    = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
+  const cols = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
   const headHtml = '<div class="lb-head">' + cols.map(h => `<span>${h}</span>`).join('') + '</div>';
-  const rowsHtml = data.map((r, i) => makeLbRow(r, i)).join('');
-  const winH     = visibleRows * ROW_H;
+
+  // Top 3 fixes — toujours visibles, fond légèrement différent
+  const fixedData  = data.slice(0, TOP_FIXED);
+  const scrollData = data.slice(TOP_FIXED);
+
+  const fixedHtml  = fixedData.map((r, i) => makeLbRow(r, i)).join('');
+
+  // Séparateur entre top3 et le reste
+  const sepHtml = scrollData.length > 0
+    ? `<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5;flex-shrink:0"></div>` : '';
+
+  // Zone défilante : contient le reste (position 4 et au-delà)
+  const scrollHtml = scrollData.length > 0
+    ? `<div class="lb-window" style="height:${visibleRows * ROW_H}px">`
+      + `<div class="lb-ribbon" id="lb-ribbon-${cat}">`
+      + scrollData.map((r, i) => makeLbRow(r, i + TOP_FIXED)).join('')
+      + `</div></div>`
+    : '';
 
   container.innerHTML =
     `<div class="lb-wrap">${headHtml}`
-    + `<div class="lb-window" style="height:${winH}px">`
-    + `<div class="lb-ribbon" id="lb-ribbon-${cat}">${rowsHtml}</div>`
-    + `</div></div>`;
+    + `<div class="lb-fixed-zone">${fixedHtml}</div>`
+    + sepHtml
+    + scrollHtml
+    + `</div>`;
 
-  startScroll(cat, data.length, visibleRows);
+  startScroll(cat, scrollData.length, visibleRows);
 }
 function startScroll(cat, total, visible) {
   if (!scrollStates[cat]) scrollStates[cat] = { offset: 0 };
   const state = scrollStates[cat];
   if (state.timer) clearInterval(state.timer);
-  if (total <= visible) return;
+  if (total <= visible) return; // tout tient, pas besoin de défiler
 
   state.timer = setInterval(() => {
     const ribbon = document.getElementById('lb-ribbon-' + cat);
     if (!ribbon) { clearInterval(state.timer); return; }
-    state.offset = (state.offset + 1) % total;
+    // Avancer de SCROLL_STEP, en boucle sur le total
+    state.offset = (state.offset + SCROLL_STEP) % total;
     ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
   }, SCROLL_MS);
 }
@@ -3103,30 +3163,40 @@ function buildFsLeaderboard(data, elId, cat) {
     return;
   }
 
-  // Calculer la hauteur disponible
-  const winH = container.clientHeight || 400;
-  const vis   = Math.max(1, Math.floor(winH / ROW_H));
+  // Hauteur disponible → calculer combien de lignes scroll visibles
+  const containerH = container.clientHeight || 500;
+  const fixedH     = TOP_FIXED * ROW_H + 30; // header + top3
+  const scrollH    = Math.max(ROW_H * 2, containerH - fixedH);
+  const visScroll  = Math.max(2, Math.floor(scrollH / ROW_H));
 
-  const cols    = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
-  const headHtml = '<div class="lb-head">' + cols.map(h=>`<span>${h}</span>`).join('') + '</div>';
-  const rowsHtml = data.map((r,i) => makeLbRow(r,i)).join('');
+  const cols = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
+  const headHtml = '<div class="lb-head">' + cols.map(h => `<span>${h}</span>`).join('') + '</div>';
+
+  const fixedData  = data.slice(0, TOP_FIXED);
+  const scrollData = data.slice(TOP_FIXED);
+
+  const fixedHtml  = `<div class="lb-fixed-zone">${fixedData.map((r,i) => makeLbRow(r,i)).join('')}</div>`;
+  const sepHtml    = scrollData.length > 0
+    ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5"></div>' : '';
+  const scrollHtml = scrollData.length > 0
+    ? `<div class="lb-window" style="height:${visScroll * ROW_H}px">`
+      + `<div class="lb-ribbon" id="fs-ribbon-${cat}">`
+      + scrollData.map((r,i) => makeLbRow(r, i + TOP_FIXED)).join('')
+      + `</div></div>` : '';
 
   container.innerHTML =
-    `<div class="lb-wrap" style="height:100%;display:flex;flex-direction:column">${headHtml}`
-    + `<div class="lb-window" style="flex:1;overflow:hidden">`
-    + `<div class="lb-ribbon" id="fs-ribbon-${cat}">${rowsHtml}</div>`
-    + `</div></div>`;
+    `<div class="lb-wrap" style="display:flex;flex-direction:column">${headHtml}${fixedHtml}${sepHtml}${scrollHtml}</div>`;
 
-  // Scroll FS (états séparés du scroll principal)
+  // Scroll avec les mêmes paramètres que le classement principal
   if (!fsScrollStates[cat]) fsScrollStates[cat] = { offset: 0 };
   const state = fsScrollStates[cat];
   if (state.timer) clearInterval(state.timer);
-  if (data.length <= vis) return;
+  if (scrollData.length <= visScroll) return;
 
   state.timer = setInterval(() => {
     const ribbon = document.getElementById('fs-ribbon-' + cat);
     if (!ribbon) { clearInterval(state.timer); return; }
-    state.offset = (state.offset + 1) % data.length;
+    state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
     ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
   }, SCROLL_MS);
 }
@@ -3134,17 +3204,24 @@ function buildFsLeaderboard(data, elId, cat) {
 function updateFsLeaderboard() {
   if (!document.getElementById('fs-overlay').classList.contains('open')) return;
   const { solos, equipes } = processScans(allScans);
+
   buildFsLeaderboard(solos,   'fs-lb-solo',   'fs-solo');
   buildFsLeaderboard(equipes, 'fs-lb-equipe', 'fs-equipe');
-  // Stats
-  const gs = computeGlobalStats(solos, equipes);
-  const setTxt = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-  setTxt('fs-pts',    gs.totalPoints + ' pts');
-  setTxt('fs-km',     gs.totalKm.toFixed(0) + ' km');
-  setTxt('fs-best',   fmtTime(gs.bestLap));
-  setTxt('fs-open',   gs.openTours + ' en cours');
-  setTxt('fs-leader', gs.leaderSolo);
-  setTimeout(updateFsLeaderboard, 5000); // rafraîchir toutes les 5s si ouvert
+
+  const gs  = computeGlobalStats(solos, equipes);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const setH = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
+
+  set('fs-pts',         gs.totalPoints.toLocaleString('fr-FR') + ' pts');
+  set('fs-km',          gs.totalKm.toFixed(0).toLocaleString('fr-FR') + ' km');
+  set('fs-dplus',       gs.totalDplus.toFixed(0).toLocaleString('fr-FR') + ' m');
+  set('fs-best-time',   fmtTime(gs.bestLap));
+  set('fs-best-who',    gs.bestLapWho || '—');
+  set('fs-open',        gs.openTours);
+  set('fs-solo-count',  solos.length  + ' participants');
+  set('fs-equipe-count',equipes.length + ' équipes');
+
+  setTimeout(updateFsLeaderboard, 5000);
 }
 
 /* ================================================================
