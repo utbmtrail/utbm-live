@@ -1441,10 +1441,10 @@ function updateConfigTab() {
   if (sheetsUrl) document.getElementById('cfg-sheets-url').value = sheetsUrl;
 }
 
-function applyRaceConfig() {
-  const dist  = parseFloat(document.getElementById('cfg-dist-input').value);
-  const dplus = parseInt(document.getElementById('cfg-dplus-input').value);
-  const dur   = parseInt(document.getElementById('cfg-dur-input').value);
+async function applyRaceConfig() {
+  const dist     = parseFloat(document.getElementById('cfg-dist-input').value);
+  const dplus    = parseInt(document.getElementById('cfg-dplus-input').value);
+  const dur      = parseInt(document.getElementById('cfg-dur-input').value);
   const startVal = document.getElementById('cfg-start-input').value;
   let changed = false;
   if (!isNaN(dist)  && dist  > 0)  { DISTANCE_TOUR = dist;  changed = true; }
@@ -1454,13 +1454,21 @@ function applyRaceConfig() {
     const parsed = new Date(startVal);
     if (!isNaN(parsed)) { RACE_START = parsed; changed = true; startTimer(); }
   }
-  if (changed) {
-    raceStartOverride = true; // empêcher fetchSupabase d'écraser pendant 30s
-    setTimeout(() => { raceStartOverride = false; }, 30000);
-    saveState();
-    pushRaceConfig(); // synchroniser avec tous les appareils
-    updateUI();
-    showMsg('cfg-confirm-msg', '✓ Paramètres mis à jour — synchronisé');
+  if (!changed) return;
+
+  // Activer l'override IMMÉDIATEMENT et de façon permanente
+  // (il ne sera levé qu'à la réinitialisation de la course)
+  raceStartOverride = true;
+  saveState();
+  updateUI();
+  showMsg('cfg-confirm-msg', '⏳ Enregistrement...');
+
+  // Pousser vers Supabase et confirmer
+  try {
+    await pushRaceConfig();
+    showMsg('cfg-confirm-msg', '✓ Heure de départ mise à jour et synchronisée');
+  } catch(e) {
+    showMsg('cfg-confirm-msg', '⚠ Sauvegardé localement — erreur Supabase : ' + e.message);
   }
 }
 
@@ -2204,13 +2212,12 @@ async function supaFetch(path, opts) {
 
 async function pushRaceConfig() {
   if (!SUPA_URL || !SUPA_OP_KEY || !RACE_START) return;
-  try {
-    await supaFetch('config', {
-      method: 'POST', write: true,
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
-      body: JSON.stringify({ key: 'race_start', value: RACE_START.toISOString() })
-    });
-  } catch(e) { console.warn('pushRaceConfig error:', e.message); }
+  // Propager l'erreur au lieu de l'avaler silencieusement
+  await supaFetch('config', {
+    method: 'POST', write: true,
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ key: 'race_start', value: RACE_START.toISOString() })
+  });
 }
 
 async function fetchRaceConfig() {
@@ -2262,15 +2269,26 @@ async function fetchSupabase() {
     ]);
 
     // ── 1. RACE_START ───────────────────────────────────────
-    // Ne pas écraser si l'admin a modifié localement (flag override)
-    if (!raceStartOverride && cfgRows && cfgRows.length > 0) {
+    if (cfgRows && cfgRows.length > 0) {
       const rs = cfgRows.find(r => r.key === 'race_start');
       if (rs && rs.value) {
-        const parsed = new Date(rs.value);
-        if (!isNaN(parsed)) {
-          if (!RACE_START || Math.abs(parsed - RACE_START) > 1000) {
-            RACE_START = parsed;
-            startTimer();
+        const remote = new Date(rs.value);
+        if (!isNaN(remote)) {
+          if (raceStartOverride) {
+            // L'admin a défini une heure manuellement — on ignore Supabase
+            // SAUF si la valeur en base correspond à ce qu'on a écrit (push confirmé)
+            // Dans ce cas on peut lever le flag (la synchro est bonne)
+            if (RACE_START && Math.abs(remote - RACE_START) < 2000) {
+              // Supabase a bien notre valeur → tout va bien, flag inutile
+              // On le garde quand même pour ne pas re-écraser en cas de lag
+            }
+            // Sinon on ignore la valeur distante
+          } else {
+            // Pas d'override → prendre la valeur Supabase si différente de plus de 5s
+            if (!RACE_START || Math.abs(remote - RACE_START) > 5000) {
+              RACE_START = remote;
+              startTimer();
+            }
           }
         }
       }
@@ -2411,9 +2429,10 @@ function startAdmin() {
     if (!RACE_START) {
       // Pas de course en cours → démarrer maintenant
       RACE_START = new Date();
-      raceStartOverride = true;
-      setTimeout(() => { raceStartOverride = false; }, 30000);
-      await pushRaceConfig();
+      raceStartOverride = true; // permanent jusqu'au prochain reset
+      try {
+        await pushRaceConfig();
+      } catch(e) { console.warn('pushRaceConfig at start:', e.message); }
       startTimer();
     }
     saveState();
