@@ -293,6 +293,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     </div>
     <button class="btn-start-race" onclick="startAdmin()">🏁 Démarrer comme Admin</button>
     <button class="btn-demo" onclick="startWithDemo()">🧪 Mode démonstration</button>
+    <button class="btn-demo" onclick="startReadOnly()" style="margin-top:6px;border-color:var(--teal);color:var(--teal)">👁 Lecture seule (classement sans démarrer)</button>
     <button class="btn-demo" onclick="showStep('ov-step1')" style="margin-top:6px">← Retour</button>
   </div>
 
@@ -873,6 +874,7 @@ let sheetsTimerId   = null;
 let simTimerId      = null;
 let simStep         = 0;
 let timerRafId      = null;
+let raceStartOverride = false; // true quand l'admin a modifié RACE_START localement
 
 /* Supabase — credentials pré-configurés */
 let SUPA_URL        = 'https://xxthgejhnxnzotgyxiaj.supabase.co';
@@ -978,15 +980,16 @@ async function resetRace() {
   }
 
   // Réinitialiser l'état local
-  RACE_START    = null;
-  allScans      = [];
-  manualScans   = [];
-  piScans       = [];
-  previousRanks = {};
-  dataMode      = 'none';
-  sheetsUrl     = '';
+  RACE_START        = null;
+  allScans          = [];
+  manualScans       = [];
+  piScans           = [];
+  previousRanks     = {};
+  dataMode          = 'none';
+  sheetsUrl         = '';
   sessionUnlocked   = false;
   lockedCheckpoint  = null;
+  raceStartOverride = false;
 
   // Sauvegarder l'état vide (garder participants + config course)
   saveState();
@@ -1447,10 +1450,12 @@ function applyRaceConfig() {
     if (!isNaN(parsed)) { RACE_START = parsed; changed = true; startTimer(); }
   }
   if (changed) {
+    raceStartOverride = true; // empêcher fetchSupabase d'écraser pendant 30s
+    setTimeout(() => { raceStartOverride = false; }, 30000);
     saveState();
-    if (startVal) pushRaceConfig(); // synchroniser la nouvelle heure de départ
+    pushRaceConfig(); // synchroniser avec tous les appareils
     updateUI();
-    showMsg('cfg-confirm-msg', '✓ Paramètres mis à jour — classement recalculé');
+    showMsg('cfg-confirm-msg', '✓ Paramètres mis à jour — synchronisé');
   }
 }
 
@@ -1558,8 +1563,8 @@ function renderParticipantsTab() {
         <td>${esc(p.prenom)}</td>
         <td><span style="font-family:var(--mono);font-size:11px;background:rgba(245,166,35,.1);color:var(--amber);padding:2px 8px;border-radius:3px">${esc(badge)}</span></td>
         <td><div style="display:flex;gap:6px">
-          <button class="p-action-btn" onclick="editParticipant('${esc(badge)}')">✏ Modifier</button>
-          <button class="p-delete-btn" onclick="deleteParticipant('${esc(badge)}')">✕</button>
+          <button class="p-action-btn" data-badge="${esc(badge)}" data-action="edit">✏ Modifier</button>
+          <button class="p-delete-btn" data-badge="${esc(badge)}" data-action="delete">✕</button>
         </div></td>
       </tr>`).join('');
     }
@@ -1579,13 +1584,30 @@ function renderParticipantsTab() {
           <td><span style="font-family:var(--mono);font-size:11px;background:rgba(155,89,182,.12);color:#C39BD3;padding:2px 8px;border-radius:3px">${esc(badge)}</span></td>
           <td style="font-size:12px;color:var(--text-mid);white-space:normal;max-width:200px">${membres}</td>
           <td><div style="display:flex;gap:6px">
-            <button class="p-action-btn" onclick="editParticipant('${esc(badge)}')">✏ Modifier</button>
-            <button class="p-delete-btn" onclick="deleteParticipant('${esc(badge)}')">✕</button>
+            <button class="p-action-btn" data-badge="${esc(badge)}" data-action="edit">✏ Modifier</button>
+            <button class="p-delete-btn" data-badge="${esc(badge)}" data-action="delete">✕</button>
           </div></td>
         </tr>`;
       }).join('');
     }
   }
+
+  // Délégation d'événements sur les deux tableaux (un seul listener par tableau)
+  ['p-solo-tbody','p-equipe-tbody'].forEach(id => {
+    const tbody = document.getElementById(id);
+    if (!tbody) return;
+    // Remplacer le listener précédent
+    const newTbody = tbody.cloneNode(true);
+    tbody.parentNode.replaceChild(newTbody, tbody);
+    newTbody.addEventListener('click', e => {
+      const btn = e.target.closest('[data-badge]');
+      if (!btn) return;
+      const badge  = btn.dataset.badge;
+      const action = btn.dataset.action;
+      if (action === 'edit')   editParticipant(badge);
+      if (action === 'delete') deleteParticipant(badge);
+    });
+  });
 
   // Compteurs
   const ps = document.getElementById('p-solo-count');
@@ -1795,6 +1817,18 @@ function showMsg(id, msg) {
 /* ================================================================
    MODE REEL
    ================================================================ */
+function startReadOnly() {
+  // Ouvre l'app en lecture seule : se connecte à Supabase mais ne crée pas de course
+  deviceType      = 'admin';
+  sessionUnlocked = true;
+  lockedCheckpoint = null;
+  dataMode        = 'supabase';
+  raceStartOverride = false; // laisser Supabase dicter RACE_START
+  document.getElementById('startOverlay').classList.add('hidden');
+  startSupaPolling(); // va récupérer RACE_START, participants et scans
+  updateUI();
+}
+
 function startReal() {
   const url  = document.getElementById('ov-sheetsUrl').value.trim();
   const poll = parseInt(document.getElementById('ov-pollInterval').value) || 15;
@@ -2223,12 +2257,12 @@ async function fetchSupabase() {
     ]);
 
     // ── 1. RACE_START ───────────────────────────────────────
-    if (cfgRows && cfgRows.length > 0) {
+    // Ne pas écraser si l'admin a modifié localement (flag override)
+    if (!raceStartOverride && cfgRows && cfgRows.length > 0) {
       const rs = cfgRows.find(r => r.key === 'race_start');
       if (rs && rs.value) {
         const parsed = new Date(rs.value);
         if (!isNaN(parsed)) {
-          // Ne mettre à jour que si différent (éviter de redémarrer le timer inutilement)
           if (!RACE_START || Math.abs(parsed - RACE_START) > 1000) {
             RACE_START = parsed;
             startTimer();
@@ -2372,6 +2406,8 @@ function startAdmin() {
     if (!RACE_START) {
       // Pas de course en cours → démarrer maintenant
       RACE_START = new Date();
+      raceStartOverride = true;
+      setTimeout(() => { raceStartOverride = false; }, 30000);
       await pushRaceConfig();
       startTimer();
     }
