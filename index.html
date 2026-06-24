@@ -551,7 +551,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
               onkeydown="handleBadgeKey(event)" oninput="this.value=this.value.toUpperCase()">
             <button class="badge-clear" onclick="clearBadgeInput()">x</button>
           </div>
-          <div class="scan-fb idle" id="scan-fb"><span>En attente d'un scan...</span></div>
+          <div class="scan-fb idle" id="scan-fb"><span>En attente d&#x27;un scan...</span></div>
           <button class="btn-start" style="width:100%;justify-content:center;padding:13px;font-size:14px;margin-bottom:14px" onclick="submitScan()">
             &#10003; Valider le pointage
           </button>
@@ -780,7 +780,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 
     <!-- Feedback grand format -->
     <div id="pi-feedback" style="width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;background:var(--surface);border:2px solid var(--border);color:var(--text-dim);text-align:center;transition:all .3s">
-      En attente d'un scan...
+      En attente d&#x27;un scan...
     </div>
 
     <!-- Champ badge -->
@@ -1999,7 +1999,7 @@ function showFb(msg, type) {
   el.textContent = msg;
   if (type !== 'idle') setTimeout(() => {
     el.className = 'scan-fb idle';
-    el.textContent = "En attente d'un scan...";
+    el.textContent = "En attente d&#x27;un scan...";
   }, 3000);
 }
 
@@ -2694,7 +2694,7 @@ function showPiFeedback(html, ok) {
 function resetPiFeedback() {
   const fb = document.getElementById('pi-feedback');
   if (!fb) return;
-  fb.innerHTML  = '<span style="color:var(--text-dim);font-size:16px">En attente d'un scan...</span>';
+  fb.innerHTML  = '<span style="color:var(--text-dim);font-size:16px">En attente d&#x27;un scan...</span>';
   fb.className  = '';
   fb.style.cssText = 'width:100%;max-width:560px;min-height:100px;border-radius:12px;'
     + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
