@@ -236,20 +236,19 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .diag-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:12px;font-size:11px}
 .diag-title{color:var(--text-dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-size:10px}
 /* CLASSEMENT DÉFILANT */
-.leaderboard-wrap{display:flex;flex-direction:column;gap:0;border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:28px}
-.lb-fixed{background:var(--panel)}
-.lb-scroll-container{overflow:hidden;position:relative;background:var(--surface)}
-.lb-scroll-track{display:flex;flex-direction:column;transition:transform 0.6s ease}
-.lb-row{display:grid;grid-template-columns:44px 1fr 52px 80px 72px 72px 72px;align-items:center;border-bottom:1px solid var(--border);padding:8px 14px;gap:8px;min-height:48px}
+.leaderboard-wrap{border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:28px;background:var(--surface)}
+.lb-header{display:grid;grid-template-columns:44px 1fr 72px 80px 72px 72px 76px;padding:7px 14px;gap:8px;background:var(--panel);border-bottom:1px solid var(--border)}
+.lb-header span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+.lb-viewport{overflow:hidden;position:relative}
+.lb-track{display:flex;flex-direction:column;transition:transform 0.7s cubic-bezier(.4,0,.2,1)}
+.lb-row{display:grid;grid-template-columns:44px 1fr 72px 80px 72px 72px 76px;align-items:center;border-bottom:1px solid var(--border);padding:7px 14px;gap:8px;min-height:46px}
 .lb-row:last-child{border-bottom:none}
 .lb-row.on-course{background:rgba(245,166,35,.04)}
-.lb-row.top-row{background:var(--panel)}
-.lb-row.top-row:hover{background:rgba(255,255,255,.03)}
-.lb-header{display:grid;grid-template-columns:44px 1fr 52px 80px 72px 72px 72px;padding:7px 14px;gap:8px;background:var(--surface);border-bottom:1px solid var(--border)}
-.lb-header span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
-.lb-sep{height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.4}
+.lb-row.rank-1{background:rgba(245,197,24,.07)}
+.lb-row.rank-2{background:rgba(160,176,192,.04)}
+.lb-row.rank-3{background:rgba(205,127,50,.04)}
 @media(max-width:900px){
-  .lb-row,.lb-header{grid-template-columns:36px 1fr 44px 64px}
+  .lb-row,.lb-header{grid-template-columns:36px 1fr 52px 64px}
   .lb-row>*:nth-child(n+5),.lb-header>*:nth-child(n+5){display:none}
 }
 
@@ -355,7 +354,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.16.0
+    v1.17.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -392,7 +391,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 <div class="stats-banner">
   <div class="stat-cell"><div class="stat-val"       id="s-participants">—</div><div class="stat-lbl">Participants</div></div>
   <div class="stat-cell"><div class="stat-val"       id="s-equipes">—</div><div class="stat-lbl">Équipes</div></div>
-  <div class="stat-cell"><div class="stat-val amber" id="s-tours">—</div><div class="stat-lbl">Tours validés</div></div>
+  <div class="stat-cell"><div class="stat-val amber" id="s-tours">—</div><div class="stat-lbl">Points cumulés</div></div>
   <div class="stat-cell"><div class="stat-val teal"  id="s-km">—</div><div class="stat-lbl">Km cumulés</div></div>
   <div class="stat-cell"><div class="stat-val teal"  id="s-dplus">—</div><div class="stat-lbl">D+ cumulé</div></div>
   <div class="stat-cell"><div class="stat-val green" id="s-best">—</div><div class="stat-lbl">Meilleur tour</div></div>
@@ -627,6 +626,27 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         </div>
         <div class="confirm-msg" id="cfg-confirm-msg"></div>
         <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px">🌙 Coefficient nocturne</div>
+        <div class="config-row">
+          <span class="config-key">Coefficient<br><span class="config-note">1 tour = N points pendant la nuit</span></span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="input-field" id="cfg-coeff-nuit" type="number" step="0.5" min="1" max="10" style="width:70px;text-align:right">
+            <span style="color:var(--text-dim);font-size:12px">pts/tour</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <span class="config-key">Début plage nocturne</span>
+          <input class="input-field" id="cfg-nuit-deb" type="time" style="width:110px">
+        </div>
+        <div class="config-row">
+          <span class="config-key">Fin plage nocturne</span>
+          <input class="input-field" id="cfg-nuit-fin" type="time" style="width:110px">
+        </div>
+        <div style="background:rgba(155,89,182,.08);border:1px solid rgba(155,89,182,.2);border-radius:6px;padding:10px 12px;margin-top:10px">
+          <div style="font-size:11px;color:var(--text-mid)" id="cfg-nuit-preview">—</div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
         <div class="config-panel-title" style="margin-bottom:10px">📋 Résumé</div>
         <div class="config-row"><span class="config-key">Fin de course prévue</span><span class="config-val" id="cfg-end">—</span></div>
         <div class="config-row"><span class="config-key">Participants inscrits</span><span class="config-val" id="cfg-nb">—</span></div>
@@ -857,6 +877,11 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
    PARAMÈTRES DE COURSE
    ================================================================ */
 const DEFAULTS = { distance: 6.5, denivele: 180, duree: 24 };
+
+// Coefficient nocturne (tours comptent X points au lieu de 1)
+let COEFF_NUIT      = 2;      // valeur du coefficient
+let HEURE_NUIT_DEB  = '22:00'; // heure début (format HH:MM)
+let HEURE_NUIT_FIN  = '06:00'; // heure fin (format HH:MM)
 let DISTANCE_TOUR = DEFAULTS.distance;
 let DENIVELE_TOUR = DEFAULTS.denivele;
 let DUREE_COURSE  = DEFAULTS.duree;
@@ -924,6 +949,9 @@ function saveState() {
       distanceTour: DISTANCE_TOUR,
       deniveleTour: DENIVELE_TOUR,
       dureeCourse:  DUREE_COURSE,
+      coeffNuit:    COEFF_NUIT,
+      heureNuitDeb: HEURE_NUIT_DEB,
+      heureNuitFin: HEURE_NUIT_FIN,
       participants: PARTICIPANTS,
       supaUrl:      SUPA_URL,
       supaAnonKey:  SUPA_ANON_KEY,
@@ -1238,6 +1266,31 @@ function disconnectSheets() {
 }
 
 /* ================================================================
+   CALCUL DES POINTS (coefficient nocturne)
+   ================================================================ */
+function isNocturne(date) {
+  if (!date) return false;
+  const hh = date.getHours();
+  const mm  = date.getMinutes();
+  const cur = hh * 60 + mm;
+  const [dh, dm] = HEURE_NUIT_DEB.split(':').map(Number);
+  const [fh, fm] = HEURE_NUIT_FIN.split(':').map(Number);
+  const deb = dh * 60 + dm;
+  const fin  = fh * 60 + fm;
+  // La plage nuit peut chevaucher minuit (ex: 22:00 → 06:00)
+  if (deb > fin) {
+    return cur >= deb || cur < fin; // après 22h OU avant 6h
+  } else {
+    return cur >= deb && cur < fin;
+  }
+}
+
+function lapPoints(lap) {
+  // Un tour vaut COEFF_NUIT points si validé pendant la plage nocturne, sinon 1
+  return isNocturne(lap.end) ? COEFF_NUIT : 1;
+}
+
+/* ================================================================
    TRAITEMENT DES SCANS
    ================================================================ */
 function processScans(scans) {
@@ -1273,12 +1326,15 @@ function processScans(scans) {
     const n = s.laps.length;
     results.push({
       badge_id, name: s.name, cat: s.cat,
-      tours: n, onCourse: s.openLapStart !== null, openStart: s.openLapStart,
+      tours:   n,
+      points:  n > 0 ? s.laps.reduce((acc, l) => acc + lapPoints(l), 0) : 0,
+      onCourse: s.openLapStart !== null, openStart: s.openLapStart,
       totalTime:   n > 0 ? (s.laps[n-1].end - s.laps[0].start) / 1000 : 0,
       lastLapTime: n > 0 ? s.laps[n-1].duration : null,
       bestLapTime: n > 0 ? Math.min(...s.laps.map(l => l.duration)) : null,
       avgLapTime:  n > 0 ? s.laps.reduce((a, l) => a + l.duration, 0) / n : null,
       lastArrival: n > 0 ? s.laps[n-1].end : null,
+      laps:        s.laps, // garder les laps pour affichage détail nocturne
       distance:    n * DISTANCE_TOUR,
       dplus:       n * DENIVELE_TOUR,
     });
@@ -1289,8 +1345,9 @@ function processScans(scans) {
 }
 
 function sortFn(a, b) {
-  if (b.tours !== a.tours) return b.tours - a.tours;
-  if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
+  if (b.points !== a.points) return b.points - a.points;  // 1. points décroissants
+  if (b.tours  !== a.tours)  return b.tours  - a.tours;   // 2. tours décroissants (à points égaux)
+  if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime; // 3. temps total croissant
   if (a.lastArrival && b.lastArrival) return a.lastArrival - b.lastArrival;
   return 0;
 }
@@ -1324,16 +1381,19 @@ function esc(s) {
    ================================================================ */
 function buildTable(data, compact) {
   const cols = compact
-    ? ['Rang','Nom','Tours','Distance','Meilleur','Tps moyen','Tps total']
-    : ['Rang','Nom','Tours','Distance','Dernier tour','Meilleur tour','Tps moyen','Total course'];
+    ? ['Rang','Nom','Tours · Pts','Distance','Meilleur','Tps moyen','Tps total']
+    : ['Rang','Nom','Tours · Pts','Distance','Dernier tour','Meilleur tour','Tps moyen','Total course'];
   let html = `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
   data.forEach((r, i) => {
     // Utiliser le delta mémorisé (persiste jusqu'au prochain changement de rang)
     const delta = storedDeltas[r.badge_id] || '';
     const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
+    const nightLaps = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
+    const nightTag  = nightLaps > 0
+      ? `<div class="tours-open" style="color:var(--purple)">&#9790; ${nightLaps}×${COEFF_NUIT}pts</div>` : '';
     const toursHtml = r.onCourse
-      ? `<div class="tours-num">${r.tours}</div><div class="tours-open">+1 en cours</div>`
-      : `<div class="tours-num">${r.tours}</div>`;
+      ? `<div class="tours-num">${r.tours}</div><div class="tours-open" style="color:var(--amber)">+1 en cours</div><div class="tours-open" style="color:var(--teal);font-size:11px">${r.points} pts</div>${nightTag}`
+      : `<div class="tours-num">${r.tours}</div><div class="tours-open" style="color:var(--teal);font-size:11px">${r.points} pts</div>${nightTag}`;
     const badge = r.onCourse ? `<span class="on-course-badge">En parcours</span>` : '';
     const rowCls = r.onCourse ? 'on-course' : '';
     if (compact) {
@@ -1376,6 +1436,7 @@ function computeGlobalStats(solos, equipes) {
   }
   return {
     totalTours:  all.reduce((s,r) => s + r.tours, 0),
+    totalPoints: all.reduce((s,r) => s + r.points, 0),
     totalKm:     all.reduce((s,r) => s + r.distance, 0),
     totalDplus:  all.reduce((s,r) => s + r.dplus, 0),
     openTours:   all.filter(r => r.onCourse).length,
@@ -1426,7 +1487,7 @@ function updateUI() {
   const gs = computeGlobalStats(solos, equipes);
   document.getElementById('s-participants').textContent = solos.length;
   document.getElementById('s-equipes').textContent      = equipes.length;
-  document.getElementById('s-tours').textContent        = gs.totalTours;
+  document.getElementById('s-tours').textContent = gs.totalPoints + ' pts';
   document.getElementById('s-km').textContent           = gs.totalKm.toFixed(0) + ' km';
   document.getElementById('s-dplus').textContent        = gs.totalDplus.toFixed(0) + ' m';
   document.getElementById('s-best').textContent         = fmtTime(gs.bestLap);
@@ -1456,6 +1517,19 @@ function updateUI() {
    CONFIG TAB
    ================================================================ */
 function updateConfigTab() {
+  const coeffEl  = document.getElementById('cfg-coeff-nuit');
+  const nuitDebEl = document.getElementById('cfg-nuit-deb');
+  const nuitFinEl = document.getElementById('cfg-nuit-fin');
+  if (coeffEl   && document.activeElement !== coeffEl)   coeffEl.value   = COEFF_NUIT;
+  if (nuitDebEl && document.activeElement !== nuitDebEl) nuitDebEl.value = HEURE_NUIT_DEB;
+  if (nuitFinEl && document.activeElement !== nuitFinEl) nuitFinEl.value = HEURE_NUIT_FIN;
+  // Prévisualisation
+  const preview = document.getElementById('cfg-nuit-preview');
+  if (preview) {
+    preview.innerHTML = `🌙 <b style="color:var(--purple)">${HEURE_NUIT_DEB} → ${HEURE_NUIT_FIN}</b>`
+      + ` · 1 tour = <b style="color:var(--amber)">${COEFF_NUIT} points</b>`
+      + `<br><span style="color:var(--text-dim);font-size:10px">En dehors de cette plage : 1 tour = 1 point</span>`;
+  }
   const distEl  = document.getElementById('cfg-dist-input');
   const dplusEl = document.getElementById('cfg-dplus-input');
   const durEl   = document.getElementById('cfg-dur-input');
@@ -1484,7 +1558,10 @@ async function applyRaceConfig() {
   const dist     = parseFloat(document.getElementById('cfg-dist-input').value);
   const dplus    = parseInt(document.getElementById('cfg-dplus-input').value);
   const dur      = parseInt(document.getElementById('cfg-dur-input').value);
-  const startVal = document.getElementById('cfg-start-input').value;
+  const startVal  = document.getElementById('cfg-start-input').value;
+  const coeffVal  = parseFloat(document.getElementById('cfg-coeff-nuit').value);
+  const nuitDeb   = document.getElementById('cfg-nuit-deb').value;
+  const nuitFin   = document.getElementById('cfg-nuit-fin').value;
   let changed = false;
   if (!isNaN(dist)  && dist  > 0)  { DISTANCE_TOUR = dist;  changed = true; }
   if (!isNaN(dplus) && dplus >= 0) { DENIVELE_TOUR = dplus; changed = true; }
@@ -1493,6 +1570,9 @@ async function applyRaceConfig() {
     const parsed = new Date(startVal);
     if (!isNaN(parsed)) { RACE_START = parsed; changed = true; startTimer(); }
   }
+  if (!isNaN(coeffVal) && coeffVal >= 1) { COEFF_NUIT     = coeffVal;  changed = true; }
+  if (nuitDeb) { HEURE_NUIT_DEB = nuitDeb;  changed = true; }
+  if (nuitFin) { HEURE_NUIT_FIN = nuitFin;  changed = true; }
   if (!changed) return;
 
   // Activer l'override IMMÉDIATEMENT et de façon permanente
@@ -2854,23 +2934,28 @@ function buildLeaderboard(data, containerId, cat) {
   function rowHtml(r, i, extraClass) {
     const delta    = storedDeltas[r.badge_id] || '';
     const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
-    const toursHtml = r.onCourse
-      ? `<div class="tours-num" style="font-size:16px">${r.tours}</div><div class="tours-open">+1</div>`
-      : `<div class="tours-num" style="font-size:16px">${r.tours}</div>`;
-    const onCourseBadge = r.onCourse
+    const nightLapsN = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
+    const ptsHtml    = nightLapsN > 0
+      ? `<div style="font-family:var(--mono);font-size:10px;color:var(--teal)">${r.points}pts</div><div style="font-size:9px;color:var(--purple)">&#9790;${nightLapsN}</div>`
+      : `<div style="font-family:var(--mono);font-size:10px;color:var(--teal)">${r.points}pts</div>`;
+    const inCourse = r.onCourse
       ? '<span class="on-course-badge" style="font-size:8px">En cours</span>' : '';
-    const rc = rankColor(i);
+    const rc  = rankColor(i);
     const onC = r.onCourse ? ' on-course' : '';
-    return `<div class="lb-row ${extraClass}${onC}">
+    const rCls = i < 3 ? ` rank-${i+1}` : '';
+    return `<div class="lb-row${onC}${rCls}">
       <div class="rank-cell">
-        <div class="rank-num ${rc}" style="font-size:14px">${i+1}</div>
+        <div class="rank-num ${rc}" style="font-size:${i < 3 ? 16 : 13}px">${i+1}</div>
         ${delta}
       </div>
       <div class="name-cell">
-        <div class="name-primary" style="font-size:12px">${esc(r.name)}</div>
-        <div class="name-badge">${esc(r.badge_id)} ${onCourseBadge}</div>
+        <div class="name-primary" style="font-size:${i < 3 ? 13 : 12}px">${esc(r.name)}</div>
+        <div class="name-badge">${esc(r.badge_id)} ${inCourse}</div>
       </div>
-      <div>${toursHtml}</div>
+      <div>
+        <div class="tours-num" style="font-size:${i < 3 ? 17 : 14}px">${r.tours}</div>
+        ${ptsHtml}
+      </div>
       <div class="dist-val" style="font-size:12px">${distTotal.toFixed(1)} km</div>
       <div class="mono time-good" style="font-size:11px">${fmtTime(r.bestLapTime)}</div>
       <div class="mono" style="font-size:11px">${fmtTime(r.avgLapTime)}</div>
@@ -2965,6 +3050,9 @@ function switchTab(name, btn) {
     if (saved.distanceTour) DISTANCE_TOUR    = saved.distanceTour;
     if (saved.deniveleTour) DENIVELE_TOUR    = saved.deniveleTour;
     if (saved.dureeCourse)  DUREE_COURSE     = saved.dureeCourse;
+    if (saved.coeffNuit)    COEFF_NUIT       = saved.coeffNuit;
+    if (saved.heureNuitDeb) HEURE_NUIT_DEB   = saved.heureNuitDeb;
+    if (saved.heureNuitFin) HEURE_NUIT_FIN   = saved.heureNuitFin;
     // Utiliser les creds sauvegardés seulement s'ils existent,
     // sinon les valeurs hardcodées restent en place
     if (saved.supaUrl     && saved.supaUrl.length > 10)     SUPA_URL      = saved.supaUrl;
