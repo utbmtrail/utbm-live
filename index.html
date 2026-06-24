@@ -235,6 +235,24 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .log-del:hover{color:var(--red)}
 .diag-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:12px;font-size:11px}
 .diag-title{color:var(--text-dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-size:10px}
+/* CLASSEMENT DÉFILANT */
+.leaderboard-wrap{display:flex;flex-direction:column;gap:0;border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:28px}
+.lb-fixed{background:var(--panel)}
+.lb-scroll-container{overflow:hidden;position:relative;background:var(--surface)}
+.lb-scroll-track{display:flex;flex-direction:column;transition:transform 0.6s ease}
+.lb-row{display:grid;grid-template-columns:44px 1fr 52px 80px 72px 72px 72px;align-items:center;border-bottom:1px solid var(--border);padding:8px 14px;gap:8px;min-height:48px}
+.lb-row:last-child{border-bottom:none}
+.lb-row.on-course{background:rgba(245,166,35,.04)}
+.lb-row.top-row{background:var(--panel)}
+.lb-row.top-row:hover{background:rgba(255,255,255,.03)}
+.lb-header{display:grid;grid-template-columns:44px 1fr 52px 80px 72px 72px 72px;padding:7px 14px;gap:8px;background:var(--surface);border-bottom:1px solid var(--border)}
+.lb-header span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+.lb-sep{height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.4}
+@media(max-width:900px){
+  .lb-row,.lb-header{grid-template-columns:36px 1fr 44px 64px}
+  .lb-row>*:nth-child(n+5),.lb-header>*:nth-child(n+5){display:none}
+}
+
 /* PI MODE */
 #pi-mode{display:none}
 #pi-mode.active{display:flex}
@@ -247,8 +265,11 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .pi-scan-name{flex:1;font-size:13px}
 @keyframes pi-flash-ok{0%{background:rgba(46,204,113,.3);border-color:var(--green)}100%{background:var(--surface);border-color:var(--border)}}
 @keyframes pi-flash-err{0%{background:rgba(231,76,60,.3);border-color:var(--red)}100%{background:var(--surface);border-color:var(--border)}}
-.pi-ok{animation:pi-flash-ok .8s ease-out forwards;color:var(--green)!important;border-color:var(--green)!important}
-.pi-err{animation:pi-flash-err .8s ease-out forwards;color:var(--red)!important;border-color:var(--red)!important}
+.pi-ok{background:rgba(46,204,113,.12)!important;border-color:var(--green)!important;color:var(--green)!important}
+.pi-err{background:rgba(231,76,60,.12)!important;border-color:var(--red)!important;color:var(--red)!important}
+.pi-feedback-icon{font-size:36px;margin-bottom:8px}
+.pi-feedback-name{font-size:22px;font-weight:800;line-height:1.2}
+.pi-feedback-sub{font-size:14px;font-weight:400;opacity:.8;margin-top:4px}
 </style>
 </head>
 <body>
@@ -334,7 +355,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.4.0
+    v1.16.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -390,14 +411,14 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
           <div class="section-icon solo">🏃</div>
           <div><div class="section-name">Solo</div><div class="section-count" id="solo-count-main">—</div></div>
         </div></div>
-        <div class="table-wrap" id="table-solo-main"></div>
+        <div id="lb-solo-main"></div>
       </div>
       <div>
         <div class="section-header"><div class="section-title">
           <div class="section-icon equipe">👥</div>
           <div><div class="section-name">Équipes</div><div class="section-count" id="equipe-count-main">—</div></div>
         </div></div>
-        <div class="table-wrap" id="table-equipe-main"></div>
+        <div id="lb-equipe-main"></div>
       </div>
     </div>
   </div>
@@ -969,6 +990,7 @@ async function resetRace() {
   clearInterval(simTimerId);
   cancelAnimationFrame(timerRafId);
   cancelAnimationFrame(piTimerRafId);
+  stopAllScrolls();
 
   // Vider Supabase si connecté
   if (SUPA_URL && SUPA_OP_KEY) {
@@ -1386,8 +1408,10 @@ function updateUI() {
     }
   });
 
-  document.getElementById('table-solo-main').innerHTML   = buildTable(solos,   true);
-  document.getElementById('table-equipe-main').innerHTML = buildTable(equipes, true);
+  // Onglet classement : leaderboard défilant
+  buildLeaderboard(solos,   'lb-solo-main',   'solo');
+  buildLeaderboard(equipes, 'lb-equipe-main', 'equipe');
+  // Onglets Solo / Équipes : tableau complet classique
   document.getElementById('table-solo-full').innerHTML   = buildTable(solos,   false);
   document.getElementById('table-equipe-full').innerHTML = buildTable(equipes, false);
 
@@ -2592,6 +2616,7 @@ function handlePiBadgeKey(e) {
 function clearPiInput() {
   const el = document.getElementById('pi-badge-input');
   el.value = ''; el.className = 'badge-input-big'; el.focus();
+  resetPiFeedback();
 }
 
 async function submitPiScan() {
@@ -2603,18 +2628,36 @@ async function submitPiScan() {
 
   const scan = { timestamp: new Date(), badge_id: badge, checkpoint: lockedCheckpoint || currentCheckpoint };
   const p = PARTICIPANTS[badge];
+  const chkIcon  = scan.checkpoint === 'DEPART' ? '🚦' : '🏁';
+  const chkLabel = scan.checkpoint === 'DEPART' ? 'DÉPART' : 'ARRIVÉE';
 
-  // Feedback immédiat
-  const chkLabel = scan.checkpoint === 'DEPART' ? '🚦' : '🏁';
   if (p) {
-    showPiFeedback(chkLabel + ' ' + p.name, true);
+    // Badge connu → vert avec nom
+    showPiFeedback(
+      '<div class="pi-feedback-icon">' + chkIcon + '</div>'
+      + '<div class="pi-feedback-name">' + esc(p.name) + '</div>'
+      + '<div class="pi-feedback-sub">' + chkLabel + ' · Tour enregistré ✓</div>',
+      true
+    );
     input.classList.add('flash-ok');
   } else if (Object.keys(PARTICIPANTS).length === 0) {
-    // Participants pas encore chargés depuis Supabase
-    showPiFeedback('⏳ Chargement participants... scan enregistré : ' + badge, true);
+    // Liste pas encore chargée
+    showPiFeedback(
+      '<div class="pi-feedback-icon">⏳</div>'
+      + '<div class="pi-feedback-name" style="font-size:16px">Chargement en cours...</div>'
+      + '<div class="pi-feedback-sub">' + esc(badge) + ' · Tour enregistré ✓</div>',
+      true
+    );
     input.classList.add('flash-ok');
   } else {
-    showPiFeedback('⚠ Badge non inscrit : ' + badge, false);
+    // Badge inconnu → rouge
+    showPiFeedback(
+      '<div class="pi-feedback-icon">⚠️</div>'
+      + '<div class="pi-feedback-name">Badge inconnu</div>'
+      + '<div class="pi-feedback-sub">' + esc(badge) + '</div>'
+      + '<div class="pi-feedback-sub" style="margin-top:6px;color:inherit">Tour enregistré ✓</div>',
+      false
+    );
     input.classList.add('flash-err');
   }
 
@@ -2637,16 +2680,25 @@ async function submitPiScan() {
   }, 350);
 }
 
-function showPiFeedback(msg, ok) {
+function showPiFeedback(html, ok) {
   const fb = document.getElementById('pi-feedback');
-  fb.textContent = msg;
-  fb.className   = ok ? 'pi-ok' : 'pi-err';
-  fb.style.cssText = 'width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;text-align:center;transition:all .3s;border:2px solid';
-  setTimeout(() => {
-    fb.className = '';
-    fb.style.cssText = 'width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;background:var(--surface);border:2px solid var(--border);color:var(--text-dim);text-align:center;transition:all .3s';
-    fb.textContent = 'En attente d\'un scan...';
-  }, 3000);
+  if (!fb) return;
+  const baseStyle = 'width:100%;max-width:560px;min-height:100px;border-radius:12px;'
+    + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+    + 'padding:20px;text-align:center;transition:background .3s,border-color .3s;border:2px solid';
+  fb.innerHTML     = html;
+  fb.className     = ok ? 'pi-ok' : 'pi-err';
+  fb.style.cssText = baseStyle;
+}
+
+function resetPiFeedback() {
+  const fb = document.getElementById('pi-feedback');
+  if (!fb) return;
+  fb.innerHTML  = '<span style="color:var(--text-dim);font-size:16px">En attente d'un scan...</span>';
+  fb.className  = '';
+  fb.style.cssText = 'width:100%;max-width:560px;min-height:100px;border-radius:12px;'
+    + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+    + 'padding:20px;text-align:center;background:var(--surface);border:2px solid var(--border)';
 }
 
 function updatePiScanList() {
@@ -2776,6 +2828,105 @@ async function pushParticipantToSupabase(badge, p) {
     const post = await fetch(SUPA_URL + '/rest/v1/participants', { method:'POST', headers, body });
     if (!post.ok) { const t = await post.text(); console.warn('Push participant POST error:', t); }
   } catch(e) { console.warn('Push participant error:', e.message); }
+}
+
+/* ================================================================
+   CLASSEMENT DÉFILANT
+   ================================================================ */
+const TOP_FIXED    = 5;   // nombre de lignes fixes en haut
+const SCROLL_ROWS  = 3;   // lignes visibles dans la zone défilante
+const SCROLL_MS    = 2500; // ms entre chaque défilement
+
+let scrollStates = {}; // { 'solo': { offset, timer }, 'equipe': { offset, timer } }
+
+function buildLeaderboard(data, containerId, cat) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const cols = ['Rang','Nom','Tours','Distance','Meilleur','Tps moyen','Tps total'];
+
+  // Header
+  const headerHtml = '<div class="lb-header">'
+    + cols.map(col => `<span>${col}</span>`).join('')
+    + '</div>';
+
+  // Fonction pour construire une ligne
+  function rowHtml(r, i, extraClass) {
+    const delta    = storedDeltas[r.badge_id] || '';
+    const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
+    const toursHtml = r.onCourse
+      ? `<div class="tours-num" style="font-size:16px">${r.tours}</div><div class="tours-open">+1</div>`
+      : `<div class="tours-num" style="font-size:16px">${r.tours}</div>`;
+    const onCourseBadge = r.onCourse
+      ? '<span class="on-course-badge" style="font-size:8px">En cours</span>' : '';
+    const rc = rankColor(i);
+    const onC = r.onCourse ? ' on-course' : '';
+    return `<div class="lb-row ${extraClass}${onC}">
+      <div class="rank-cell">
+        <div class="rank-num ${rc}" style="font-size:14px">${i+1}</div>
+        ${delta}
+      </div>
+      <div class="name-cell">
+        <div class="name-primary" style="font-size:12px">${esc(r.name)}</div>
+        <div class="name-badge">${esc(r.badge_id)} ${onCourseBadge}</div>
+      </div>
+      <div>${toursHtml}</div>
+      <div class="dist-val" style="font-size:12px">${distTotal.toFixed(1)} km</div>
+      <div class="mono time-good" style="font-size:11px">${fmtTime(r.bestLapTime)}</div>
+      <div class="mono" style="font-size:11px">${fmtTime(r.avgLapTime)}</div>
+      <div class="mono" style="font-size:11px">${fmtTime(r.totalTime)}</div>
+    </div>`;
+  }
+
+  // Top 5 fixes
+  const topRows    = data.slice(0, TOP_FIXED);
+  const scrollData = data.slice(TOP_FIXED);
+
+  const fixedHtml = '<div class="lb-fixed">'
+    + topRows.map((r, i) => rowHtml(r, i, 'top-row')).join('')
+    + '</div>';
+
+  // Zone défilante
+  let scrollHtml = '';
+  if (scrollData.length > 0) {
+    const rowHeight = 48; // px, doit correspondre à min-height dans CSS
+    const visibleH  = SCROLL_ROWS * rowHeight;
+    scrollHtml = `<div class="lb-sep"></div>
+      <div class="lb-scroll-container" style="height:${visibleH}px">
+        <div class="lb-scroll-track" id="lb-track-${cat}">
+          ${scrollData.map((r, i) => rowHtml(r, i + TOP_FIXED, '')).join('')}
+        </div>
+      </div>`;
+  }
+
+  container.innerHTML = '<div class="leaderboard-wrap">' + headerHtml + fixedHtml + scrollHtml + '</div>';
+
+  // Démarrer ou reprendre le scroll pour cette catégorie
+  startScroll(cat, scrollData.length);
+}
+
+function startScroll(cat, totalScrollRows) {
+  if (totalScrollRows === 0) return;
+  if (!scrollStates[cat]) scrollStates[cat] = { offset: 0 };
+  const state = scrollStates[cat];
+
+  // Annuler le timer précédent
+  if (state.timer) clearInterval(state.timer);
+
+  const rowHeight = 48;
+  state.timer = setInterval(() => {
+    const track = document.getElementById('lb-track-' + cat);
+    if (!track) { clearInterval(state.timer); return; }
+    state.offset = (state.offset + 1) % totalScrollRows;
+    track.style.transform = `translateY(-${state.offset * rowHeight}px)`;
+  }, SCROLL_MS);
+}
+
+function stopAllScrolls() {
+  for (const cat in scrollStates) {
+    if (scrollStates[cat].timer) clearInterval(scrollStates[cat].timer);
+  }
+  scrollStates = {};
 }
 
 /* ================================================================
