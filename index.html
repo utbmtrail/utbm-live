@@ -866,7 +866,8 @@ let PARTICIPANTS = Object.assign({}, DEMO_PARTICIPANTS);
 let RACE_START      = null;
 let allScans        = [];
 let anomalies       = [];
-let previousRanks   = {};
+let previousRanks   = {}; // rang au dernier recalcul
+let storedDeltas    = {}; // delta mémorisé jusqu'au prochain changement de rang
 let dataMode        = 'none';
 let sheetsUrl       = '';
 let pollIntervalSec = 15;
@@ -874,6 +875,7 @@ let sheetsTimerId   = null;
 let simTimerId      = null;
 let simStep         = 0;
 let timerRafId      = null;
+let piTimerRafId    = null;
 let raceStartOverride = false; // true quand l'admin a modifié RACE_START localement
 
 /* Supabase — credentials pré-configurés */
@@ -966,6 +968,7 @@ async function resetRace() {
   clearInterval(sheetsTimerId);
   clearInterval(simTimerId);
   cancelAnimationFrame(timerRafId);
+  cancelAnimationFrame(piTimerRafId);
 
   // Vider Supabase si connecté
   if (SUPA_URL && SUPA_OP_KEY) {
@@ -985,6 +988,7 @@ async function resetRace() {
   manualScans       = [];
   piScans           = [];
   previousRanks     = {};
+  storedDeltas      = {};
   dataMode          = 'none';
   sheetsUrl         = '';
   sessionUnlocked   = false;
@@ -1302,14 +1306,8 @@ function buildTable(data, compact) {
     : ['Rang','Nom','Tours','Distance','Dernier tour','Meilleur tour','Tps moyen','Total course'];
   let html = `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
   data.forEach((r, i) => {
-    const prev = previousRanks[r.badge_id];
-    let delta = '';
-    if (prev !== undefined) {
-      const d = prev - (i+1);
-      if (d > 0)      delta = `<div class="rank-delta up">▲${d}</div>`;
-      else if (d < 0) delta = `<div class="rank-delta down">▼${Math.abs(d)}</div>`;
-      else            delta = `<div class="rank-delta same">—</div>`;
-    }
+    // Utiliser le delta mémorisé (persiste jusqu'au prochain changement de rang)
+    const delta = storedDeltas[r.badge_id] || '';
     const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
     const toursHtml = r.onCourse
       ? `<div class="tours-num">${r.tours}</div><div class="tours-open">+1 en cours</div>`
@@ -1370,6 +1368,23 @@ function computeGlobalStats(solos, equipes) {
    ================================================================ */
 function updateUI() {
   const { solos, equipes } = processScans(allScans);
+
+  // Calculer et mémoriser les deltas de rang AVANT de construire les tableaux
+  // Le delta est conservé tant que le rang ne change pas
+  [...solos, ...equipes].forEach((r, idx) => {
+    const cat       = r.cat;
+    const catData   = cat === 'solo' ? solos : equipes;
+    const newRank   = catData.indexOf(r) + 1;
+    const prevRank  = previousRanks[r.badge_id];
+    if (prevRank === undefined) {
+      storedDeltas[r.badge_id] = ''; // première apparition → pas de flèche
+    } else {
+      const d = prevRank - newRank;
+      if (d > 0)      storedDeltas[r.badge_id] = `<div class="rank-delta up">▲${d}</div>`;
+      else if (d < 0) storedDeltas[r.badge_id] = `<div class="rank-delta down">▼${Math.abs(d)}</div>`;
+      // si d === 0 : on garde l'ancien delta (flèche persiste)
+    }
+  });
 
   document.getElementById('table-solo-main').innerHTML   = buildTable(solos,   true);
   document.getElementById('table-equipe-main').innerHTML = buildTable(equipes, true);
@@ -2473,11 +2488,12 @@ function startCheckpoint() {
   }
   OPERATOR_PIN  = pin;
   deviceType    = 'checkpoint';
-  RACE_START    = null; // sera récupéré depuis Supabase, jamais créé localement
+  RACE_START    = null;        // récupéré depuis Supabase
+  PARTICIPANTS  = {};          // vider les démo — Supabase fournira la vraie liste
   dataMode      = 'supabase';
   allScans      = [];
   piScans       = [];
-  raceStartOverride = false; // le Pi suit toujours Supabase
+  raceStartOverride = false;
   clearInterval(simTimerId);
   document.getElementById('startOverlay').classList.add('hidden');
 
@@ -2541,14 +2557,16 @@ function enterPiMode(chk) {
 }
 
 function startPiTimer() {
+  // Annuler toute boucle précédente avant d'en démarrer une nouvelle
+  cancelAnimationFrame(piTimerRafId);
   function tick() {
     const el = document.getElementById('pi-timer');
-    if (!el) return;
+    if (!el) return; // élément disparu (ex: reset) → arrêter
     if (!RACE_START) {
       el.textContent = '--:--:--';
       el.style.color = 'var(--text-dim)';
       el.className   = 'timer-display not-started';
-      requestAnimationFrame(tick);
+      piTimerRafId   = requestAnimationFrame(tick);
       return;
     }
     const rem = RACE_START.getTime() + DUREE_COURSE * 3600000 - Date.now();
@@ -2557,12 +2575,12 @@ function startPiTimer() {
       el.style.color = 'var(--red)';
       return;
     }
-    const h = Math.floor(rem/3600000);
+    const h = Math.floor(rem / 3600000);
     const m = Math.floor((rem % 3600000) / 60000);
     const s = Math.floor((rem % 60000) / 1000);
     el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
     el.style.color = rem < 3600000 ? 'var(--red)' : 'var(--amber)';
-    requestAnimationFrame(tick);
+    piTimerRafId   = requestAnimationFrame(tick);
   }
   tick();
 }
@@ -2584,15 +2602,19 @@ async function submitPiScan() {
   if (!badge) { showPiFeedback('Saisissez ou scannez un badge.', false); return; }
 
   const scan = { timestamp: new Date(), badge_id: badge, checkpoint: lockedCheckpoint || currentCheckpoint };
-  const p    = PARTICIPANTS[badge];
+  const p = PARTICIPANTS[badge];
 
   // Feedback immédiat
   const chkLabel = scan.checkpoint === 'DEPART' ? '🚦' : '🏁';
   if (p) {
     showPiFeedback(chkLabel + ' ' + p.name, true);
     input.classList.add('flash-ok');
+  } else if (Object.keys(PARTICIPANTS).length === 0) {
+    // Participants pas encore chargés depuis Supabase
+    showPiFeedback('⏳ Chargement participants... scan enregistré : ' + badge, true);
+    input.classList.add('flash-ok');
   } else {
-    showPiFeedback('⚠ Badge inconnu : ' + badge, false);
+    showPiFeedback('⚠ Badge non inscrit : ' + badge, false);
     input.classList.add('flash-err');
   }
 
@@ -2817,8 +2839,11 @@ function switchTab(name, btn) {
 
     if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
       // Pour le Pi : ne jamais utiliser le RACE_START du localStorage
-      // Il sera toujours récupéré depuis Supabase
-      if (deviceType === 'checkpoint') RACE_START = null;
+      // ni les participants du localStorage — tout vient de Supabase
+      if (deviceType === 'checkpoint') {
+        RACE_START   = null;
+        PARTICIPANTS = {}; // sera rempli par syncParticipantsFromSupabase
+      }
 
       syncParticipantsFromSupabase().then(() => {
         startSupaPolling();
