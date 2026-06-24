@@ -2212,12 +2212,34 @@ async function supaFetch(path, opts) {
 
 async function pushRaceConfig() {
   if (!SUPA_URL || !SUPA_OP_KEY || !RACE_START) return;
-  // Propager l'erreur au lieu de l'avaler silencieusement
-  await supaFetch('config', {
-    method: 'POST', write: true,
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
-    body: JSON.stringify({ key: 'race_start', value: RACE_START.toISOString() })
+  const val  = RACE_START.toISOString();
+  // Essayer PATCH (UPDATE) d'abord — si la ligne existe déjà
+  const patch = await fetch(SUPA_URL + '/rest/v1/config?key=eq.race_start', {
+    method: 'PATCH',
+    headers: {
+      'apikey':        SUPA_OP_KEY,
+      'Authorization': 'Bearer ' + SUPA_OP_KEY,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation',
+    },
+    body: JSON.stringify({ value: val })
   });
+  if (patch.status === 200 || patch.status === 204) return; // OK, mis à jour
+  // Pas de ligne existante (0 rows matched) → POST pour créer
+  const post = await fetch(SUPA_URL + '/rest/v1/config', {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_OP_KEY,
+      'Authorization': 'Bearer ' + SUPA_OP_KEY,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation',
+    },
+    body: JSON.stringify({ key: 'race_start', value: val })
+  });
+  if (!post.ok) {
+    const txt = await post.text();
+    throw new Error(post.status + ' ' + txt);
+  }
 }
 
 async function fetchRaceConfig() {
@@ -2707,19 +2729,30 @@ async function syncParticipantsFromSupabase() {
 
 async function pushParticipantToSupabase(badge, p) {
   if (!SUPA_URL || !SUPA_OP_KEY) return;
+  const body = JSON.stringify({
+    badge_id: badge,
+    nom:      p.nom    || '',
+    prenom:   p.prenom || '',
+    name:     p.name   || badge,
+    cat:      p.cat,
+    membres:  (p.membres || []).join('|'),
+  });
+  const headers = {
+    'apikey':        SUPA_OP_KEY,
+    'Authorization': 'Bearer ' + SUPA_OP_KEY,
+    'Content-Type':  'application/json',
+    'Prefer':        'return=representation',
+  };
   try {
-    await supaFetch('participants', {
-      method: 'POST', write: true,
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
-      body: JSON.stringify({
-        badge_id: badge,
-        nom:      p.nom    || '',
-        prenom:   p.prenom || '',
-        name:     p.name   || badge,
-        cat:      p.cat,
-        membres:  (p.membres || []).join('|'),
-      })
+    // PATCH d'abord (update si existe)
+    const patch = await fetch(SUPA_URL + '/rest/v1/participants?badge_id=eq.' + encodeURIComponent(badge), {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ nom: p.nom||'', prenom: p.prenom||'', name: p.name||badge, cat: p.cat, membres: (p.membres||[]).join('|') })
     });
+    if (patch.status === 200 || patch.status === 204) return;
+    // Aucune ligne → POST
+    const post = await fetch(SUPA_URL + '/rest/v1/participants', { method:'POST', headers, body });
+    if (!post.ok) { const t = await post.text(); console.warn('Push participant POST error:', t); }
   } catch(e) { console.warn('Push participant error:', e.message); }
 }
 
