@@ -2166,51 +2166,94 @@ async function fetchSupabase() {
   if (!SUPA_URL || !SUPA_ANON_KEY) return;
   const statusEl = document.getElementById('supa-status-cfg');
   try {
-    // Synchroniser l'heure de départ si on est un Pi (ou si pas encore démarrée)
-    if (deviceType === 'checkpoint' || !RACE_START) {
-      await fetchRaceConfig();
+    // Lire les 3 tables en parallèle à chaque poll
+    const [scanRows, partRows, cfgRows] = await Promise.all([
+      supaFetch('scans?select=*&order=timestamp.asc'),
+      supaFetch('participants?select=*'),
+      supaFetch('config?select=*'),
+    ]);
+
+    // ── 1. RACE_START ───────────────────────────────────────
+    if (cfgRows && cfgRows.length > 0) {
+      const rs = cfgRows.find(r => r.key === 'race_start');
+      if (rs && rs.value) {
+        const parsed = new Date(rs.value);
+        if (!isNaN(parsed)) {
+          // Ne mettre à jour que si différent (éviter de redémarrer le timer inutilement)
+          if (!RACE_START || Math.abs(parsed - RACE_START) > 1000) {
+            RACE_START = parsed;
+            startTimer();
+          }
+        }
+      }
     }
-    const rows = await supaFetch('scans?select=*&order=timestamp.asc');
-    const parsed = rows.map(r => ({
-      timestamp: new Date(r.timestamp),
-      badge_id:  r.badge_id,
+
+    // ── 2. PARTICIPANTS ─────────────────────────────────────
+    if (partRows && partRows.length > 0) {
+      const remote = {};
+      partRows.forEach(r => {
+        remote[r.badge_id] = {
+          nom:     r.nom     || '',
+          prenom:  r.prenom  || '',
+          name:    r.name    || (r.prenom + ' ' + r.nom).trim() || r.badge_id,
+          cat:     r.cat,
+          membres: r.membres ? r.membres.split('|').filter(Boolean) : [],
+        };
+      });
+      // Mettre à jour seulement si différent (comparer JSON)
+      if (JSON.stringify(remote) !== JSON.stringify(PARTICIPANTS)) {
+        PARTICIPANTS = remote;
+        saveState();
+        renderParticipantsTab();
+      }
+    }
+
+    // ── 3. SCANS ────────────────────────────────────────────
+    const scans = (scanRows || []).map(r => ({
+      timestamp:  new Date(r.timestamp),
+      badge_id:   r.badge_id,
       checkpoint: r.checkpoint.toUpperCase(),
-      id: r.id,
+      id:         r.id,
     })).filter(r => !isNaN(r.timestamp));
 
-    // Fusionner avec scans manuels locaux (éviter doublons par id Supabase)
-    const supaIds = new Set(parsed.map(r => r.id).filter(Boolean));
+    // Ajouter les scans manuels locaux pas encore confirmés par Supabase
+    const supaIds = new Set(scans.map(r => r.id).filter(Boolean));
     const localOnly = manualScans.filter(s => !s.supaId);
-    allScans = [...parsed, ...localOnly].sort((a,b) => a.timestamp - b.timestamp);
+    allScans = [...scans, ...localOnly].sort((a, b) => a.timestamp - b.timestamp);
+
+    // ── 4. MISE À JOUR UI ───────────────────────────────────
     if (deviceType !== 'checkpoint') updateUI();
-    else updatePiScanList(); // sur Pi, juste mettre à jour la liste locale
-    updatePiConn(true, 'Supabase · ' + parsed.length + ' scans');
+    else { updatePiScanList(); updatePiCount(); }
 
+    // Status bar
     const bar = document.getElementById('sheetsStatusBar');
-    bar.classList.remove('hidden');
-    document.getElementById('sheetsDot').className = 'sheets-dot';
-    document.getElementById('sheetsStatusText').textContent = 'Supabase · ' + parsed.length + ' scans';
-    document.getElementById('sheetsLastFetch').textContent  = 'Maj ' + new Date().toLocaleTimeString('fr-FR');
-
-    if (statusEl) {
-      statusEl.style.display = 'block';
-      statusEl.style.background = 'rgba(46,204,113,.1)';
-      statusEl.style.border = '1px solid rgba(46,204,113,.3)';
-      statusEl.style.color = 'var(--green)';
-      statusEl.textContent = 'Connecte · ' + parsed.length + ' scans en base';
+    if (bar) {
+      bar.classList.remove('hidden', 'error');
+      document.getElementById('sheetsDot').className = 'sheets-dot';
+      document.getElementById('sheetsStatusText').textContent =
+        'Supabase · ' + scans.length + ' scans · ' +
+        Object.keys(PARTICIPANTS).length + ' participants';
+      document.getElementById('sheetsLastFetch').textContent =
+        'Màj ' + new Date().toLocaleTimeString('fr-FR');
     }
+    updatePiConn(true, 'Supabase · ' + scans.length + ' scans');
+    if (statusEl) {
+      statusEl.style.cssText = 'display:block;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);color:var(--green)';
+      statusEl.textContent = 'Connecté · ' + scans.length + ' scans · ' + Object.keys(PARTICIPANTS).length + ' participants';
+    }
+
   } catch(e) {
     console.warn('Supabase fetch error:', e.message);
     const bar = document.getElementById('sheetsStatusBar');
-    bar.classList.remove('hidden');
-    document.getElementById('sheetsDot').className = 'sheets-dot err';
-    document.getElementById('sheetsStatusText').textContent = 'Supabase erreur : ' + e.message;
+    if (bar) {
+      bar.classList.remove('hidden');
+      document.getElementById('sheetsDot').className = 'sheets-dot err';
+      document.getElementById('sheetsStatusText').textContent = 'Erreur : ' + e.message;
+    }
+    updatePiConn(false, 'Erreur : ' + e.message);
     if (statusEl) {
-      statusEl.style.display = 'block';
-      statusEl.style.background = 'rgba(231,76,60,.1)';
-      statusEl.style.border = '1px solid rgba(231,76,60,.3)';
-      statusEl.style.color = 'var(--red)';
-      statusEl.textContent = 'Erreur : ' + e.message;
+      statusEl.style.cssText = 'display:block;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red)';
+      statusEl.textContent = 'Erreur Supabase : ' + e.message;
     }
   }
 }
@@ -2265,17 +2308,27 @@ function startAdmin() {
   deviceType       = 'admin';
   sessionUnlocked  = true;
   lockedCheckpoint = null;
-  RACE_START       = RACE_START || new Date();
-  dataMode = 'supabase';
-  allScans = [];
+  dataMode         = 'supabase';
+  allScans         = [];
   clearInterval(simTimerId);
-  saveState();
   document.getElementById('startOverlay').classList.add('hidden');
+
+  // Vérifier si une course est déjà en cours dans Supabase
+  // fetchSupabase récupérera RACE_START, participants et scans
+  // Si aucun RACE_START en base, on démarre maintenant
   startSupaPolling();
-  syncParticipantsFromSupabase();
-  pushRaceConfig(); // partager l'heure de départ avec tous les appareils
-  startTimer();
-  updateUI();
+
+  // Attendre le premier poll pour voir si RACE_START existe en base
+  setTimeout(async () => {
+    if (!RACE_START) {
+      // Pas de course en cours → démarrer maintenant
+      RACE_START = new Date();
+      await pushRaceConfig();
+      startTimer();
+    }
+    saveState();
+    updateUI();
+  }, 1500); // laisser le premier fetchSupabase se terminer
 }
 
 function startCheckpoint() {
@@ -2297,11 +2350,10 @@ function startCheckpoint() {
   saveState();
   document.getElementById('startOverlay').classList.add('hidden');
 
-  // Sync participants depuis Supabase avant d'afficher l'overlay PIN
+  // Récupérer participants + config depuis Supabase, puis montrer le PIN
   syncParticipantsFromSupabase().then(() => {
-    startSupaPolling();
+    startSupaPolling(); // polling continu toutes les 5s
     startTimer();
-    // Montrer le PIN overlay pour choisir le checkpoint
     showPinOverlay();
   });
 }
@@ -2496,27 +2548,36 @@ function exitPiMode() {
    SYNCHRONISATION PARTICIPANTS DEPUIS SUPABASE
    ================================================================ */
 async function syncParticipantsFromSupabase() {
+  // Désormais géré automatiquement dans fetchSupabase() à chaque poll
+  // On garde cette fonction pour la compatibilité (appelée au démarrage du Pi)
   if (!SUPA_URL || !SUPA_ANON_KEY) return;
   try {
-    const rows = await supaFetch('participants?select=*');
-    if (rows && rows.length > 0) {
+    const [partRows, cfgRows] = await Promise.all([
+      supaFetch('participants?select=*'),
+      supaFetch('config?select=*'),
+    ]);
+    if (partRows && partRows.length > 0) {
       PARTICIPANTS = {};
-      rows.forEach(r => {
+      partRows.forEach(r => {
         PARTICIPANTS[r.badge_id] = {
-          nom:     r.nom     || '',
-          prenom:  r.prenom  || '',
-          name:    r.name    || (r.prenom + ' ' + r.nom).trim() || r.badge_id,
+          nom:     r.nom    || '',
+          prenom:  r.prenom || '',
+          name:    r.name   || (r.prenom + ' ' + r.nom).trim() || r.badge_id,
           cat:     r.cat,
-          membres: r.membres ? r.membres.split('|') : [],
+          membres: r.membres ? r.membres.split('|').filter(Boolean) : [],
         };
       });
       saveState();
       renderParticipantsTab();
-      console.log('Participants synchronisés depuis Supabase :', Object.keys(PARTICIPANTS).length);
     }
-  } catch(e) {
-    console.warn('Sync participants error:', e.message);
-  }
+    if (cfgRows && cfgRows.length > 0) {
+      const rs = cfgRows.find(r => r.key === 'race_start');
+      if (rs && rs.value) {
+        const parsed = new Date(rs.value);
+        if (!isNaN(parsed)) { RACE_START = parsed; startTimer(); saveState(); }
+      }
+    }
+  } catch(e) { console.warn('Sync error:', e.message); }
 }
 
 async function pushParticipantToSupabase(badge, p) {
