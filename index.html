@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.24.0
+    v1.25.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -2504,6 +2504,8 @@ async function pushScanToSupabase(scan) {
 
 async function fetchSupabase() {
   if (!SUPA_URL || !SUPA_ANON_KEY) return;
+  // Note : fetchSupabase tourne même si la course n'est pas démarrée
+  // pour maintenir les participants à jour sur tous les appareils
   const statusEl = document.getElementById('supa-status-cfg');
   try {
     // Lire les 3 tables en parallèle à chaque poll
@@ -3348,7 +3350,14 @@ function switchTab(name, btn) {
     }
     updateUI();
   }
-  // Sinon l'overlay reste visible — pré-remplir les champs Supabase
+  // Sinon l'overlay reste visible
+  // MAIS : charger quand même les participants depuis Supabase immédiatement
+  // (s'applique à tout nouvel appareil : iPhone, PC invité, etc.)
+  if (SUPA_URL && SUPA_ANON_KEY) {
+    syncParticipantsFromSupabase(); // silencieux, juste pour pré-charger la liste
+  }
+
+  // Pré-remplir les champs Supabase
   const fillField = (id, val) => { const el=document.getElementById(id); if(el && val) el.value=val; };
   fillField('ov-supa-url',  SUPA_URL);
   fillField('ov-supa-anon', SUPA_ANON_KEY);
