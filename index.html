@@ -259,13 +259,13 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 /* MODE PLEIN ÉCRAN */
 #fs-overlay{display:none;position:fixed;inset:0;background:var(--ink);z-index:600;flex-direction:column}
 #fs-overlay.open{display:flex}
-.fs-header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;gap:16px}
-.fs-timer{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--amber);line-height:1}
-.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;gap:20px}
+.fs-timer{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--amber);line-height:1}
+.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:10px 20px;font-size:14px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
 .fs-close:hover{border-color:var(--red);color:var(--red)}
 .fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;overflow:hidden;min-height:0}
 .fs-col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.fs-col-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.fs-col-title{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0}
 .fs-lb{flex:1;overflow:hidden;display:flex;flex-direction:column}
 
 /* PI MODE */
@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.21.0
+    v1.22.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -891,8 +891,8 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <!-- Gauche : logo + titre -->
     <div style="display:flex;align-items:center;gap:16px">
       <div>
-        <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);font-family:var(--mono)">UTBM TRAIL</div>
-        <div style="font-size:20px;font-weight:800;color:var(--white);letter-spacing:.04em">Classement Live</div>
+        <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);font-family:var(--mono)">UTBM TRAIL</div>
+        <div style="font-size:26px;font-weight:800;color:var(--white);letter-spacing:.04em">Classement Live</div>
       </div>
     </div>
 
@@ -900,37 +900,37 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <div style="display:flex;align-items:center;gap:28px;padding:0 20px">
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km parcourus</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km parcourus</div>
       </div>
 
       <div style="width:1px;height:36px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+ cumulé</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+ cumulé</div>
       </div>
 
       <div style="width:1px;height:36px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green)" id="fs-best-time">—</div>
-        <div style="font-family:var(--sans);font-size:11px;font-weight:600;color:var(--white);margin-top:1px" id="fs-best-who" style="white-space:nowrap">—</div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Record tour</div>
+        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)" id="fs-best-time">—</div>
+        <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--white);margin-top:2px" id="fs-best-who">—</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Record tour</div>
       </div>
 
       <div style="width:1px;height:36px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber)" id="fs-pts">—</div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Points cumulés</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--amber)" id="fs-tours">—</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Tours validés</div>
       </div>
 
       <div style="width:1px;height:36px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--red)" id="fs-open">—</div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">En parcours</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--red)" id="fs-open">—</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">En parcours</div>
       </div>
 
     </div>
@@ -3006,11 +3006,11 @@ async function pushParticipantToSupabase(badge, p) {
 /* ================================================================
    CLASSEMENT DÉFILANT
    ================================================================ */
-const TOP_FIXED    = 3;    // top 3 toujours visible en haut
-const SCROLL_ROWS  = 10;   // lignes visibles dans la zone défilante (classement normal)
-const FS_SCROLL_ROWS = 8;  // lignes visibles en plein écran
-const SCROLL_STEP  = 5;    // avance de N lignes à chaque tick
-const SCROLL_MS    = 10000; // ms entre chaque défilement (10s)
+const TOP_FIXED      = 3;    // top 3 toujours visible en haut
+const SCROLL_ROWS    = 12;   // lignes visibles dans la zone défilante
+const FS_SCROLL_ROWS = 12;   // lignes visibles en plein écran
+const SCROLL_STEP    = 5;    // avance de N lignes à chaque tick
+const SCROLL_MS      = 10000; // ms entre chaque défilement (10s)
 
 let scrollStates = {}; // { 'solo': { offset, timer }, 'equipe': { offset, timer } }
 
@@ -3085,17 +3085,12 @@ function startScroll(cat, total, visible) {
   if (!scrollStates[cat]) scrollStates[cat] = { offset: 0 };
   const state = scrollStates[cat];
   if (state.timer) { clearInterval(state.timer); state.timer = null; }
-  if (total === 0) return; // rien à défiler
-
-  // Si tout tient sans scroller, on fait quand même une animation lente
-  // pour montrer que le système est vivant (cycle complet très lent)
-  const step = total <= visible ? 0 : SCROLL_STEP;
-  if (step === 0) return; // vraiment tout visible, inutile
+  if (total === 0) return;
 
   state.timer = setInterval(() => {
     const ribbon = document.getElementById('lb-ribbon-' + cat);
     if (!ribbon) { clearInterval(state.timer); return; }
-    state.offset = (state.offset + step) % total;
+    state.offset = (state.offset + SCROLL_STEP) % total;
     ribbon.style.transform = 'translateY(-' + (state.offset * ROW_H) + 'px)';
   }, SCROLL_MS);
 }
@@ -3199,15 +3194,16 @@ function buildFsLeaderboard(data, elId, cat) {
     + headHtml + fixedHtml + sepHtml + scrollHtml
     + '</div>';
 
-  // Arrêter le timer précédent
+  // Scroll : démarre toujours dès qu'il y a au moins 1 ligne hors top3
   if (!fsScrollStates[cat]) fsScrollStates[cat] = { offset: 0 };
   const state = fsScrollStates[cat];
   if (state.timer) { clearInterval(state.timer); state.timer = null; }
-  if (scrollData.length <= FS_SCROLL_ROWS) return; // tout tient, pas besoin
+  if (scrollData.length === 0) return;
 
   state.timer = setInterval(() => {
     const ribbon = document.getElementById('fs-ribbon-' + cat);
     if (!ribbon) { clearInterval(state.timer); return; }
+    // Avancer de SCROLL_STEP, revenir au début si on dépasse
     state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
     ribbon.style.transform = 'translateY(-' + (state.offset * ROW_H) + 'px)';
   }, SCROLL_MS);
@@ -3224,7 +3220,7 @@ function updateFsLeaderboard() {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   const setH = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
 
-  set('fs-pts',         gs.totalPoints.toLocaleString('fr-FR') + ' pts');
+  set('fs-tours',        gs.totalTours.toLocaleString('fr-FR') + ' tours');
   set('fs-km',          gs.totalKm.toFixed(0).toLocaleString('fr-FR') + ' km');
   set('fs-dplus',       gs.totalDplus.toFixed(0).toLocaleString('fr-FR') + ' m');
   set('fs-best-time',   fmtTime(gs.bestLap));
