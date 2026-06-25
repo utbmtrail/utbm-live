@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.20.0
+    v1.21.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -3007,7 +3007,8 @@ async function pushParticipantToSupabase(badge, p) {
    CLASSEMENT DÉFILANT
    ================================================================ */
 const TOP_FIXED    = 3;    // top 3 toujours visible en haut
-const SCROLL_ROWS  = 10;   // lignes visibles dans la zone défilante
+const SCROLL_ROWS  = 10;   // lignes visibles dans la zone défilante (classement normal)
+const FS_SCROLL_ROWS = 8;  // lignes visibles en plein écran
 const SCROLL_STEP  = 5;    // avance de N lignes à chaque tick
 const SCROLL_MS    = 10000; // ms entre chaque défilement (10s)
 
@@ -3083,15 +3084,19 @@ function buildLeaderboard(data, containerId, cat, visibleRows) {
 function startScroll(cat, total, visible) {
   if (!scrollStates[cat]) scrollStates[cat] = { offset: 0 };
   const state = scrollStates[cat];
-  if (state.timer) clearInterval(state.timer);
-  if (total <= visible) return; // tout tient, pas besoin de défiler
+  if (state.timer) { clearInterval(state.timer); state.timer = null; }
+  if (total === 0) return; // rien à défiler
+
+  // Si tout tient sans scroller, on fait quand même une animation lente
+  // pour montrer que le système est vivant (cycle complet très lent)
+  const step = total <= visible ? 0 : SCROLL_STEP;
+  if (step === 0) return; // vraiment tout visible, inutile
 
   state.timer = setInterval(() => {
     const ribbon = document.getElementById('lb-ribbon-' + cat);
     if (!ribbon) { clearInterval(state.timer); return; }
-    // Avancer de SCROLL_STEP, en boucle sur le total
-    state.offset = (state.offset + SCROLL_STEP) % total;
-    ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
+    state.offset = (state.offset + step) % total;
+    ribbon.style.transform = 'translateY(-' + (state.offset * ROW_H) + 'px)';
   }, SCROLL_MS);
 }
 function stopAllScrolls() {
@@ -3169,50 +3174,43 @@ function buildFsLeaderboard(data, elId, cat) {
   const fixedData  = data.slice(0, TOP_FIXED);
   const scrollData = data.slice(TOP_FIXED);
 
-  const fixedHtml = `<div class="lb-fixed-zone">${fixedData.map((r,i) => makeLbRow(r,i)).join('')}</div>`;
-  const sepHtml   = scrollData.length > 0
-    ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5;flex-shrink:0"></div>' : '';
+  // Top 3 — zone fixe
+  const fixedHtml = '<div class="lb-fixed-zone">'
+    + fixedData.map((r, i) => makeLbRow(r, i)).join('')
+    + '</div>';
 
-  // La fenêtre de scroll prend TOUT l'espace restant (flex:1)
-  // On utilise overflow:hidden + flex:1 au lieu d'une hauteur fixe
+  // Séparateur
+  const sepHtml = scrollData.length > 0
+    ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5"></div>'
+    : '';
+
+  // Zone défilante : hauteur FIXE calculée depuis FS_SCROLL_ROWS
+  // Pas de mesure DOM — on sait exactement combien de lignes on veut
+  const winH = FS_SCROLL_ROWS * ROW_H;
   const scrollHtml = scrollData.length > 0
-    ? `<div class="lb-window" id="fs-win-${cat}" style="flex:1;height:0">`
-      + `<div class="lb-ribbon" id="fs-ribbon-${cat}">`
-      + scrollData.map((r,i) => makeLbRow(r, i + TOP_FIXED)).join('')
-      + `</div></div>` : '';
+    ? `<div class="lb-window" style="height:${winH}px">`
+        + `<div class="lb-ribbon" id="fs-ribbon-${cat}">`
+        + scrollData.map((r, i) => makeLbRow(r, i + TOP_FIXED)).join('')
+        + '</div></div>'
+    : '';
 
   container.innerHTML =
-    `<div class="lb-wrap" style="height:100%;display:flex;flex-direction:column">`
-    + headHtml + fixedHtml + sepHtml + scrollHtml + `</div>`;
+    '<div class="lb-wrap">'
+    + headHtml + fixedHtml + sepHtml + scrollHtml
+    + '</div>';
 
-  if (scrollData.length === 0) return;
-
-  // Arrêter le scroll précédent
+  // Arrêter le timer précédent
   if (!fsScrollStates[cat]) fsScrollStates[cat] = { offset: 0 };
   const state = fsScrollStates[cat];
-  if (state.timer) clearInterval(state.timer);
+  if (state.timer) { clearInterval(state.timer); state.timer = null; }
+  if (scrollData.length <= FS_SCROLL_ROWS) return; // tout tient, pas besoin
 
-  // Démarrer le scroll APRÈS le rendu pour lire la vraie hauteur disponible
-  requestAnimationFrame(() => {
-    const win = document.getElementById('fs-win-' + cat);
-    if (!win) return;
-
-    // La hauteur réelle de la fenêtre maintenant disponible
-    const winH    = win.clientHeight;
-    const visible = Math.max(1, Math.floor(winH / ROW_H));
-
-    // Ajuster la hauteur du conteneur à un multiple entier de ROW_H
-    win.style.height = (visible * ROW_H) + 'px';
-
-    if (scrollData.length <= visible) return; // tout tient, pas de scroll
-
-    state.timer = setInterval(() => {
-      const ribbon = document.getElementById('fs-ribbon-' + cat);
-      if (!ribbon) { clearInterval(state.timer); return; }
-      state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
-      ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
-    }, SCROLL_MS);
-  });
+  state.timer = setInterval(() => {
+    const ribbon = document.getElementById('fs-ribbon-' + cat);
+    if (!ribbon) { clearInterval(state.timer); return; }
+    state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
+    ribbon.style.transform = 'translateY(-' + (state.offset * ROW_H) + 'px)';
+  }, SCROLL_MS);
 }
 
 function updateFsLeaderboard() {
