@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.25.0
+    v1.26.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1394,14 +1394,28 @@ function lapPoints(lap) {
 function processScans(scans) {
   anomalies = [];
   const state = {};
+
+  // Initialiser depuis PARTICIPANTS (liste officielle)
   for (const badge in PARTICIPANTS) {
     state[badge] = { name: PARTICIPANTS[badge].name, cat: PARTICIPANTS[badge].cat, openLapStart: null, laps: [] };
   }
+
+  // Si PARTICIPANTS est vide (chargement en cours), construire l'état
+  // depuis les scans eux-mêmes pour ne pas afficher un classement vide
+  const participantsEmpty = Object.keys(PARTICIPANTS).length === 0;
+
   for (const scan of scans) {
     const { timestamp, badge_id, checkpoint } = scan;
     if (!PARTICIPANTS[badge_id]) {
-      anomalies.push({ type:'badge_inconnu', badge_id, timestamp, msg:`Badge inconnu "${badge_id}" — checkpoint ${checkpoint}` });
-      continue;
+      if (participantsEmpty) {
+        // Participants pas encore chargés : créer une entrée temporaire
+        if (!state[badge_id]) {
+          state[badge_id] = { name: badge_id, cat: 'solo', openLapStart: null, laps: [] };
+        }
+      } else {
+        anomalies.push({ type:'badge_inconnu', badge_id, timestamp, msg:`Badge inconnu "${badge_id}" — checkpoint ${checkpoint}` });
+        continue;
+      }
     }
     const s = state[badge_id];
     if (checkpoint === 'DEPART') {
@@ -3351,10 +3365,10 @@ function switchTab(name, btn) {
     updateUI();
   }
   // Sinon l'overlay reste visible
-  // MAIS : charger quand même les participants depuis Supabase immédiatement
-  // (s'applique à tout nouvel appareil : iPhone, PC invité, etc.)
+  // Mais on lance quand même le polling Supabase pour pré-charger
+  // participants + config (RACE_START) sur tout nouvel appareil
   if (SUPA_URL && SUPA_ANON_KEY) {
-    syncParticipantsFromSupabase(); // silencieux, juste pour pré-charger la liste
+    startSupaPolling(); // charge participants, scans et config immédiatement
   }
 
   // Pré-remplir les champs Supabase
