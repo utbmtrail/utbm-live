@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.30.0
+    v1.31.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -3377,11 +3377,14 @@ function switchTab(name, btn) {
     if (SUPA_URL && SUPA_ANON_KEY) dataMode = 'supabase';
 
     if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
-      // Pour le Pi : ne jamais utiliser le RACE_START du localStorage
-      // ni les participants du localStorage — tout vient de Supabase
       if (deviceType === 'checkpoint') {
         RACE_START   = null;
-        PARTICIPANTS = {}; // sera rempli par syncParticipantsFromSupabase
+        PARTICIPANTS = {};
+      } else if (RACE_START && SUPA_OP_KEY) {
+        // PC Admin avec course en localStorage → publier RACE_START dans Supabase
+        // pour que tous les autres appareils se synchronisent
+        raceStartOverride = true;
+        pushRaceConfig().catch(e => console.warn('pushRaceConfig at init:', e.message));
       }
 
       syncParticipantsFromSupabase().then(() => {
