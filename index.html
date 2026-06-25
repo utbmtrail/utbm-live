@@ -259,9 +259,9 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 /* MODE PLEIN ÉCRAN */
 #fs-overlay{display:none;position:fixed;inset:0;background:var(--ink);z-index:600;flex-direction:column}
 #fs-overlay.open{display:flex}
-.fs-header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;gap:20px}
-.fs-timer{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--amber);line-height:1}
-.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:10px 20px;font-size:14px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:24px 40px;background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;gap:24px}
+.fs-timer{font-family:var(--mono);font-size:56px;font-weight:700;color:var(--amber);line-height:1;letter-spacing:.02em}
+.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:12px 24px;font-size:15px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
 .fs-close:hover{border-color:var(--red);color:var(--red)}
 .fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;overflow:hidden;min-height:0}
 .fs-col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.22.0
+    v1.23.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -891,8 +891,8 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <!-- Gauche : logo + titre -->
     <div style="display:flex;align-items:center;gap:16px">
       <div>
-        <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);font-family:var(--mono)">UTBM TRAIL</div>
-        <div style="font-size:26px;font-weight:800;color:var(--white);letter-spacing:.04em">Classement Live</div>
+        <div style="font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);font-family:var(--mono)">UTBM TRAIL</div>
+        <div style="font-size:40px;font-weight:800;color:var(--white);letter-spacing:.04em">Classement Live</div>
       </div>
     </div>
 
@@ -900,37 +900,37 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <div style="display:flex;align-items:center;gap:28px;padding:0 20px">
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km parcourus</div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km parcourus</div>
       </div>
 
-      <div style="width:1px;height:36px;background:var(--border)"></div>
+      <div style="width:1px;height:60px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+ cumulé</div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+ cumulé</div>
       </div>
 
-      <div style="width:1px;height:36px;background:var(--border)"></div>
+      <div style="width:1px;height:60px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)" id="fs-best-time">—</div>
-        <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--white);margin-top:2px" id="fs-best-who">—</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Record tour</div>
+        <div style="font-family:var(--mono);font-size:38px;font-weight:700;color:var(--green)" id="fs-best-time">—</div>
+        <div style="font-family:var(--sans);font-size:16px;font-weight:600;color:var(--white);margin-top:4px" id="fs-best-who">—</div>
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Record tour</div>
       </div>
 
-      <div style="width:1px;height:36px;background:var(--border)"></div>
+      <div style="width:1px;height:60px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--amber)" id="fs-tours">—</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Tours validés</div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--amber)" id="fs-tours">—</div>
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Tours validés</div>
       </div>
 
-      <div style="width:1px;height:36px;background:var(--border)"></div>
+      <div style="width:1px;height:60px;background:var(--border)"></div>
 
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--red)" id="fs-open">—</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">En parcours</div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--red)" id="fs-open">—</div>
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">En parcours</div>
       </div>
 
     </div>
@@ -3109,12 +3109,14 @@ let fsScrollStates = {};
 
 function openFullscreen() {
   const ov = document.getElementById('fs-overlay');
+  fsCacheKey = { solo: '', equipe: '' }; // forcer reconstruction DOM au premier affichage
+  stopFsScrolls();
   ov.classList.add('open');
   if (ov.requestFullscreen) ov.requestFullscreen().catch(()=>{});
   else if (ov.webkitRequestFullscreen) ov.webkitRequestFullscreen();
   startFsTimer();
-  // Attendre 2 frames que le navigateur rende l'overlay et calcule les dimensions
-  requestAnimationFrame(() => requestAnimationFrame(() => updateFsLeaderboard()));
+  // Laisser le navigateur rendre l'overlay avant de construire le classement
+  setTimeout(updateFsLeaderboard, 150);
 }
 
 function closeFullscreen() {
@@ -3122,6 +3124,7 @@ function closeFullscreen() {
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
   cancelAnimationFrame(fsTimerRaf);
   stopFsScrolls();
+  fsCacheKey = { solo: '', equipe: '' }; // reset cache pour la prochaine ouverture
 }
 
 // Quitter si l'utilisateur appuie sur Échap
@@ -3155,9 +3158,21 @@ function stopFsScrolls() {
   fsScrollStates = {};
 }
 
+// Cache des données FS pour éviter de reconstruire le DOM inutilement
+let fsCacheKey = { solo: '', equipe: '' };
+
 function buildFsLeaderboard(data, elId, cat) {
   const container = document.getElementById(elId);
   if (!container) return;
+
+  // Clé de cache : si les données n'ont pas changé, ne pas reconstruire le DOM
+  // (le scroll continuerait sinon à être tué et relancé)
+  const cacheKey = data.map(r => r.badge_id + r.tours + r.points).join('|');
+  if (fsCacheKey[cat] === cacheKey && container.querySelector('.lb-ribbon')) {
+    return; // DOM déjà à jour, ne pas toucher
+  }
+  fsCacheKey[cat] = cacheKey;
+
   if (data.length === 0) {
     container.innerHTML = '<div style="color:var(--text-dim);padding:20px;text-align:center">Aucune donnée</div>';
     return;
@@ -3169,42 +3184,38 @@ function buildFsLeaderboard(data, elId, cat) {
   const fixedData  = data.slice(0, TOP_FIXED);
   const scrollData = data.slice(TOP_FIXED);
 
-  // Top 3 — zone fixe
   const fixedHtml = '<div class="lb-fixed-zone">'
     + fixedData.map((r, i) => makeLbRow(r, i)).join('')
     + '</div>';
 
-  // Séparateur
   const sepHtml = scrollData.length > 0
     ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5"></div>'
     : '';
 
-  // Zone défilante : hauteur FIXE calculée depuis FS_SCROLL_ROWS
-  // Pas de mesure DOM — on sait exactement combien de lignes on veut
   const winH = FS_SCROLL_ROWS * ROW_H;
   const scrollHtml = scrollData.length > 0
-    ? `<div class="lb-window" style="height:${winH}px">`
-        + `<div class="lb-ribbon" id="fs-ribbon-${cat}">`
+    ? '<div class="lb-window" style="height:' + winH + 'px">'
+        + '<div class="lb-ribbon" id="fs-ribbon-' + cat + '">'
         + scrollData.map((r, i) => makeLbRow(r, i + TOP_FIXED)).join('')
         + '</div></div>'
     : '';
 
-  container.innerHTML =
-    '<div class="lb-wrap">'
-    + headHtml + fixedHtml + sepHtml + scrollHtml
-    + '</div>';
+  container.innerHTML = '<div class="lb-wrap">' + headHtml + fixedHtml + sepHtml + scrollHtml + '</div>';
 
-  // Scroll : démarre toujours dès qu'il y a au moins 1 ligne hors top3
+  // Arrêter l'ancien scroll
   if (!fsScrollStates[cat]) fsScrollStates[cat] = { offset: 0 };
   const state = fsScrollStates[cat];
   if (state.timer) { clearInterval(state.timer); state.timer = null; }
   if (scrollData.length === 0) return;
 
-  state.timer = setInterval(() => {
+  // Démarrer le scroll — ce timer ne sera jamais tué par updateFsLeaderboard
+  // car buildFsLeaderboard ne sera plus appelée tant que les données ne changent pas
+  state.offset = 0;
+  state.total  = scrollData.length;
+  state.timer  = setInterval(() => {
     const ribbon = document.getElementById('fs-ribbon-' + cat);
-    if (!ribbon) { clearInterval(state.timer); return; }
-    // Avancer de SCROLL_STEP, revenir au début si on dépasse
-    state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
+    if (!ribbon) { clearInterval(state.timer); state.timer = null; return; }
+    state.offset = (state.offset + SCROLL_STEP) % state.total;
     ribbon.style.transform = 'translateY(-' + (state.offset * ROW_H) + 'px)';
   }, SCROLL_MS);
 }
@@ -3213,20 +3224,20 @@ function updateFsLeaderboard() {
   if (!document.getElementById('fs-overlay').classList.contains('open')) return;
   const { solos, equipes } = processScans(allScans);
 
+  // buildFsLeaderboard ne reconstruit le DOM que si les données ont changé
   buildFsLeaderboard(solos,   'fs-lb-solo',   'fs-solo');
   buildFsLeaderboard(equipes, 'fs-lb-equipe', 'fs-equipe');
 
-  const gs  = computeGlobalStats(solos, equipes);
+  // Mettre à jour uniquement les stats (éléments individuels, pas le DOM classement)
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  const setH = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
-
-  set('fs-tours',        gs.totalTours.toLocaleString('fr-FR') + ' tours');
-  set('fs-km',          gs.totalKm.toFixed(0).toLocaleString('fr-FR') + ' km');
-  set('fs-dplus',       gs.totalDplus.toFixed(0).toLocaleString('fr-FR') + ' m');
+  const gs = computeGlobalStats(solos, equipes);
+  set('fs-tours',        gs.totalTours + ' tours');
+  set('fs-km',          gs.totalKm.toFixed(0) + ' km');
+  set('fs-dplus',       gs.totalDplus.toFixed(0) + ' m');
   set('fs-best-time',   fmtTime(gs.bestLap));
   set('fs-best-who',    gs.bestLapWho || '—');
   set('fs-open',        gs.openTours);
-  set('fs-solo-count',  solos.length  + ' participants');
+  set('fs-solo-count',  solos.length + ' participants');
   set('fs-equipe-count',equipes.length + ' équipes');
 
   setTimeout(updateFsLeaderboard, 5000);
