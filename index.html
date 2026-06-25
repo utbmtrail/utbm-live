@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.29.0
+    v1.30.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -2475,33 +2475,22 @@ async function supaFetch(path, opts) {
 
 async function pushRaceConfig() {
   if (!SUPA_URL || !SUPA_OP_KEY || !RACE_START) return;
-  const val  = RACE_START.toISOString();
-  // Essayer PATCH (UPDATE) d'abord — si la ligne existe déjà
-  const patch = await fetch(SUPA_URL + '/rest/v1/config?key=eq.race_start', {
-    method: 'PATCH',
-    headers: {
-      'apikey':        SUPA_OP_KEY,
-      'Authorization': 'Bearer ' + SUPA_OP_KEY,
-      'Content-Type':  'application/json',
-      'Prefer':        'return=representation',
-    },
-    body: JSON.stringify({ value: val })
-  });
-  if (patch.status === 200 || patch.status === 204) return; // OK, mis à jour
-  // Pas de ligne existante (0 rows matched) → POST pour créer
-  const post = await fetch(SUPA_URL + '/rest/v1/config', {
+  const headers = {
+    'apikey':        SUPA_OP_KEY,
+    'Authorization': 'Bearer ' + SUPA_OP_KEY,
+    'Content-Type':  'application/json',
+  };
+  const val = RACE_START.toISOString();
+  // DELETE puis INSERT — fiable sans dépendre du PATCH
+  await fetch(SUPA_URL + '/rest/v1/config?key=eq.race_start', { method:'DELETE', headers });
+  const res = await fetch(SUPA_URL + '/rest/v1/config', {
     method: 'POST',
-    headers: {
-      'apikey':        SUPA_OP_KEY,
-      'Authorization': 'Bearer ' + SUPA_OP_KEY,
-      'Content-Type':  'application/json',
-      'Prefer':        'return=representation',
-    },
+    headers: { ...headers, 'Prefer': 'return=minimal' },
     body: JSON.stringify({ key: 'race_start', value: val })
   });
-  if (!post.ok) {
-    const txt = await post.text();
-    throw new Error(post.status + ' ' + txt);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(res.status + ' ' + txt);
   }
 }
 
@@ -3042,31 +3031,41 @@ async function syncParticipantsFromSupabase() {
 
 async function pushParticipantToSupabase(badge, p) {
   if (!SUPA_URL || !SUPA_OP_KEY) return;
-  const body = JSON.stringify({
-    badge_id: badge,
-    nom:      p.nom    || '',
-    prenom:   p.prenom || '',
-    name:     p.name   || badge,
-    cat:      p.cat,
-    membres:  (p.membres || []).join('|'),
-  });
   const headers = {
     'apikey':        SUPA_OP_KEY,
     'Authorization': 'Bearer ' + SUPA_OP_KEY,
     'Content-Type':  'application/json',
-    'Prefer':        'return=representation',
   };
+  const payload = JSON.stringify({
+    badge_id: badge,
+    nom:      p.nom    || '',
+    prenom:   p.prenom || '',
+    name:     p.name   || badge,
+    cat:      p.cat    || 'solo',
+    membres:  (p.membres || []).join('|'),
+  });
+
+  // Stratégie : DELETE puis INSERT (upsert fiable sans dépendre du PATCH)
   try {
-    // PATCH d'abord (update si existe)
-    const patch = await fetch(SUPA_URL + '/rest/v1/participants?badge_id=eq.' + encodeURIComponent(badge), {
-      method: 'PATCH', headers,
-      body: JSON.stringify({ nom: p.nom||'', prenom: p.prenom||'', name: p.name||badge, cat: p.cat, membres: (p.membres||[]).join('|') })
+    // 1. Supprimer si existe (204 ou 200, ignoré)
+    await fetch(SUPA_URL + '/rest/v1/participants?badge_id=eq.' + encodeURIComponent(badge), {
+      method: 'DELETE', headers
     });
-    if (patch.status === 200 || patch.status === 204) return;
-    // Aucune ligne → POST
-    const post = await fetch(SUPA_URL + '/rest/v1/participants', { method:'POST', headers, body });
-    if (!post.ok) { const t = await post.text(); console.warn('Push participant POST error:', t); }
-  } catch(e) { console.warn('Push participant error:', e.message); }
+    // 2. Insérer
+    const res = await fetch(SUPA_URL + '/rest/v1/participants', {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=minimal' },
+      body: payload
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error('pushParticipant error:', res.status, txt);
+      throw new Error(res.status + ' ' + txt);
+    }
+  } catch(e) {
+    console.error('pushParticipantToSupabase:', e.message);
+    throw e;
+  }
 }
 
 /* ================================================================
