@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.19.0
+    v1.20.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -3110,11 +3110,11 @@ let fsScrollStates = {};
 function openFullscreen() {
   const ov = document.getElementById('fs-overlay');
   ov.classList.add('open');
-  // Demander le vrai fullscreen navigateur
   if (ov.requestFullscreen) ov.requestFullscreen().catch(()=>{});
   else if (ov.webkitRequestFullscreen) ov.webkitRequestFullscreen();
   startFsTimer();
-  updateFsLeaderboard();
+  // Attendre 2 frames que le navigateur rende l'overlay et calcule les dimensions
+  requestAnimationFrame(() => requestAnimationFrame(() => updateFsLeaderboard()));
 }
 
 function closeFullscreen() {
@@ -3163,42 +3163,56 @@ function buildFsLeaderboard(data, elId, cat) {
     return;
   }
 
-  // Hauteur disponible → calculer combien de lignes scroll visibles
-  const containerH = container.clientHeight || 500;
-  const fixedH     = TOP_FIXED * ROW_H + 30; // header + top3
-  const scrollH    = Math.max(ROW_H * 2, containerH - fixedH);
-  const visScroll  = Math.max(2, Math.floor(scrollH / ROW_H));
-
   const cols = ['Rang','Nom','Tours·Pts','Distance','Meilleur','Moy.','Total'];
   const headHtml = '<div class="lb-head">' + cols.map(h => `<span>${h}</span>`).join('') + '</div>';
 
   const fixedData  = data.slice(0, TOP_FIXED);
   const scrollData = data.slice(TOP_FIXED);
 
-  const fixedHtml  = `<div class="lb-fixed-zone">${fixedData.map((r,i) => makeLbRow(r,i)).join('')}</div>`;
-  const sepHtml    = scrollData.length > 0
-    ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5"></div>' : '';
+  const fixedHtml = `<div class="lb-fixed-zone">${fixedData.map((r,i) => makeLbRow(r,i)).join('')}</div>`;
+  const sepHtml   = scrollData.length > 0
+    ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.5;flex-shrink:0"></div>' : '';
+
+  // La fenêtre de scroll prend TOUT l'espace restant (flex:1)
+  // On utilise overflow:hidden + flex:1 au lieu d'une hauteur fixe
   const scrollHtml = scrollData.length > 0
-    ? `<div class="lb-window" style="height:${visScroll * ROW_H}px">`
+    ? `<div class="lb-window" id="fs-win-${cat}" style="flex:1;height:0">`
       + `<div class="lb-ribbon" id="fs-ribbon-${cat}">`
       + scrollData.map((r,i) => makeLbRow(r, i + TOP_FIXED)).join('')
       + `</div></div>` : '';
 
   container.innerHTML =
-    `<div class="lb-wrap" style="display:flex;flex-direction:column">${headHtml}${fixedHtml}${sepHtml}${scrollHtml}</div>`;
+    `<div class="lb-wrap" style="height:100%;display:flex;flex-direction:column">`
+    + headHtml + fixedHtml + sepHtml + scrollHtml + `</div>`;
 
-  // Scroll avec les mêmes paramètres que le classement principal
+  if (scrollData.length === 0) return;
+
+  // Arrêter le scroll précédent
   if (!fsScrollStates[cat]) fsScrollStates[cat] = { offset: 0 };
   const state = fsScrollStates[cat];
   if (state.timer) clearInterval(state.timer);
-  if (scrollData.length <= visScroll) return;
 
-  state.timer = setInterval(() => {
-    const ribbon = document.getElementById('fs-ribbon-' + cat);
-    if (!ribbon) { clearInterval(state.timer); return; }
-    state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
-    ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
-  }, SCROLL_MS);
+  // Démarrer le scroll APRÈS le rendu pour lire la vraie hauteur disponible
+  requestAnimationFrame(() => {
+    const win = document.getElementById('fs-win-' + cat);
+    if (!win) return;
+
+    // La hauteur réelle de la fenêtre maintenant disponible
+    const winH    = win.clientHeight;
+    const visible = Math.max(1, Math.floor(winH / ROW_H));
+
+    // Ajuster la hauteur du conteneur à un multiple entier de ROW_H
+    win.style.height = (visible * ROW_H) + 'px';
+
+    if (scrollData.length <= visible) return; // tout tient, pas de scroll
+
+    state.timer = setInterval(() => {
+      const ribbon = document.getElementById('fs-ribbon-' + cat);
+      if (!ribbon) { clearInterval(state.timer); return; }
+      state.offset = (state.offset + SCROLL_STEP) % scrollData.length;
+      ribbon.style.transform = `translateY(-${state.offset * ROW_H}px)`;
+    }, SCROLL_MS);
+  });
 }
 
 function updateFsLeaderboard() {
