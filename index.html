@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.23.0
+    v1.24.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -997,7 +997,10 @@ const DEMO_PARTICIPANTS = {
   'RFID104': { nom:'Les Chamois',    prenom:'', name:'Les Chamois',    cat:'equipe', membres:['Iris C.','Jules V.'] },
   'RFID105': { nom:'Team Altitude',  prenom:'', name:'Team Altitude',  cat:'equipe', membres:['Kévin B.','Laura M.','Marc A.'] },
 };
-let PARTICIPANTS = Object.assign({}, DEMO_PARTICIPANTS);
+// Si Supabase est configuré (credentials hardcodés), démarrer vide
+// Les vrais participants arriveront via syncParticipantsFromSupabase
+// Les DEMO_PARTICIPANTS ne sont utilisés qu'en mode démonstration explicite
+let PARTICIPANTS = {}; // vide par défaut — rempli par Supabase ou démo
 
 /* ================================================================
    ÉTAT GLOBAL
@@ -1087,8 +1090,10 @@ function startRaceNow() {
 
 function startWithDemo() {
   RACE_START = new Date(Date.now() - 14 * 3600000);
-  dataMode = 'demo';
-  sheetsUrl = '';
+  dataMode   = 'demo';
+  sheetsUrl  = '';
+  // Charger les participants de démonstration seulement dans ce mode
+  PARTICIPANTS = Object.assign({}, DEMO_PARTICIPANTS);
   saveState();
   document.getElementById('startOverlay').classList.add('hidden');
   allScans = buildDemoScans();
@@ -1780,7 +1785,10 @@ function renderParticipantsTab() {
   const sb = document.getElementById('p-solo-tbody');
   if (sb) {
     if (solos.length === 0) {
-      sb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">Aucun participant solo — cliquez sur + Ajouter un solo</td></tr>';
+      const emptyMsg = (SUPA_URL && SUPA_ANON_KEY && dataMode === 'supabase')
+        ? '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">⏳ Chargement depuis Supabase...</td></tr>'
+        : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">Aucun participant solo — cliquez sur + Ajouter un solo</td></tr>';
+      sb.innerHTML = emptyMsg;
     } else {
       sb.innerHTML = solos.map(([badge, p], i) => `<tr>
         <td style="color:var(--text-dim);font-family:var(--mono)">${i+1}</td>
@@ -1799,7 +1807,10 @@ function renderParticipantsTab() {
   const eb = document.getElementById('p-equipe-tbody');
   if (eb) {
     if (equipes.length === 0) {
-      eb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">Aucune équipe — cliquez sur + Ajouter une équipe</td></tr>';
+      const emptyMsgE = (SUPA_URL && SUPA_ANON_KEY && dataMode === 'supabase')
+        ? '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">⏳ Chargement depuis Supabase...</td></tr>'
+        : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px">Aucune équipe — cliquez sur + Ajouter une équipe</td></tr>';
+      eb.innerHTML = emptyMsgE;
     } else {
       eb.innerHTML = equipes.map(([badge, p], i) => {
         const membres = (p.membres||[]).filter(m=>m.trim()).join(', ') || '<span style="color:var(--text-dim)">—</span>';
@@ -3289,9 +3300,15 @@ function switchTab(name, btn) {
     if (saved.supaOpKey   && saved.supaOpKey.length > 10)   SUPA_OP_KEY   = saved.supaOpKey;
     if (saved.operatorPin)  OPERATOR_PIN     = saved.operatorPin;
     if (saved.lockedChk)    lockedCheckpoint = saved.lockedChk;
-    // Restaurer participants
+    // Restaurer participants SEULEMENT en mode démo
+    // En mode Supabase, la source de vérité est la base de données
+    // (évite d'afficher les vieux participants fictifs sur un nouvel appareil)
     if (saved.participants && Object.keys(saved.participants).length > 0) {
-      PARTICIPANTS = saved.participants;
+      const isSaved = saved.dataMode === 'demo';
+      if (isSaved) {
+        PARTICIPANTS = saved.participants;
+      }
+      // En mode supabase : on laisse PARTICIPANTS = {} jusqu'à la sync Supabase
     }
   }
 
