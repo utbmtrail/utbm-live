@@ -13,6 +13,19 @@
   --mono:'Courier New','Lucida Console',monospace;
   --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
 }
+/* MODE CLAIR */
+html.light {
+  --ink:#F0F4F8; --surface:#FFFFFF; --panel:#E8EDF2; --border:#D0DAE5;
+  --muted:#B8C8D8; --text-dim:#7A95AE; --text-mid:#4A6A85; --text:#1A3A55;
+  --white:#0D2035; --amber:#C47A00; --amber-dim:#FFE0A0; --green:#1A9952;
+  --red:#C0392B; --purple:#7D3C98; --teal:#148F77;
+}
+html.light body::before { opacity:.15; }
+html.light header { background:rgba(240,244,248,.95); }
+html.light #startOverlay { background:rgba(240,244,248,.98); }
+html.light .overlay-card { box-shadow:0 8px 32px rgba(0,0,0,.12); }
+html.light #pi-mode { background:var(--ink); }
+html.light #fs-overlay { background:var(--ink); }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
@@ -285,6 +298,13 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .pi-feedback-icon{font-size:36px;margin-bottom:8px}
 .pi-feedback-name{font-size:22px;font-weight:800;line-height:1.2}
 .pi-feedback-sub{font-size:14px;font-weight:400;opacity:.8;margin-top:4px}
+
+/* TABLEAU PASSAGES */
+#passages-table th{cursor:default}
+.chk-dep{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(245,166,35,.15);color:var(--amber)}
+.chk-arr{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(46,204,113,.15);color:var(--green)}
+.src-supa{font-size:9px;background:rgba(26,188,156,.1);color:var(--teal);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
+.src-local{font-size:9px;background:rgba(155,89,182,.1);color:var(--purple);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
 </style>
 </head>
 <body>
@@ -370,11 +390,25 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.32.0
+    v1.35.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
     <div id="sourceIndicator"></div>
+
+    <!-- Boutons de rôle -->
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="role-btn role-admin" id="rbtn-admin" onclick="selectRole('admin')" title="Accès complet">
+        🖥️ Admin
+      </button>
+      <button class="role-btn role-dep" id="rbtn-dep" onclick="selectRole('depart')" title="Checkpoint Départ">
+        🚦 Départ
+      </button>
+      <button class="role-btn role-arr" id="rbtn-arr" onclick="selectRole('arrivee')" title="Checkpoint Arrivée">
+        🏁 Arrivée
+      </button>
+    </div>
+
     <div class="timer-block">
       <div class="timer-display not-started" id="timerDisplay">--:--:--</div>
       <div class="timer-label" id="timerLabel">En attente du départ</div>
@@ -401,6 +435,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   <button class="tab-btn"         onclick="switchTab('participants',this)">Participants <span id="participantCount"></span></button>
   <button class="tab-btn"         onclick="switchTab('saisie',this)">&#9000; Saisie <span id="saisieCount"></span></button>
   <button class="tab-btn"         onclick="switchTab('config',this)">Configuration</button>
+  <button class="tab-btn"         onclick="switchTab('passages',this)">Passages <span id="passagesCount"></span></button>
   <button class="tab-btn"         onclick="switchTab('anomalies',this)">Anomalies <span id="anomalyCount"></span></button>
 </div>
 
@@ -665,6 +700,22 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         </div>
 
         <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px">🎨 Apparence</div>
+        <div class="config-row">
+          <span class="config-key">Thème de l'interface</span>
+          <div style="display:flex;gap:0;border-radius:6px;overflow:hidden;border:1px solid var(--border)">
+            <button id="theme-dark-btn" onclick="setTheme('dark')"
+              style="padding:7px 16px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--sans);transition:all .15s;background:var(--amber);color:#000">
+              🌙 Sombre
+            </button>
+            <button id="theme-light-btn" onclick="setTheme('light')"
+              style="padding:7px 16px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--sans);transition:all .15s;background:var(--surface);color:var(--text-dim)">
+              ☀️ Clair
+            </button>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
         <div class="config-panel-title" style="margin-bottom:10px">📋 Résumé</div>
         <div class="config-row"><span class="config-key">Fin de course prévue</span><span class="config-val" id="cfg-end">—</span></div>
         <div class="config-row"><span class="config-key">Participants inscrits</span><span class="config-val" id="cfg-nb">—</span></div>
@@ -727,6 +778,58 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- TAB: Passages -->
+  <div id="tab-passages" class="tab-section">
+
+    <!-- Barre de recherche et filtres -->
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <div style="position:relative;flex:1;min-width:200px">
+        <input id="passages-search" class="input-field" type="text"
+          placeholder="Rechercher un participant, un badge..."
+          oninput="renderPassagesTable()"
+          style="padding-left:32px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim)">🔍</span>
+      </div>
+      <select id="passages-filter-chk" class="input-field" style="width:160px" onchange="renderPassagesTable()">
+        <option value="">Tous les checkpoints</option>
+        <option value="DEPART">Départ seulement</option>
+        <option value="ARRIVEE">Arrivée seulement</option>
+      </select>
+      <select id="passages-sort" class="input-field" style="width:180px" onchange="renderPassagesTable()">
+        <option value="time-desc">Plus récents d'abord</option>
+        <option value="time-asc">Plus anciens d'abord</option>
+        <option value="name-asc">Nom A→Z</option>
+        <option value="badge-asc">Badge A→Z</option>
+      </select>
+      <button class="btn-reset" onclick="document.getElementById('passages-search').value='';renderPassagesTable()">✕ Effacer</button>
+    </div>
+
+    <!-- Compteur -->
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px" id="passages-info">—</div>
+
+    <!-- Tableau -->
+    <div class="table-wrap" id="passages-table-wrap">
+      <table id="passages-table">
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th onclick="setSortPassages('badge-asc')" style="cursor:pointer">Badge ↕</th>
+            <th onclick="setSortPassages('name-asc')" style="cursor:pointer">Participant ↕</th>
+            <th>Checkpoint</th>
+            <th onclick="setSortPassages('time-asc')" style="cursor:pointer">Heure ↕</th>
+            <th>Tour #</th>
+            <th>Durée tour</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="passages-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage enregistré</td></tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
   <!-- TAB: Anomalies -->
@@ -843,9 +946,39 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
 
   <!-- Footer Pi -->
-  <div style="padding:10px 24px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+  <div style="padding:10px 24px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
     <div id="pi-scan-count" style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">0 scan</div>
-    <button onclick="exitPiMode()" style="background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:var(--sans)">Quitter (PIN requis)</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="switchPiCheckpoint('DEPART')" id="pi-switch-dep"
+        style="background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.4);color:var(--amber);border-radius:4px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">
+        🚦 Passer en Départ
+      </button>
+      <button onclick="switchPiCheckpoint('ARRIVEE')" id="pi-switch-arr"
+        style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);color:var(--green);border-radius:4px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">
+        🏁 Passer en Arrivée
+      </button>
+      <button onclick="exitPiMode()"
+        style="background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:var(--sans)">
+        Quitter (PIN)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE PIN RAPIDE (changement de rôle) -->
+<div id="quick-pin-modal" onclick="if(event.target===this)closeQuickPin()">
+  <div class="qpin-card">
+    <div style="font-size:32px;margin-bottom:12px" id="qpin-icon">🔒</div>
+    <div class="qpin-title" id="qpin-title">Activation checkpoint</div>
+    <div class="qpin-sub" id="qpin-sub">Saisissez le PIN opérateur</div>
+    <input class="input-field qpin-input" id="qpin-input" type="password"
+      placeholder="••••" maxlength="8"
+      onkeydown="if(event.key==='Enter')confirmQuickPin()">
+    <div id="qpin-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-start" style="flex:1;padding:12px" onclick="confirmQuickPin()">Confirmer</button>
+      <button class="btn-reset" onclick="closeQuickPin()">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -1111,10 +1244,10 @@ async function resetRace() {
     + 'Cette action est irréversible.';
   if (!confirm(msg)) return;
 
-  // Arrêter les timers locaux MAIS garder supaTimerId actif
-  // (les autres appareils doivent voir le reset via Supabase)
-  clearInterval(simTimerId);
+  // Arrêter tous les timers et pollings
+  clearInterval(supaTimerId);
   clearInterval(sheetsTimerId);
+  clearInterval(simTimerId);
   cancelAnimationFrame(timerRafId);
   cancelAnimationFrame(piTimerRafId);
   stopAllScrolls();
@@ -1138,8 +1271,7 @@ async function resetRace() {
   piScans           = [];
   previousRanks     = {};
   storedDeltas      = {};
-  // Garder dataMode = 'supabase' pour que le polling continue
-  // et notifie les autres appareils du reset
+  dataMode          = 'none';
   sheetsUrl         = '';
   sessionUnlocked   = false;
   lockedCheckpoint  = null;
@@ -1689,19 +1821,14 @@ async function applyRaceConfig() {
   if (nuitFin) { HEURE_NUIT_FIN = nuitFin;  changed = true; }
   if (!changed) return;
 
+  // Activer l'override IMMÉDIATEMENT et de façon permanente
+  // (il ne sera levé qu'à la réinitialisation de la course)
   raceStartOverride = true;
-
-  // Relancer le polling si arrêté (ex: après un reset)
-  if (SUPA_URL && SUPA_ANON_KEY && !supaTimerId) {
-    dataMode = 'supabase';
-    startSupaPolling();
-  }
-
   saveState();
-  startTimer();
   updateUI();
   showMsg('cfg-confirm-msg', '⏳ Enregistrement...');
 
+  // Pousser vers Supabase et confirmer
   try {
     await pushRaceConfig();
     showMsg('cfg-confirm-msg', '✓ Heure de départ mise à jour et synchronisée');
@@ -2385,14 +2512,12 @@ function afterPinUnlock() {
 function lockCheckpoint(chk) {
   lockedCheckpoint  = chk;
   currentCheckpoint = chk;
+  deviceType        = 'checkpoint';
+  sessionUnlocked   = true;
   document.getElementById('chk-lock-overlay').style.display = 'none';
   saveState();
-  if (deviceType === 'checkpoint') {
-    enterPiMode(chk);
-  } else {
-    setCheckpoint(chk);
-    updateSaisieUI();
-  }
+  updateRoleBtns(chk === 'DEPART' ? 'depart' : 'arrivee');
+  enterPiMode(chk);
 }
 
 function updateSaisieUI() {
@@ -2551,35 +2676,28 @@ async function fetchSupabase() {
     ]);
 
     // ── 1. RACE_START ───────────────────────────────────────
-    if (cfgRows) {
+    if (cfgRows && cfgRows.length > 0) {
       const rs = cfgRows.find(r => r.key === 'race_start');
-      if (rs && rs.value && !raceStartOverride) {
-        // Synchroniser si différent de plus de 5s
+      if (rs && rs.value) {
         const remote = new Date(rs.value);
-        if (!isNaN(remote) && (!RACE_START || Math.abs(remote - RACE_START) > 5000)) {
-          RACE_START = remote;
-          startTimer();
-          // Cacher l'overlay si un nouvel appareil rejoint une course en cours
-          const ov = document.getElementById('startOverlay');
-          if (ov && !ov.classList.contains('hidden')) ov.classList.add('hidden');
+        if (!isNaN(remote)) {
+          if (raceStartOverride) {
+            // L'admin a défini une heure manuellement — on ignore Supabase
+            // SAUF si la valeur en base correspond à ce qu'on a écrit (push confirmé)
+            // Dans ce cas on peut lever le flag (la synchro est bonne)
+            if (RACE_START && Math.abs(remote - RACE_START) < 2000) {
+              // Supabase a bien notre valeur → tout va bien, flag inutile
+              // On le garde quand même pour ne pas re-écraser en cas de lag
+            }
+            // Sinon on ignore la valeur distante
+          } else {
+            // Pas d'override → prendre la valeur Supabase si différente de plus de 5s
+            if (!RACE_START || Math.abs(remote - RACE_START) > 5000) {
+              RACE_START = remote;
+              startTimer();
+            }
+          }
         }
-      } else if (!rs && !raceStartOverride && RACE_START) {
-        // race_start absent = reset déclenché par un autre appareil
-        RACE_START    = null;
-        allScans      = [];
-        manualScans   = [];
-        previousRanks = {};
-        storedDeltas  = {};
-        cancelAnimationFrame(timerRafId);
-        cancelAnimationFrame(piTimerRafId);
-        const td = document.getElementById('timerDisplay');
-        if (td) { td.textContent = '--:--:--'; td.className = 'timer-display not-started'; }
-        const tl = document.getElementById('timerLabel');
-        if (tl) tl.textContent = 'En attente du départ';
-        const ov = document.getElementById('startOverlay');
-        if (ov) { ov.classList.remove('hidden'); showStep('ov-step1'); }
-        saveState();
-        updateUI();
       }
     }
 
@@ -2986,18 +3104,14 @@ function updatePiConn(ok, msg) {
 }
 
 function exitPiMode() {
-  // Demander le PIN pour sortir
   const entered = prompt('PIN opérateur pour quitter ce mode :');
-  if (entered !== OPERATOR_PIN && OPERATOR_PIN) { alert('PIN incorrect.'); return; }
-  document.getElementById('pi-mode').classList.remove('active');
-  document.querySelector('header').style.display = '';
-  document.querySelector('.nav-tabs').style.display = '';
-  document.querySelector('.stats-banner').style.display = '';
-  document.querySelector('.content').style.display = '';
-  document.querySelector('footer').style.display = '';
-  sessionUnlocked   = false;
+  if (OPERATOR_PIN && entered !== OPERATOR_PIN) { alert('PIN incorrect.'); return; }
+  exitPiModeIfActive();
+  deviceType        = 'admin';
+  sessionUnlocked   = true;
   lockedCheckpoint  = null;
   saveState();
+  updateRoleBtns('admin');
 }
 
 /* ================================================================
@@ -3322,6 +3436,260 @@ function updateFsLeaderboard() {
 }
 
 /* ================================================================
+   GESTION DES RÔLES (header buttons)
+   ================================================================ */
+let pendingRole = null; // rôle en attente de confirmation PIN
+
+function selectRole(role) {
+  // Admin : accès direct sans PIN
+  if (role === 'admin') {
+    deviceType       = 'admin';
+    sessionUnlocked  = true;
+    lockedCheckpoint = null;
+    // Quitter le mode Pi si actif
+    exitPiModeIfActive();
+    updateRoleBtns('admin');
+    updateSaisieUI();
+    saveState();
+    return;
+  }
+
+  // Checkpoint : demander le PIN
+  const chk = role === 'depart' ? 'DEPART' : 'ARRIVEE';
+  pendingRole = chk;
+  const icon = chk === 'DEPART' ? '🚦' : '🏁';
+  document.getElementById('qpin-icon').textContent  = icon;
+  document.getElementById('qpin-title').textContent =
+    'Checkpoint ' + (chk === 'DEPART' ? 'Départ' : 'Arrivée');
+  document.getElementById('qpin-sub').textContent =
+    'Saisissez le PIN pour verrouiller ce checkpoint';
+  document.getElementById('qpin-input').value = '';
+  document.getElementById('qpin-error').style.display = 'none';
+  document.getElementById('quick-pin-modal').classList.add('open');
+  setTimeout(() => document.getElementById('qpin-input').focus(), 100);
+}
+
+function confirmQuickPin() {
+  const entered = document.getElementById('qpin-input').value.trim();
+  const errEl   = document.getElementById('qpin-error');
+
+  // Si pas de PIN défini → accepter tout (ou entrée vide)
+  if (OPERATOR_PIN && entered !== OPERATOR_PIN) {
+    errEl.textContent = 'PIN incorrect.';
+    errEl.style.display = 'block';
+    document.getElementById('qpin-input').value = '';
+    document.getElementById('qpin-input').focus();
+    return;
+  }
+
+  closeQuickPin();
+  lockCheckpoint(pendingRole);
+  pendingRole = null;
+}
+
+function closeQuickPin() {
+  document.getElementById('quick-pin-modal').classList.remove('open');
+  pendingRole = null;
+}
+
+function exitPiModeIfActive() {
+  const piEl = document.getElementById('pi-mode');
+  if (piEl && piEl.classList.contains('active')) {
+    piEl.classList.remove('active');
+    piEl.style.display = 'none';
+    ['header','.nav-tabs','.stats-banner','.content','footer'].forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) el.style.display = '';
+    });
+  }
+}
+
+function updateRoleBtns(activeRole) {
+  document.getElementById('rbtn-admin').classList.toggle('active', activeRole === 'admin');
+  document.getElementById('rbtn-dep').classList.toggle('active',
+    activeRole === 'depart' || (lockedCheckpoint === 'DEPART' && deviceType === 'checkpoint'));
+  document.getElementById('rbtn-arr').classList.toggle('active',
+    activeRole === 'arrivee' || (lockedCheckpoint === 'ARRIVEE' && deviceType === 'checkpoint'));
+}
+
+/* ================================================================
+   CHANGEMENT DE CHECKPOINT SUR PI
+   ================================================================ */
+function switchPiCheckpoint(newChk) {
+  const entered = prompt('PIN opérateur pour changer de checkpoint :');
+  if (OPERATOR_PIN && entered !== OPERATOR_PIN) { alert('PIN incorrect.'); return; }
+
+  lockedCheckpoint  = newChk;
+  currentCheckpoint = newChk;
+  saveState();
+
+  // Mettre à jour l'affichage Pi
+  const isDepart = newChk === 'DEPART';
+  const color    = isDepart ? 'var(--amber)' : 'var(--green)';
+  const label    = isDepart ? '🚦  CHECKPOINT DÉPART' : '🏁  CHECKPOINT ARRIVÉE';
+  const hdrEl    = document.getElementById('pi-header-chk');
+  if (hdrEl) { hdrEl.textContent = label; hdrEl.style.color = color; }
+  document.getElementById('pi-mode').style.borderTop = '4px solid ' + color;
+  updateRoleBtns(isDepart ? 'depart' : 'arrivee');
+
+  // Focus champ badge
+  setTimeout(() => { const inp = document.getElementById('pi-badge-input'); if (inp) inp.focus(); }, 200);
+}
+
+/* ================================================================
+   TABLEAU DES PASSAGES
+   ================================================================ */
+let passagesSortKey = 'time-desc';
+
+function setSortPassages(key) {
+  passagesSortKey = key;
+  document.getElementById('passages-sort').value = key;
+  renderPassagesTable();
+}
+
+function renderPassagesTable() {
+  const search  = (document.getElementById('passages-search')?.value || '').toLowerCase().trim();
+  const filterChk = document.getElementById('passages-filter-chk')?.value || '';
+  const sortKey   = document.getElementById('passages-sort')?.value || passagesSortKey;
+
+  // Construire la liste des passages depuis allScans
+  // Calculer le numéro de tour et la durée pour chaque passage
+  const lapState = {};
+  const rows = [];
+
+  for (const scan of allScans) {
+    const bid = scan.badge_id;
+    if (!lapState[bid]) lapState[bid] = { lapNum: 0, lastDep: null };
+    const st = lapState[bid];
+    const p  = PARTICIPANTS[bid];
+    const name = p ? p.name : bid;
+
+    if (scan.checkpoint === 'DEPART') {
+      st.lapNum++;
+      st.lastDep = scan.timestamp;
+      rows.push({
+        badge_id:   bid,
+        name,
+        checkpoint: 'DEPART',
+        timestamp:  scan.timestamp,
+        lapNum:     st.lapNum,
+        duration:   null,
+        source:     scan.id ? 'supabase' : 'local',
+        known:      !!p,
+      });
+    } else if (scan.checkpoint === 'ARRIVEE') {
+      const dur = st.lastDep ? (scan.timestamp - st.lastDep) / 1000 : null;
+      rows.push({
+        badge_id:   bid,
+        name,
+        checkpoint: 'ARRIVEE',
+        timestamp:  scan.timestamp,
+        lapNum:     st.lapNum,
+        duration:   dur,
+        source:     scan.id ? 'supabase' : 'local',
+        known:      !!p,
+      });
+    }
+  }
+
+  // Filtrer
+  let filtered = rows.filter(r => {
+    if (filterChk && r.checkpoint !== filterChk) return false;
+    if (search) {
+      const haystack = (r.badge_id + ' ' + r.name).toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  // Trier
+  filtered.sort((a, b) => {
+    switch (sortKey) {
+      case 'time-asc':  return a.timestamp - b.timestamp;
+      case 'time-desc': return b.timestamp - a.timestamp;
+      case 'name-asc':  return a.name.localeCompare(b.name);
+      case 'name-desc': return b.name.localeCompare(a.name);
+      case 'badge-asc': return a.badge_id.localeCompare(b.badge_id);
+      default:          return b.timestamp - a.timestamp;
+    }
+  });
+
+  // Mettre à jour le compteur dans l'onglet
+  const countEl = document.getElementById('passagesCount');
+  if (countEl) countEl.innerHTML = rows.length > 0
+    ? '<span style="color:var(--amber);font-family:var(--mono)">(' + rows.length + ')</span>' : '';
+
+  // Info
+  const infoEl = document.getElementById('passages-info');
+  if (infoEl) infoEl.textContent = filtered.length + ' passage' + (filtered.length > 1 ? 's' : '')
+    + (search || filterChk ? ' (filtrés sur ' + rows.length + ' total)' : '');
+
+  // Tbody
+  const tbody = document.getElementById('passages-tbody');
+  if (!tbody) return;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage correspondant</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    const chkHtml = r.checkpoint === 'DEPART'
+      ? '<span class="chk-dep">🚦 DÉP</span>'
+      : '<span class="chk-arr">🏁 ARR</span>';
+    const srcHtml = r.source === 'supabase'
+      ? '<span class="src-supa">Supabase</span>'
+      : '<span class="src-local">Local</span>';
+    const durHtml = r.duration !== null
+      ? '<span class="mono" style="color:var(--teal)">' + fmtTime(r.duration) + '</span>'
+      : '<span style="color:var(--text-dim)">—</span>';
+    const nameStyle = r.known ? '' : 'color:var(--red)';
+    return '<tr>'
+      + '<td style="color:var(--text-dim);font-family:var(--mono)">' + (i+1) + '</td>'
+      + '<td><span style="font-family:var(--mono);font-size:11px;color:var(--amber)">' + esc(r.badge_id) + '</span></td>'
+      + '<td><span style="' + nameStyle + '">' + esc(r.name) + (!r.known ? ' ⚠' : '') + '</span></td>'
+      + '<td>' + chkHtml + '</td>'
+      + '<td><span style="font-family:var(--mono);font-size:12px">' + fmtHour(r.timestamp) + '</span></td>'
+      + '<td><span style="font-family:var(--mono);font-weight:700;color:var(--white)">' + (r.lapNum || '—') + '</span></td>'
+      + '<td>' + durHtml + '</td>'
+      + '<td>' + srcHtml + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+/* ================================================================
+   THÈME (clair / sombre)
+   ================================================================ */
+let currentTheme = 'dark';
+
+function setTheme(theme) {
+  currentTheme = theme;
+  if (theme === 'light') {
+    document.documentElement.classList.add('light');
+  } else {
+    document.documentElement.classList.remove('light');
+  }
+  // Mettre à jour les boutons du toggle
+  const darkBtn  = document.getElementById('theme-dark-btn');
+  const lightBtn = document.getElementById('theme-light-btn');
+  if (darkBtn && lightBtn) {
+    darkBtn.style.background  = theme === 'dark'  ? 'var(--amber)' : 'var(--surface)';
+    darkBtn.style.color       = theme === 'dark'  ? '#000'         : 'var(--text-dim)';
+    lightBtn.style.background = theme === 'light' ? 'var(--amber)' : 'var(--surface)';
+    lightBtn.style.color      = theme === 'light' ? '#000'         : 'var(--text-dim)';
+  }
+  // Persister
+  try { localStorage.setItem('utbm_theme', theme); } catch(e) {}
+}
+
+function loadTheme() {
+  try {
+    const saved = localStorage.getItem('utbm_theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+}
+
+/* ================================================================
    NAVIGATION
    ================================================================ */
 function switchTab(name, btn) {
@@ -3329,6 +3697,7 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
+  if (name === 'passages') { setTimeout(renderPassagesTable, 50); }
   if (name === 'saisie') {
     if (deviceType === 'admin') {
       // Admin : toujours accès direct
@@ -3347,8 +3716,12 @@ function switchTab(name, btn) {
    INIT
    ================================================================ */
 (function init() {
+  // Charger le thème en premier (évite le flash)
+  loadTheme();
   // Supabase est pré-configuré — dataMode par défaut
   if (!dataMode || dataMode === 'none') dataMode = 'supabase';
+  // Démarrage automatique : cacher l'overlay et lancer le polling
+  // L'utilisateur choisit ensuite son rôle via les boutons du header
 
   const saved = loadState();
   if (saved) {
@@ -3422,6 +3795,8 @@ function switchTab(name, btn) {
   // charger participants + scans depuis Supabase
   // Si une course était en cours (raceStart), le polling est déjà démarré ci-dessus
   if (SUPA_URL && SUPA_ANON_KEY && !supaTimerId) {
+    // Cacher l'overlay et démarrer le polling automatiquement
+    document.getElementById('startOverlay').classList.add('hidden');
     startSupaPolling();
   }
 
@@ -3439,6 +3814,12 @@ function switchTab(name, btn) {
 
   // Rafraîchissement léger (hors sheets polling)
   setInterval(() => { if (dataMode !== 'sheets') updateUI(); }, 30000);
+  // Mettre à jour les boutons de rôle selon l'état restauré
+  if (deviceType === 'checkpoint' && lockedCheckpoint) {
+    updateRoleBtns(lockedCheckpoint === 'DEPART' ? 'depart' : 'arrivee');
+  } else {
+    updateRoleBtns('admin');
+  }
 })();
 </script>
 </body>
