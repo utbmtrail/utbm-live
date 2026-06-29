@@ -298,9 +298,9 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 @keyframes pi-flash-err{0%{background:rgba(231,76,60,.3);border-color:var(--red)}100%{background:var(--surface);border-color:var(--border)}}
 .pi-ok{background:rgba(46,204,113,.12)!important;border-color:var(--green)!important;color:var(--green)!important}
 .pi-err{background:rgba(231,76,60,.12)!important;border-color:var(--red)!important;color:var(--red)!important}
-.pi-feedback-icon{font-size:36px;margin-bottom:8px}
-.pi-feedback-name{font-size:22px;font-weight:800;line-height:1.2}
-.pi-feedback-sub{font-size:14px;font-weight:400;opacity:.8;margin-top:4px}
+.pi-feedback-icon{font-size:52px;margin-bottom:10px}
+.pi-feedback-name{font-size:42px;font-weight:800;line-height:1.1;letter-spacing:-.01em}
+.pi-feedback-sub{font-size:18px;font-weight:400;opacity:.8;margin-top:6px}
 
 /* TABLEAU PASSAGES */
 #passages-table th{cursor:default}
@@ -396,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.36.0
+    v1.37.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -927,7 +927,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px">
 
     <!-- Feedback grand format -->
-    <div id="pi-feedback" style="width:100%;max-width:560px;min-height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:20px;font-size:18px;font-weight:700;background:var(--surface);border:2px solid var(--border);color:var(--text-dim);text-align:center;transition:all .3s">
+    <div id="pi-feedback" style="width:100%;max-width:640px;min-height:200px;border-radius:16px;display:flex;align-items:center;justify-content:center;padding:28px;font-size:18px;font-weight:700;background:var(--surface);border:2px solid var(--border);color:var(--text-dim);text-align:center;transition:all .3s">
       En attente d&#x27;un scan...
     </div>
 
@@ -2351,8 +2351,10 @@ async function submitScan() {
     try {
       await pushScanToSupabase(scan);
       scan.supaId = 'pushed';
+      if (p) soundSuccess(); else soundError();
       showFb((p ? (currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name : '⚠ ' + badge) + ' — ✓ Enregistré', p ? 'ok' : 'err');
     } catch(e) {
+      soundError();
       showFb('⚠ Erreur envoi : ' + (e.message || e), 'err');
     }
   }
@@ -2944,10 +2946,10 @@ function enterPiMode(chk) {
   // Timer
   startPiTimer();
 
-  // Focus champ badge
+  // Focus champ badge + initialiser AudioContext (nécessite interaction)
   setTimeout(() => {
     const inp = document.getElementById('pi-badge-input');
-    if (inp) inp.focus();
+    if (inp) { inp.focus(); getAudioCtx(); }
   }, 300);
 }
 
@@ -3009,6 +3011,7 @@ async function submitPiScan() {
   input.style.opacity = '.5';
 
   // Feedback "en cours"
+  soundSending();
   const sendingHtml = '<div class="pi-feedback-icon">⟳</div>'
     + '<div class="pi-feedback-name" style="font-size:16px">'
     + (p ? esc(p.name) : esc(badge)) + '</div>'
@@ -3031,8 +3034,9 @@ async function submitPiScan() {
     console.warn('submitPiScan push error:', e.message);
   }
 
-  // Feedback final
+  // Feedback final + son
   if (p) {
+    soundSuccess();
     showPiFeedback(
       '<div class="pi-feedback-icon">' + chkIcon + '</div>'
       + '<div class="pi-feedback-name">' + esc(p.name) + '</div>'
@@ -3041,14 +3045,16 @@ async function submitPiScan() {
       true
     );
   } else if (Object.keys(PARTICIPANTS).length === 0) {
+    soundSuccess();
     showPiFeedback(
       '<div class="pi-feedback-icon">⏳</div>'
-      + '<div class="pi-feedback-name" style="font-size:16px">Chargement participants...</div>'
+      + '<div class="pi-feedback-name" style="font-size:32px">Chargement participants...</div>'
       + '<div class="pi-feedback-sub">' + esc(badge) + ' · '
       + (pushOk ? '✓ Enregistré' : '⚠ Local uniquement') + '</div>',
       true
     );
   } else {
+    soundError();
     showPiFeedback(
       '<div class="pi-feedback-icon">⚠️</div>'
       + '<div class="pi-feedback-name">Badge inconnu</div>'
@@ -3071,9 +3077,9 @@ async function submitPiScan() {
 function showPiFeedback(html, ok) {
   const fb = document.getElementById('pi-feedback');
   if (!fb) return;
-  const baseStyle = 'width:100%;max-width:560px;min-height:100px;border-radius:12px;'
+  const baseStyle = 'width:100%;max-width:640px;min-height:200px;border-radius:16px;'
     + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-    + 'padding:20px;text-align:center;transition:background .3s,border-color .3s;border:2px solid';
+    + 'padding:28px;text-align:center;transition:background .3s,border-color .3s;border:2px solid';
   fb.innerHTML     = html;
   fb.className     = ok ? 'pi-ok' : 'pi-err';
   fb.style.cssText = baseStyle;
@@ -3084,9 +3090,9 @@ function resetPiFeedback() {
   if (!fb) return;
   fb.innerHTML  = '<span style="color:var(--text-dim);font-size:16px">En attente d&#x27;un scan...</span>';
   fb.className  = '';
-  fb.style.cssText = 'width:100%;max-width:560px;min-height:100px;border-radius:12px;'
+  fb.style.cssText = 'width:100%;max-width:640px;min-height:200px;border-radius:16px;'
     + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-    + 'padding:20px;text-align:center;background:var(--surface);border:2px solid var(--border)';
+    + 'padding:28px;text-align:center;background:var(--surface);border:2px solid var(--border)';
 }
 
 function updatePiScanList() {
@@ -3747,6 +3753,53 @@ function loadTheme() {
     const saved = localStorage.getItem('utbm_theme');
     if (saved) setTheme(saved);
   } catch(e) {}
+}
+
+/* ================================================================
+   SONS (Web Audio API — pas de dépendance externe)
+   ================================================================ */
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { console.warn('Web Audio non supporté'); }
+  }
+  // Reprendre si suspendu (politique navigateur : audio après interaction)
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(frequency, duration, type, volume, fadeOut) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type      = type || 'sine';
+  osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+  gain.gain.setValueAtTime(volume || 0.3, ctx.currentTime);
+  if (fadeOut) gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + duration);
+}
+
+// Bip succès : deux notes montantes courtes (Do-Mi)
+function soundSuccess() {
+  playTone(523, 0.12, 'sine', 0.25, false); // Do
+  setTimeout(() => playTone(659, 0.18, 'sine', 0.25, true), 110); // Mi
+}
+
+// Bip erreur / badge inconnu : note grave descendante
+function soundError() {
+  playTone(330, 0.08, 'square', 0.15, false);
+  setTimeout(() => playTone(220, 0.25, 'square', 0.15, true), 80);
+}
+
+// Bip "envoi en cours" : tick neutre
+function soundSending() {
+  playTone(880, 0.05, 'sine', 0.1, true);
 }
 
 /* ================================================================
