@@ -227,10 +227,13 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .chk-btn.dep-on{background:var(--amber);color:#000}
 .chk-btn.arr-on{background:var(--green);color:#000}
 .badge-input-wrap{position:relative;margin-bottom:14px}
-.badge-input-big{width:100%;background:var(--surface);border:2px solid var(--border);color:var(--white);border-radius:8px;padding:16px 50px 16px 16px;font-family:var(--mono);font-size:20px;letter-spacing:.1em;transition:border-color .2s;text-transform:uppercase}
+.badge-input-big{width:100%;background:var(--surface);border:2px solid var(--border);color:var(--white);border-radius:8px;padding:16px 50px 16px 16px;font-family:var(--mono);font-size:20px;letter-spacing:.1em;transition:border-color .2s,background .2s;text-transform:uppercase}
 .badge-input-big:focus{outline:none;border-color:var(--amber)}
 .flash-ok{border-color:var(--green)!important;background:rgba(46,204,113,.1)!important}
 .flash-err{border-color:var(--red)!important;background:rgba(231,76,60,.1)!important}
+.sending{border-color:var(--amber)!important;background:rgba(245,166,35,.08)!important;pointer-events:none;opacity:.7}
+.send-indicator{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;animation:spin 1s linear infinite;color:var(--amber)}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
 .badge-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px;line-height:1}
 .scan-fb{min-height:44px;border-radius:6px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .scan-fb.ok{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);color:var(--green)}
@@ -305,6 +308,9 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .chk-arr{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(46,204,113,.15);color:var(--green)}
 .src-supa{font-size:9px;background:rgba(26,188,156,.1);color:var(--teal);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
 .src-local{font-size:9px;background:rgba(155,89,182,.1);color:var(--purple);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
+.status-ok{font-size:10px;background:rgba(46,204,113,.12);color:var(--green);padding:2px 7px;border-radius:3px;font-weight:700}
+.status-ko{font-size:10px;background:rgba(231,76,60,.12);color:var(--red);padding:2px 7px;border-radius:3px;font-weight:700}
+.status-open{font-size:10px;background:rgba(245,166,35,.12);color:var(--amber);padding:2px 7px;border-radius:3px;font-weight:700}
 </style>
 </head>
 <body>
@@ -390,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.35.0
+    v1.36.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -821,11 +827,12 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
             <th onclick="setSortPassages('time-asc')" style="cursor:pointer">Heure ↕</th>
             <th>Tour #</th>
             <th>Durée tour</th>
+            <th>Statut</th>
             <th>Source</th>
           </tr>
         </thead>
         <tbody id="passages-tbody">
-          <tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage enregistré</td></tr>
+          <tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage enregistré</td></tr>
         </tbody>
       </table>
     </div>
@@ -2305,12 +2312,23 @@ function handleBadgeKey(e) {
   if (e.key === 'Enter') { e.preventDefault(); submitScan(); }
 }
 
-function submitScan() {
+async function submitScan() {
   const input = document.getElementById('badge-input');
   const badge = (input.value || '').trim().toUpperCase();
 
   if (!badge) { showFb('Saisissez ou scannez un badge.', 'err'); return; }
   if (!RACE_START) { showFb("La course n'est pas encore demarree.", 'err'); return; }
+  // Empêcher un double scan pendant l'envoi
+  if (input.classList.contains('sending')) return;
+
+  // Verrouiller immédiatement
+  input.classList.add('sending');
+  // Ajouter indicateur de chargement
+  const wrap = input.parentElement;
+  const spinner = document.createElement('span');
+  spinner.className = 'send-indicator';
+  spinner.textContent = '⟳';
+  wrap.appendChild(spinner);
 
   const scan = { timestamp: new Date(), badge_id: badge, checkpoint: currentCheckpoint };
   const p = PARTICIPANTS[badge];
@@ -2320,34 +2338,30 @@ function submitScan() {
   allScans.sort((a, b) => a.timestamp - b.timestamp);
 
   if (p) {
-    showFb((currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name + ' — ' + currentCheckpoint, 'ok');
-    input.classList.add('flash-ok');
+    showFb((currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name + ' — enregistrement...', 'ok');
   } else {
-    showFb('Badge inconnu : ' + badge, 'err');
-    input.classList.add('flash-err');
+    showFb('Badge inconnu : ' + badge + ' — enregistrement...', 'err');
   }
 
   renderScanLog();
   updateUI();
 
-  // Push vers Supabase si connecté
+  // Push Supabase — attendre la confirmation avant de déverrouiller
   if (SUPA_URL && SUPA_OP_KEY) {
-    pushScanToSupabase(scan).then(ok => {
-      if (ok) {
-        scan.supaId = 'pushed'; // marqué comme envoyé
-        showFb((currentCheckpoint === 'DEPART' ? '&#128678; ' : '&#127937; ')
-          + (p ? p.name : scan.badge_id) + ' — enregistre en ligne', 'ok');
-      } else {
-        showFb('Enregistre localement (erreur Supabase)', 'err');
-      }
-    });
+    try {
+      await pushScanToSupabase(scan);
+      scan.supaId = 'pushed';
+      showFb((p ? (currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name : '⚠ ' + badge) + ' — ✓ Enregistré', p ? 'ok' : 'err');
+    } catch(e) {
+      showFb('⚠ Erreur envoi : ' + (e.message || e), 'err');
+    }
   }
 
-  setTimeout(() => {
-    input.value = '';
-    input.className = 'badge-input-big';
-    input.focus();
-  }, 400);
+  // Déverrouiller après confirmation
+  spinner.remove();
+  input.value = '';
+  input.className = 'badge-input-big';
+  input.focus();
 }
 
 function showFb(msg, type) {
@@ -2979,44 +2993,27 @@ function clearPiInput() {
 async function submitPiScan() {
   const input = document.getElementById('pi-badge-input');
   const badge = (input.value || '').trim().toUpperCase();
-  const fb    = document.getElementById('pi-feedback');
 
-  if (!badge) { showPiFeedback('Saisissez ou scannez un badge.', false); return; }
+  if (!badge) { showPiFeedback('<div class="pi-feedback-icon">⚠️</div><div class="pi-feedback-name">Badge vide</div>', false); return; }
+  // Bloquer les doubles scans pendant l'envoi
+  if (input.disabled) return;
 
   const scan = { timestamp: new Date(), badge_id: badge, checkpoint: lockedCheckpoint || currentCheckpoint };
-  const p = PARTICIPANTS[badge];
+  const p    = PARTICIPANTS[badge];
   const chkIcon  = scan.checkpoint === 'DEPART' ? '🚦' : '🏁';
   const chkLabel = scan.checkpoint === 'DEPART' ? 'DÉPART' : 'ARRIVÉE';
 
-  if (p) {
-    // Badge connu → vert avec nom
-    showPiFeedback(
-      '<div class="pi-feedback-icon">' + chkIcon + '</div>'
-      + '<div class="pi-feedback-name">' + esc(p.name) + '</div>'
-      + '<div class="pi-feedback-sub">' + chkLabel + ' · Tour enregistré ✓</div>',
-      true
-    );
-    input.classList.add('flash-ok');
-  } else if (Object.keys(PARTICIPANTS).length === 0) {
-    // Liste pas encore chargée
-    showPiFeedback(
-      '<div class="pi-feedback-icon">⏳</div>'
-      + '<div class="pi-feedback-name" style="font-size:16px">Chargement en cours...</div>'
-      + '<div class="pi-feedback-sub">' + esc(badge) + ' · Tour enregistré ✓</div>',
-      true
-    );
-    input.classList.add('flash-ok');
-  } else {
-    // Badge inconnu → rouge
-    showPiFeedback(
-      '<div class="pi-feedback-icon">⚠️</div>'
-      + '<div class="pi-feedback-name">Badge inconnu</div>'
-      + '<div class="pi-feedback-sub">' + esc(badge) + '</div>'
-      + '<div class="pi-feedback-sub" style="margin-top:6px;color:inherit">Tour enregistré ✓</div>',
-      false
-    );
-    input.classList.add('flash-err');
-  }
+  // Vider et désactiver le champ immédiatement
+  input.value    = '';
+  input.disabled = true;
+  input.style.opacity = '.5';
+
+  // Feedback "en cours"
+  const sendingHtml = '<div class="pi-feedback-icon">⟳</div>'
+    + '<div class="pi-feedback-name" style="font-size:16px">'
+    + (p ? esc(p.name) : esc(badge)) + '</div>'
+    + '<div class="pi-feedback-sub">Envoi en cours...</div>';
+  showPiFeedback(sendingHtml, true);
 
   // Enregistrer localement
   piScans.unshift(scan);
@@ -3024,17 +3021,51 @@ async function submitPiScan() {
   allScans.sort((a,b) => a.timestamp - b.timestamp);
   manualScans.push(scan);
 
-  // Envoyer à Supabase
-  const ok = await pushScanToSupabase(scan);
+  // Envoyer à Supabase et attendre la réponse
+  let pushOk = false;
+  try {
+    await pushScanToSupabase(scan);
+    scan.supaId = 'pushed';
+    pushOk = true;
+  } catch(e) {
+    console.warn('submitPiScan push error:', e.message);
+  }
+
+  // Feedback final
+  if (p) {
+    showPiFeedback(
+      '<div class="pi-feedback-icon">' + chkIcon + '</div>'
+      + '<div class="pi-feedback-name">' + esc(p.name) + '</div>'
+      + '<div class="pi-feedback-sub">' + chkLabel + ' · '
+      + (pushOk ? '✓ Enregistré' : '⚠ Local uniquement') + '</div>',
+      true
+    );
+  } else if (Object.keys(PARTICIPANTS).length === 0) {
+    showPiFeedback(
+      '<div class="pi-feedback-icon">⏳</div>'
+      + '<div class="pi-feedback-name" style="font-size:16px">Chargement participants...</div>'
+      + '<div class="pi-feedback-sub">' + esc(badge) + ' · '
+      + (pushOk ? '✓ Enregistré' : '⚠ Local uniquement') + '</div>',
+      true
+    );
+  } else {
+    showPiFeedback(
+      '<div class="pi-feedback-icon">⚠️</div>'
+      + '<div class="pi-feedback-name">Badge inconnu</div>'
+      + '<div class="pi-feedback-sub">' + esc(badge) + '</div>'
+      + '<div class="pi-feedback-sub" style="margin-top:6px">'
+      + (pushOk ? '✓ Enregistré quand même' : '⚠ Local uniquement') + '</div>',
+      false
+    );
+  }
+
   updatePiScanList();
   updatePiCount();
 
-  // Reset input
-  setTimeout(() => {
-    input.value = '';
-    input.className = 'badge-input-big';
-    input.focus();
-  }, 350);
+  // Réactiver le champ seulement après confirmation
+  input.disabled     = false;
+  input.style.opacity = '1';
+  input.focus();
 }
 
 function showPiFeedback(html, ok) {
@@ -3559,36 +3590,59 @@ function renderPassagesTable() {
 
   for (const scan of allScans) {
     const bid = scan.badge_id;
-    if (!lapState[bid]) lapState[bid] = { lapNum: 0, lastDep: null };
+    if (!lapState[bid]) lapState[bid] = { lapNum: 0, lastDep: null, lastDepIdx: null };
     const st = lapState[bid];
     const p  = PARTICIPANTS[bid];
     const name = p ? p.name : bid;
 
     if (scan.checkpoint === 'DEPART') {
+      if (st.lastDep !== null) {
+        // Double départ : marquer le précédent comme invalide
+        if (st.lastDepIdx !== null) rows[st.lastDepIdx].statut = 'invalide';
+      }
       st.lapNum++;
       st.lastDep = scan.timestamp;
+      st.lastDepIdx = rows.length;
       rows.push({
-        badge_id:   bid,
-        name,
+        badge_id:   bid, name,
         checkpoint: 'DEPART',
         timestamp:  scan.timestamp,
         lapNum:     st.lapNum,
         duration:   null,
+        statut:     'ouvert',   // sera mis à jour si une arrivée suit
         source:     scan.id ? 'supabase' : 'local',
         known:      !!p,
       });
     } else if (scan.checkpoint === 'ARRIVEE') {
-      const dur = st.lastDep ? (scan.timestamp - st.lastDep) / 1000 : null;
-      rows.push({
-        badge_id:   bid,
-        name,
-        checkpoint: 'ARRIVEE',
-        timestamp:  scan.timestamp,
-        lapNum:     st.lapNum,
-        duration:   dur,
-        source:     scan.id ? 'supabase' : 'local',
-        known:      !!p,
-      });
+      if (st.lastDep === null) {
+        // Arrivée sans départ
+        rows.push({
+          badge_id: bid, name,
+          checkpoint: 'ARRIVEE',
+          timestamp:  scan.timestamp,
+          lapNum:     st.lapNum,
+          duration:   null,
+          statut:     'invalide',
+          source:     scan.id ? 'supabase' : 'local',
+          known:      !!p,
+        });
+      } else {
+        const dur = (scan.timestamp - st.lastDep) / 1000;
+        // Marquer le départ correspondant comme validé
+        if (st.lastDepIdx !== null) rows[st.lastDepIdx].statut = 'valide';
+        rows.push({
+          badge_id: bid, name,
+          checkpoint: 'ARRIVEE',
+          timestamp:  scan.timestamp,
+          lapNum:     st.lapNum,
+          duration:   dur,
+          statut:     'valide',
+          source:     scan.id ? 'supabase' : 'local',
+          known:      !!p,
+        });
+        st.lastDep    = null;
+        st.lastDepIdx = null;
+      }
     }
   }
 
@@ -3629,7 +3683,7 @@ function renderPassagesTable() {
   if (!tbody) return;
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage correspondant</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage correspondant</td></tr>';
     return;
   }
 
@@ -3643,6 +3697,11 @@ function renderPassagesTable() {
     const durHtml = r.duration !== null
       ? '<span class="mono" style="color:var(--teal)">' + fmtTime(r.duration) + '</span>'
       : '<span style="color:var(--text-dim)">—</span>';
+    const statusHtml = r.statut === 'valide'
+      ? '<span class="status-ok">✓ Validé</span>'
+      : r.statut === 'invalide'
+        ? '<span class="status-ko">✗ Invalide</span>'
+        : '<span class="status-open">⏳ Ouvert</span>';
     const nameStyle = r.known ? '' : 'color:var(--red)';
     return '<tr>'
       + '<td style="color:var(--text-dim);font-family:var(--mono)">' + (i+1) + '</td>'
@@ -3652,6 +3711,7 @@ function renderPassagesTable() {
       + '<td><span style="font-family:var(--mono);font-size:12px">' + fmtHour(r.timestamp) + '</span></td>'
       + '<td><span style="font-family:var(--mono);font-weight:700;color:var(--white)">' + (r.lapNum || '—') + '</span></td>'
       + '<td>' + durHtml + '</td>'
+      + '<td>' + statusHtml + '</td>'
       + '<td>' + srcHtml + '</td>'
       + '</tr>';
   }).join('');
