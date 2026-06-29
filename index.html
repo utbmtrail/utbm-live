@@ -370,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.31.0
+    v1.32.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1111,10 +1111,10 @@ async function resetRace() {
     + 'Cette action est irréversible.';
   if (!confirm(msg)) return;
 
-  // Arrêter tous les timers et pollings
-  clearInterval(supaTimerId);
-  clearInterval(sheetsTimerId);
+  // Arrêter les timers locaux MAIS garder supaTimerId actif
+  // (les autres appareils doivent voir le reset via Supabase)
   clearInterval(simTimerId);
+  clearInterval(sheetsTimerId);
   cancelAnimationFrame(timerRafId);
   cancelAnimationFrame(piTimerRafId);
   stopAllScrolls();
@@ -1138,7 +1138,8 @@ async function resetRace() {
   piScans           = [];
   previousRanks     = {};
   storedDeltas      = {};
-  dataMode          = 'none';
+  // Garder dataMode = 'supabase' pour que le polling continue
+  // et notifie les autres appareils du reset
   sheetsUrl         = '';
   sessionUnlocked   = false;
   lockedCheckpoint  = null;
@@ -1688,14 +1689,19 @@ async function applyRaceConfig() {
   if (nuitFin) { HEURE_NUIT_FIN = nuitFin;  changed = true; }
   if (!changed) return;
 
-  // Activer l'override IMMÉDIATEMENT et de façon permanente
-  // (il ne sera levé qu'à la réinitialisation de la course)
   raceStartOverride = true;
+
+  // Relancer le polling si arrêté (ex: après un reset)
+  if (SUPA_URL && SUPA_ANON_KEY && !supaTimerId) {
+    dataMode = 'supabase';
+    startSupaPolling();
+  }
+
   saveState();
+  startTimer();
   updateUI();
   showMsg('cfg-confirm-msg', '⏳ Enregistrement...');
 
-  // Pousser vers Supabase et confirmer
   try {
     await pushRaceConfig();
     showMsg('cfg-confirm-msg', '✓ Heure de départ mise à jour et synchronisée');
@@ -2545,28 +2551,35 @@ async function fetchSupabase() {
     ]);
 
     // ── 1. RACE_START ───────────────────────────────────────
-    if (cfgRows && cfgRows.length > 0) {
+    if (cfgRows) {
       const rs = cfgRows.find(r => r.key === 'race_start');
-      if (rs && rs.value) {
+      if (rs && rs.value && !raceStartOverride) {
+        // Synchroniser si différent de plus de 5s
         const remote = new Date(rs.value);
-        if (!isNaN(remote)) {
-          if (raceStartOverride) {
-            // L'admin a défini une heure manuellement — on ignore Supabase
-            // SAUF si la valeur en base correspond à ce qu'on a écrit (push confirmé)
-            // Dans ce cas on peut lever le flag (la synchro est bonne)
-            if (RACE_START && Math.abs(remote - RACE_START) < 2000) {
-              // Supabase a bien notre valeur → tout va bien, flag inutile
-              // On le garde quand même pour ne pas re-écraser en cas de lag
-            }
-            // Sinon on ignore la valeur distante
-          } else {
-            // Pas d'override → prendre la valeur Supabase si différente de plus de 5s
-            if (!RACE_START || Math.abs(remote - RACE_START) > 5000) {
-              RACE_START = remote;
-              startTimer();
-            }
-          }
+        if (!isNaN(remote) && (!RACE_START || Math.abs(remote - RACE_START) > 5000)) {
+          RACE_START = remote;
+          startTimer();
+          // Cacher l'overlay si un nouvel appareil rejoint une course en cours
+          const ov = document.getElementById('startOverlay');
+          if (ov && !ov.classList.contains('hidden')) ov.classList.add('hidden');
         }
+      } else if (!rs && !raceStartOverride && RACE_START) {
+        // race_start absent = reset déclenché par un autre appareil
+        RACE_START    = null;
+        allScans      = [];
+        manualScans   = [];
+        previousRanks = {};
+        storedDeltas  = {};
+        cancelAnimationFrame(timerRafId);
+        cancelAnimationFrame(piTimerRafId);
+        const td = document.getElementById('timerDisplay');
+        if (td) { td.textContent = '--:--:--'; td.className = 'timer-display not-started'; }
+        const tl = document.getElementById('timerLabel');
+        if (tl) tl.textContent = 'En attente du départ';
+        const ov = document.getElementById('startOverlay');
+        if (ov) { ov.classList.remove('hidden'); showStep('ov-step1'); }
+        saveState();
+        updateUI();
       }
     }
 
