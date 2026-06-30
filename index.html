@@ -396,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.37.0
+    v1.38.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1159,7 +1159,6 @@ let simTimerId      = null;
 let simStep         = 0;
 let timerRafId      = null;
 let piTimerRafId    = null;
-let raceStartOverride = false; // true quand l'admin a modifié RACE_START localement
 
 /* Supabase — credentials pré-configurés */
 let SUPA_URL        = 'https://xxthgejhnxnzotgyxiaj.supabase.co';
@@ -1282,7 +1281,6 @@ async function resetRace() {
   sheetsUrl         = '';
   sessionUnlocked   = false;
   lockedCheckpoint  = null;
-  raceStartOverride = false;
 
   // Sauvegarder l'état vide (garder participants + config course)
   saveState();
@@ -1828,9 +1826,8 @@ async function applyRaceConfig() {
   if (nuitFin) { HEURE_NUIT_FIN = nuitFin;  changed = true; }
   if (!changed) return;
 
-  // Activer l'override IMMÉDIATEMENT et de façon permanente
-  // (il ne sera levé qu'à la réinitialisation de la course)
-  raceStartOverride = true;
+  // Sauvegarder localement puis pousser vers Supabase
+  // (tous les appareils se synchroniseront au prochain poll, 5s max)
   saveState();
   updateUI();
   showMsg('cfg-confirm-msg', '⏳ Enregistrement...');
@@ -2239,7 +2236,6 @@ function startReadOnly() {
   sessionUnlocked = true;
   lockedCheckpoint = null;
   dataMode        = 'supabase';
-  raceStartOverride = false; // laisser Supabase dicter RACE_START
   document.getElementById('startOverlay').classList.add('hidden');
   startSupaPolling(); // va récupérer RACE_START, participants et scans
   updateUI();
@@ -2691,29 +2687,38 @@ async function fetchSupabase() {
       supaFetch('config?select=*'),
     ]);
 
-    // ── 1. RACE_START ───────────────────────────────────────
-    if (cfgRows && cfgRows.length > 0) {
+    // ── 1. RACE_START — Supabase est l'UNIQUE source de verite ──
+    // Aucune exception, aucun flag local : on applique toujours
+    // exactement ce que Supabase retourne, a chaque poll.
+    if (cfgRows) {
       const rs = cfgRows.find(r => r.key === 'race_start');
       if (rs && rs.value) {
         const remote = new Date(rs.value);
         if (!isNaN(remote)) {
-          if (raceStartOverride) {
-            // L'admin a défini une heure manuellement — on ignore Supabase
-            // SAUF si la valeur en base correspond à ce qu'on a écrit (push confirmé)
-            // Dans ce cas on peut lever le flag (la synchro est bonne)
-            if (RACE_START && Math.abs(remote - RACE_START) < 2000) {
-              // Supabase a bien notre valeur → tout va bien, flag inutile
-              // On le garde quand même pour ne pas re-écraser en cas de lag
-            }
-            // Sinon on ignore la valeur distante
-          } else {
-            // Pas d'override → prendre la valeur Supabase si différente de plus de 5s
-            if (!RACE_START || Math.abs(remote - RACE_START) > 5000) {
-              RACE_START = remote;
-              startTimer();
-            }
+          const diff = RACE_START ? Math.abs(remote - RACE_START) : Infinity;
+          if (diff > 1000) {
+            RACE_START = remote;
+            startTimer();
+            saveState();
           }
+          // Cacher l'overlay si un appareil rejoint une course en cours
+          const ov = document.getElementById('startOverlay');
+          if (ov && !ov.classList.contains('hidden')) ov.classList.add('hidden');
         }
+      } else if (!rs && RACE_START) {
+        // race_start absent en base = course reinitialisee ailleurs
+        RACE_START    = null;
+        allScans      = [];
+        manualScans   = [];
+        previousRanks = {};
+        storedDeltas  = {};
+        cancelAnimationFrame(timerRafId);
+        cancelAnimationFrame(piTimerRafId);
+        startTimer(); // affichera --:--:--
+        const ov = document.getElementById('startOverlay');
+        if (ov) { ov.classList.remove('hidden'); showStep('ov-step1'); }
+        saveState();
+        updateUI();
       }
     }
 
@@ -2863,7 +2868,6 @@ function startAdmin() {
     if (!RACE_START) {
       // Pas de course en cours → démarrer maintenant
       RACE_START = new Date();
-      raceStartOverride = true; // permanent jusqu'au prochain reset
       try {
         await pushRaceConfig();
       } catch(e) { console.warn('pushRaceConfig at start:', e.message); }
@@ -2890,7 +2894,6 @@ function startCheckpoint() {
   dataMode      = 'supabase';
   allScans      = [];
   piScans       = [];
-  raceStartOverride = false;
   clearInterval(simTimerId);
   document.getElementById('startOverlay').classList.add('hidden');
 
@@ -3865,53 +3868,45 @@ function switchTab(name, btn) {
     }
   }
 
-  if (saved && saved.raceStart) {
-    RACE_START = new Date(saved.raceStart);
-    dataMode   = saved.dataMode || 'demo';
-    sheetsUrl  = saved.sheetsUrl || '';
+  // RÈGLE UNIQUE ET SIMPLE :
+  // Supabase config.race_start est la seule source de vérité pour le chrono.
+  // On ne restaure JAMAIS RACE_START depuis le localStorage au démarrage.
+  // Le localStorage sert uniquement de cache d'affichage en attendant le 1er poll.
+  RACE_START = null; // toujours repartir de zéro, Supabase fournira la vraie valeur
+
+  if (saved) {
+    dataMode        = saved.dataMode || 'demo';
+    sheetsUrl       = saved.sheetsUrl || '';
     pollIntervalSec = saved.pollIntervalSec || 15;
-    document.getElementById('startOverlay').classList.add('hidden');
-    startTimer();
-    // Forcer supabase si les creds sont disponibles
-    if (SUPA_URL && SUPA_ANON_KEY) dataMode = 'supabase';
+  }
+  document.getElementById('startOverlay').classList.add('hidden');
+  startTimer(); // affiche --:--:-- en attendant Supabase
 
-    if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
-      if (deviceType === 'checkpoint') {
-        RACE_START   = null;
-        PARTICIPANTS = {};
-      } else if (RACE_START && SUPA_OP_KEY) {
-        // PC Admin avec course en localStorage → publier RACE_START dans Supabase
-        // pour que tous les autres appareils se synchronisent
-        raceStartOverride = true;
-        pushRaceConfig().catch(e => console.warn('pushRaceConfig at init:', e.message));
+  // Forcer supabase si les creds sont disponibles
+  if (SUPA_URL && SUPA_ANON_KEY) dataMode = 'supabase';
+
+  if (dataMode === 'supabase' && SUPA_URL && SUPA_ANON_KEY) {
+    if (deviceType === 'checkpoint') PARTICIPANTS = {};
+
+    syncParticipantsFromSupabase().then(() => {
+      startSupaPolling(); // 1er poll : récupère RACE_START depuis Supabase
+      if (deviceType === 'checkpoint' && lockedCheckpoint) {
+        sessionUnlocked = true;
+        enterPiMode(lockedCheckpoint);
       }
-
-      syncParticipantsFromSupabase().then(() => {
-        startSupaPolling();
-        if (deviceType === 'checkpoint' && lockedCheckpoint) {
-          sessionUnlocked = true;
-          enterPiMode(lockedCheckpoint);
-        }
-      });
-    } else if (dataMode === 'sheets' && sheetsUrl) {
-      startSheetsPolling();
-    } else if (dataMode === 'live') {
-      // mode reel sans backend, scans locaux uniquement
-    } else {
-      dataMode = 'demo';
-      allScans = buildDemoScans();
-      startSimulation();
-    }
-    updateUI();
+    });
+  } else if (dataMode === 'sheets' && sheetsUrl) {
+    startSheetsPolling();
+  } else if (dataMode === 'live') {
+    // mode reel sans backend, scans locaux uniquement
+  } else if (dataMode === 'demo' && saved && saved.raceStart) {
+    // Mode démo uniquement : on peut restaurer localement
+    RACE_START = new Date(saved.raceStart);
+    allScans = buildDemoScans();
+    startSimulation();
+    startTimer();
   }
-  // Sur un nouvel appareil (overlay visible), lancer le polling pour
-  // charger participants + scans depuis Supabase
-  // Si une course était en cours (raceStart), le polling est déjà démarré ci-dessus
-  if (SUPA_URL && SUPA_ANON_KEY && !supaTimerId) {
-    // Cacher l'overlay et démarrer le polling automatiquement
-    document.getElementById('startOverlay').classList.add('hidden');
-    startSupaPolling();
-  }
+  updateUI();
 
   // Pré-remplir les champs Supabase
   const fillField = (id, val) => { const el=document.getElementById(id); if(el && val) el.value=val; };
