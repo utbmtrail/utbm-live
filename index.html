@@ -396,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.38.0
+    v1.39.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -2806,7 +2806,7 @@ async function fetchSupabase() {
 function startSupaPolling() {
   clearInterval(supaTimerId);
   fetchSupabase();
-  supaTimerId = setInterval(fetchSupabase, 5000); // toutes les 5s
+  supaTimerId = setInterval(fetchSupabase, 15000); // toutes les 15s
 }
 
 /* ================================================================
