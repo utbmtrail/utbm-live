@@ -396,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.40.0
+    v1.41.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -572,7 +572,13 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         <div style="display:flex;flex-direction:column;gap:10px">
           <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="exportCSV()">💾 Exporter la liste (CSV)</button>
           <button class="btn-start" style="font-size:11px;padding:8px 14px;background:var(--teal)" onclick="pushAllParticipants()">☁ Sync tous → Supabase</button>
-          <button class="btn-reset" style="color:var(--red);border-color:rgba(231,76,60,.4)" onclick="clearAllParticipants()">🗑 Effacer tous les participants</button>
+          <button class="btn-reset" style="color:var(--red);border-color:rgba(231,76,60,.4);border-width:2px" onclick="clearAllParticipants()">
+            🗑 Réinitialiser la liste complète
+          </button>
+          <div style="font-size:10px;color:var(--text-dim);padding:6px 4px;line-height:1.5">
+            ⚠ Supprime tous les participants localement <b>et</b> dans Supabase.<br>
+            Un code de confirmation est requis.
+          </div>
         </div>
         <div style="margin-top:14px;font-size:11px;color:var(--text-dim);line-height:1.7">
           ⚠ Effacer les participants ne supprime pas les scans RFID déjà enregistrés.
@@ -869,9 +875,15 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         <input class="input-field" id="modal-prenom" type="text" placeholder="Jean">
       </div>
       <div class="input-row">
-        <div class="input-label">ID Badge RFID *</div>
-        <input class="input-field" id="modal-badge" type="text" placeholder="RFID001" style="font-family:var(--mono);text-transform:uppercase">
-        <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Doit correspondre exactement aux scans RFID</div>
+        <div class="input-label">ID Badge RFID *
+          <span id="modal-badge-edit-note" style="display:none;font-size:9px;color:var(--amber);font-weight:400;margin-left:6px">⚠ Modifier l'ID met à jour tous les scans associés</span>
+        </div>
+        <input class="input-field" id="modal-badge" type="text" placeholder="ex: 1A2B3C4D"
+          style="font-family:var(--mono);text-transform:uppercase;font-size:16px;letter-spacing:.08em;border-color:var(--amber)"
+          oninput="this.value=this.value.toUpperCase()">
+        <div style="font-size:10px;color:var(--text-dim);margin-top:3px">
+          Saisie manuelle ou scan du badge RFID — doit correspondre exactement aux scans
+        </div>
       </div>
     </div>
 
@@ -882,8 +894,15 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         <input class="input-field" id="modal-equipe-nom" type="text" placeholder="Les Bouquetons">
       </div>
       <div class="input-row">
-        <div class="input-label">ID Badge RFID *</div>
-        <input class="input-field" id="modal-equipe-badge" type="text" placeholder="RFID101" style="font-family:var(--mono);text-transform:uppercase">
+        <div class="input-label">ID Badge RFID *
+          <span id="modal-equipe-badge-edit-note" style="display:none;font-size:9px;color:var(--amber);font-weight:400;margin-left:6px">⚠ Modifier l'ID met à jour tous les scans associés</span>
+        </div>
+        <input class="input-field" id="modal-equipe-badge" type="text" placeholder="ex: A1B2C3D4"
+          style="font-family:var(--mono);text-transform:uppercase;font-size:16px;letter-spacing:.08em;border-color:var(--amber)"
+          oninput="this.value=this.value.toUpperCase()">
+        <div style="font-size:10px;color:var(--text-dim);margin-top:3px">
+          Saisie manuelle ou scan du badge RFID
+        </div>
       </div>
       <div class="input-row">
         <div class="input-label">Membres de l'équipe <span style="color:var(--text-dim)">(optionnel)</span></div>
@@ -2043,6 +2062,21 @@ function openModal(cat, badgeToEdit) {
   document.getElementById('modal-cat').value = cat;
   document.getElementById('modal-solo-fields').style.display   = cat === 'solo'   ? 'block' : 'none';
   document.getElementById('modal-equipe-fields').style.display = cat === 'equipe' ? 'block' : 'none';
+
+  // Montrer la note d'avertissement si on édite (badge existant = peut changer l'ID)
+  const isEdit = !!badgeToEdit;
+  const noteS = document.getElementById('modal-badge-edit-note');
+  const noteE = document.getElementById('modal-equipe-badge-edit-note');
+  if (noteS) noteS.style.display  = isEdit ? 'inline' : 'none';
+  if (noteE) noteE.style.display  = isEdit ? 'inline' : 'none';
+
+  // Focus sur le premier champ pertinent
+  setTimeout(() => {
+    const first = cat === 'solo'
+      ? document.getElementById('modal-nom')
+      : document.getElementById('modal-equipe-nom');
+    if (first) first.focus();
+  }, 100);
 }
 
 function closeModal() {
@@ -2121,12 +2155,30 @@ function deleteParticipant(badge) {
   updateUI();
 }
 
-function clearAllParticipants() {
-  if (!confirm('Effacer TOUS les participants ? Action irréversible.')) return;
+async function clearAllParticipants() {
+  // Demander le PIN
+  const pin = prompt('Code de confirmation pour effacer tous les participants :');
+  if (pin === null) return; // annulé
+  if (OPERATOR_PIN && pin !== OPERATOR_PIN) {
+    alert('Code incorrect — opération annulée.');
+    return;
+  }
+  if (!confirm('Effacer TOUS les participants (local + Supabase) ? Cette action est irréversible.')) return;
+
+  // Supprimer dans Supabase
+  if (SUPA_URL && SUPA_OP_KEY) {
+    try {
+      await supaFetch('participants?id=gt.0', { method: 'DELETE', write: true });
+    } catch(e) {
+      console.warn('clearAllParticipants Supabase error:', e.message);
+    }
+  }
+
   PARTICIPANTS = {};
   saveState();
   renderParticipantsTab();
   updateUI();
+  alert('Tous les participants ont été supprimés.');
 }
 
 /* ── IMPORT CSV ── */
