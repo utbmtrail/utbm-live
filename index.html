@@ -399,7 +399,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.47.0
+    v1.48.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -3359,14 +3359,15 @@ async function pushParticipantToSupabase(badge, p) {
    ================================================================ */
 const TOP_FIXED      = 3;    // top 3 toujours visible en haut
 const SCROLL_ROWS    = 12;   // lignes visibles dans la zone défilante
-const FS_SCROLL_ROWS = 8;    // lignes visibles en plein écran (lignes plus hautes)
-const SCROLL_STEP    = 5;    // avance de N lignes à chaque tick
+const FS_SCROLL_ROWS = 5;    // lignes visibles dans la zone défilante plein écran
+const SCROLL_STEP    = 3;    // avance de 3 positions à chaque tick
 const SCROLL_MS      = 10000; // ms entre chaque défilement (10s)
 
 let scrollStates = {}; // { 'solo': { offset, timer }, 'equipe': { offset, timer } }
 
 const ROW_H = 46; // hauteur lignes classement normal
-const FS_ROW_H = 72; // hauteur lignes plein écran (lisible à 3-4m)
+const FS_ROW_H        = 72; // hauteur top 3 (grand format)
+const FS_SCROLL_ROW_H = 56; // hauteur lignes défilantes (légèrement plus petites, 5 visibles)
 
 function makeLbRow(r, i) {
   const delta   = storedDeltas[r.badge_id] || '';
@@ -3513,31 +3514,32 @@ function stopFsScrolls() {
 // Cache des données FS pour éviter de reconstruire le DOM inutilement
 let fsCacheKey = { solo: '', equipe: '' };
 
-function makeFsRow(r, i) {
+function makeFsRow(r, i, rowH) {
   // Ligne optimisée pour lisibilité à 3-4m sur grand écran
+  const h        = rowH || FS_ROW_H;
   const delta    = storedDeltas[r.badge_id] || '';
   const rc       = rankColor(i);
   const cls      = [r.onCourse ? 'oc' : '', i===0 ? 'r1' : i===1 ? 'r2' : i===2 ? 'r3' : ''].filter(Boolean).join(' ');
-  const ptsColor = r.points > r.tours ? 'var(--purple)' : 'var(--teal)'; // violet si bonus nocturne
+  const ptsColor = r.points > r.tours ? 'var(--purple)' : 'var(--teal)';
   const inCourse = r.onCourse
     ? '<span style="font-size:14px;color:var(--amber);margin-left:6px">⟳</span>' : '';
 
-  return `<div class="lb-r ${cls}" style="height:${FS_ROW_H}px;box-sizing:border-box;overflow:hidden;display:grid;grid-template-columns:64px 1fr 100px 90px;align-items:center;padding:0 18px;gap:10px;border-bottom:1px solid var(--border)">
+  return `<div class="lb-r ${cls}" style="height:${h}px;box-sizing:border-box;overflow:hidden;display:grid;grid-template-columns:64px 1fr 100px 90px;align-items:center;padding:0 18px;gap:10px;border-bottom:1px solid var(--border)">
     <div class="rank-cell" style="display:flex;flex-direction:column;align-items:center">
       <div class="rank-num ${rc}" style="font-size:${i<3?26:20}px;font-weight:800">${i+1}</div>
       ${delta}
     </div>
     <div>
-      <div style="font-size:${i<3?26:20}px;font-weight:${i<3?800:700};color:${i===0?'var(--white)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${inCourse}</div>
-      <div style="font-size:13px;color:var(--text-dim);font-family:var(--mono)">${esc(r.badge_id)}</div>
+      <div style="font-size:${i<3?(h>60?26:22):( h>60?20:17)}px;font-weight:${i<3?800:700};color:${i===0?'var(--white)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${inCourse}</div>
+      <div style="font-size:${h>60?13:11}px;color:var(--text-dim);font-family:var(--mono)">${esc(r.badge_id)}</div>
     </div>
     <div style="text-align:center">
-      <div style="font-size:${i<3?30:24}px;font-weight:800;font-family:var(--mono);color:var(--white)">${r.tours}</div>
-      <div style="font-size:13px;font-family:var(--mono);color:${ptsColor}">${r.points}pts</div>
+      <div style="font-size:${i<3?(h>60?30:26):( h>60?24:20)}px;font-weight:800;font-family:var(--mono);color:var(--white)">${r.tours}</div>
+      <div style="font-size:${h>60?13:11}px;font-family:var(--mono);color:${ptsColor}">${r.points}pts</div>
     </div>
     <div style="text-align:center">
-      <div style="font-size:${i<3?22:18}px;font-weight:700;font-family:var(--mono);color:var(--teal)">${r.distance.toFixed(1)}</div>
-      <div style="font-size:13px;color:var(--text-dim)">km</div>
+      <div style="font-size:${i<3?(h>60?22:19):(h>60?18:15)}px;font-weight:700;font-family:var(--mono);color:var(--teal)">${r.distance.toFixed(1)}</div>
+      <div style="font-size:${h>60?13:11}px;color:var(--text-dim)">km</div>
     </div>
   </div>`;
 }
@@ -3568,18 +3570,18 @@ function buildFsLeaderboard(data, elId, cat) {
   const scrollData = data.slice(TOP_FIXED);
 
   const fixedHtml = '<div class="lb-fixed-zone">'
-    + fixedData.map((r, i) => makeFsRow(r, i)).join('')
+    + fixedData.map((r, i) => makeFsRow(r, i, FS_ROW_H)).join('')
     + '</div>';
 
   const sepHtml = scrollData.length > 0
     ? '<div style="height:2px;background:linear-gradient(90deg,var(--amber),transparent);opacity:.6"></div>'
     : '';
 
-  const winH = FS_SCROLL_ROWS * FS_ROW_H;
+  const winH = FS_SCROLL_ROWS * FS_SCROLL_ROW_H;
   const scrollHtml = scrollData.length > 0
     ? '<div class="lb-window" style="height:' + winH + 'px">'
         + '<div class="lb-ribbon" id="fs-ribbon-' + cat + '">'
-        + scrollData.map((r, i) => makeFsRow(r, i + TOP_FIXED)).join('')
+        + scrollData.map((r, i) => makeFsRow(r, i + TOP_FIXED, FS_SCROLL_ROW_H)).join('')
         + '</div></div>'
     : '';
 
@@ -3599,7 +3601,7 @@ function buildFsLeaderboard(data, elId, cat) {
     const ribbon = document.getElementById('fs-ribbon-' + cat);
     if (!ribbon) { clearInterval(state.timer); state.timer = null; return; }
     state.offset = (state.offset + SCROLL_STEP) % state.total;
-    ribbon.style.transform = 'translateY(-' + (state.offset * FS_ROW_H) + 'px)';
+    ribbon.style.transform = 'translateY(-' + (state.offset * FS_SCROLL_ROW_H) + 'px)';
   }, SCROLL_MS);
 }
 
