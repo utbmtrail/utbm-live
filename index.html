@@ -399,7 +399,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.44.0
+    v1.45.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1847,18 +1847,18 @@ async function applyRaceConfig() {
   if (nuitFin) { HEURE_NUIT_FIN = nuitFin;  changed = true; }
   if (!changed) return;
 
-  // Sauvegarder localement puis pousser vers Supabase
-  // (tous les appareils se synchroniseront au prochain poll, 5s max)
   saveState();
+  startTimer();
   updateUI();
-  showMsg('cfg-confirm-msg', '⏳ Enregistrement...');
+  showMsg('cfg-confirm-msg', '⏳ Synchronisation...');
 
-  // Pousser vers Supabase et confirmer
+  // Toujours pousser TOUTE la config (pas seulement ce qui a changé)
+  // pour s'assurer que tous les appareils ont les mêmes paramètres
   try {
     await pushRaceConfig();
-    showMsg('cfg-confirm-msg', '✓ Heure de départ mise à jour et synchronisée');
+    showMsg('cfg-confirm-msg', '✓ Configuration synchronisée sur tous les appareils');
   } catch(e) {
-    showMsg('cfg-confirm-msg', '⚠ Sauvegardé localement — erreur Supabase : ' + e.message);
+    showMsg('cfg-confirm-msg', '⚠ Sauvegardé localement — erreur : ' + e.message);
   }
 }
 
@@ -2703,17 +2703,26 @@ async function pushConfigKey(key, value) {
 }
 
 async function pushRaceConfig() {
-  if (!SUPA_URL || !SUPA_OP_KEY) return;
+  if (!SUPA_URL || !SUPA_OP_KEY) {
+    console.warn('pushRaceConfig: Supabase non configuré');
+    return;
+  }
   // Pousser toute la configuration course en parallèle
-  const tasks = [];
+  const tasks = [
+    pushConfigKey('distance_tour',  DISTANCE_TOUR),
+    pushConfigKey('denivele_tour',  DENIVELE_TOUR),
+    pushConfigKey('duree_course',   DUREE_COURSE),
+    pushConfigKey('coeff_nuit',     COEFF_NUIT),
+    pushConfigKey('heure_nuit_deb', HEURE_NUIT_DEB),
+    pushConfigKey('heure_nuit_fin', HEURE_NUIT_FIN),
+  ];
   if (RACE_START) tasks.push(pushConfigKey('race_start', RACE_START.toISOString()));
-  tasks.push(pushConfigKey('distance_tour', DISTANCE_TOUR));
-  tasks.push(pushConfigKey('denivele_tour', DENIVELE_TOUR));
-  tasks.push(pushConfigKey('duree_course',  DUREE_COURSE));
-  tasks.push(pushConfigKey('coeff_nuit',    COEFF_NUIT));
-  tasks.push(pushConfigKey('heure_nuit_deb', HEURE_NUIT_DEB));
-  tasks.push(pushConfigKey('heure_nuit_fin', HEURE_NUIT_FIN));
   await Promise.all(tasks);
+  console.log('pushRaceConfig: OK —', {
+    distance: DISTANCE_TOUR, denivele: DENIVELE_TOUR,
+    duree: DUREE_COURSE, coeff: COEFF_NUIT,
+    race_start: RACE_START?.toISOString() || 'non défini'
+  });
 }
 
 async function fetchRaceConfig() {
@@ -2772,18 +2781,21 @@ async function fetchSupabase() {
       const get = key => { const r = cfgRows.find(r => r.key === key); return r ? r.value : null; };
 
       // Paramètres course (distance, dplus, durée, coeff nuit)
-      const dist = parseFloat(get('distance_tour'));
-      const dplus = parseInt(get('denivele_tour'));
-      const duree = parseInt(get('duree_course'));
-      const coeff = parseFloat(get('coeff_nuit'));
+      // On applique UNIQUEMENT si la valeur existe en base (sinon on garde le localStorage)
+      const dist    = parseFloat(get('distance_tour'));
+      const dpluss  = parseInt(get('denivele_tour'));
+      const duree   = parseInt(get('duree_course'));
+      const coeff   = parseFloat(get('coeff_nuit'));
       const nuitDeb = get('heure_nuit_deb');
       const nuitFin = get('heure_nuit_fin');
-      if (!isNaN(dist)  && dist  > 0)  DISTANCE_TOUR  = dist;
-      if (!isNaN(dplus) && dplus >= 0) DENIVELE_TOUR  = dplus;
-      if (!isNaN(duree) && duree > 0)  DUREE_COURSE   = duree;
-      if (!isNaN(coeff) && coeff >= 1) COEFF_NUIT     = coeff;
-      if (nuitDeb) HEURE_NUIT_DEB = nuitDeb;
-      if (nuitFin) HEURE_NUIT_FIN = nuitFin;
+      let cfgChanged = false;
+      if (get('distance_tour')  && !isNaN(dist)   && dist   > 0  && dist   !== DISTANCE_TOUR)  { DISTANCE_TOUR  = dist;    cfgChanged = true; }
+      if (get('denivele_tour')  && !isNaN(dpluss)  && dpluss >= 0 && dpluss !== DENIVELE_TOUR)  { DENIVELE_TOUR  = dpluss;  cfgChanged = true; }
+      if (get('duree_course')   && !isNaN(duree)  && duree  > 0  && duree  !== DUREE_COURSE)   { DUREE_COURSE   = duree;   cfgChanged = true; }
+      if (get('coeff_nuit')     && !isNaN(coeff)  && coeff  >= 1 && coeff  !== COEFF_NUIT)     { COEFF_NUIT     = coeff;   cfgChanged = true; }
+      if (nuitDeb && nuitDeb !== HEURE_NUIT_DEB) { HEURE_NUIT_DEB = nuitDeb; cfgChanged = true; }
+      if (nuitFin && nuitFin !== HEURE_NUIT_FIN) { HEURE_NUIT_FIN = nuitFin; cfgChanged = true; }
+      if (cfgChanged) { saveState(); }
 
       // RACE_START
       const rs = get('race_start');
@@ -3983,10 +3995,15 @@ function switchTab(name, btn) {
     if (deviceType === 'checkpoint') PARTICIPANTS = {};
 
     syncParticipantsFromSupabase().then(() => {
-      startSupaPolling(); // 1er poll : récupère RACE_START depuis Supabase
+      startSupaPolling(); // 1er poll : récupère toute la config depuis Supabase
       if (deviceType === 'checkpoint' && lockedCheckpoint) {
         sessionUnlocked = true;
         enterPiMode(lockedCheckpoint);
+      }
+      // Si c'est l'admin et qu'on a des valeurs locales, les pousser vers Supabase
+      // (utile après une mise à jour de l'appli ou si Supabase a été réinitialisé)
+      if (deviceType === 'admin' && SUPA_OP_KEY) {
+        setTimeout(() => pushRaceConfig().catch(()=>{}), 3000);
       }
     });
   } else if (dataMode === 'sheets' && sheetsUrl) {
