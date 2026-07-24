@@ -396,7 +396,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.39.0
+    v1.40.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -2164,8 +2164,24 @@ function importCSV(event) {
     saveState();
     renderParticipantsTab();
     updateUI();
-    showImportMsg(`✓ ${added} importé(s)${skipped ? `, ${skipped} ignoré(s)` : ''}.`, true);
+    showImportMsg(`✓ ${added} importé(s)${skipped ? `, ${skipped} ignoré(s)` : ''}. Envoi vers Supabase...`, true);
     event.target.value = '';
+
+    // Pousser automatiquement vers Supabase pour éviter l'écrasement au poll suivant
+    if (SUPA_URL && SUPA_OP_KEY && added > 0) {
+      let ok = 0, err = 0;
+      const badges = Object.keys(PARTICIPANTS);
+      Promise.all(badges.map(b =>
+        pushParticipantToSupabase(b, PARTICIPANTS[b])
+          .then(() => ok++)
+          .catch(() => err++)
+      )).then(() => {
+        showImportMsg(
+          `✓ ${added} importé(s) et synchronisé(s)${err ? ` (${err} erreur(s))` : ''}.`,
+          err === 0
+        );
+      });
+    }
   };
   reader.readAsText(file);
 }
