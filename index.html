@@ -399,7 +399,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.45.0
+    v1.46.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1544,8 +1544,21 @@ function isNocturne(date) {
 }
 
 function lapPoints(lap) {
-  // Un tour vaut COEFF_NUIT points si validé pendant la plage nocturne, sinon 1
-  return isNocturne(lap.end) ? COEFF_NUIT : 1;
+  // Un tour vaut COEFF_NUIT points si l'heure de FIN est dans la plage nocturne
+  // COEFF_NUIT et les heures sont lus depuis Supabase (pushRaceConfig/fetchSupabase)
+  const nocturne = isNocturne(lap.end);
+  const pts = nocturne ? COEFF_NUIT : 1;
+  return pts;
+}
+
+function debugLapPoints() {
+  // À appeler depuis la console pour vérifier la config active
+  console.log('Config active:', {
+    DISTANCE_TOUR, DENIVELE_TOUR, DUREE_COURSE,
+    COEFF_NUIT, HEURE_NUIT_DEB, HEURE_NUIT_FIN
+  });
+  const now = new Date();
+  console.log('Heure actuelle:', now.toLocaleTimeString(), '→ nocturne?', isNocturne(now));
 }
 
 /* ================================================================
@@ -1607,7 +1620,7 @@ function processScans(scans) {
       avgLapTime:  n > 0 ? s.laps.reduce((a, l) => a + l.duration, 0) / n : null,
       lastArrival: n > 0 ? s.laps[n-1].end : null,
       laps:        s.laps, // garder les laps pour affichage détail nocturne
-      distance:    n * DISTANCE_TOUR,
+      distance:    n * DISTANCE_TOUR, // n = tours complétés (laps.length), pas les tours en cours
       dplus:       n * DENIVELE_TOUR,
     });
   }
@@ -1659,7 +1672,7 @@ function buildTable(data, compact) {
   data.forEach((r, i) => {
     // Utiliser le delta mémorisé (persiste jusqu'au prochain changement de rang)
     const delta = storedDeltas[r.badge_id] || '';
-    const distTotal = r.onCourse ? r.distance + DISTANCE_TOUR : r.distance;
+    const distTotal = r.distance; // km = tours complétés × distance (pas de tour en cours)
     const nightLaps = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
     const nightTag  = nightLaps > 0
       ? `<div class="tours-open" style="color:var(--purple)">&#9790; ${nightLaps}×${COEFF_NUIT}pts</div>` : '';
@@ -1673,7 +1686,7 @@ function buildTable(data, compact) {
         <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
         <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge">${esc(r.badge_id)} ${badge}</div></div></td>
         <td>${toursHtml}</td>
-        <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open">+${DISTANCE_TOUR}km estimé</div>`:''}</td>
+        <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
         <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
         <td class="mono">${fmtTime(r.avgLapTime)}</td>
         <td class="mono">${fmtTime(r.totalTime)}</td>
@@ -1683,7 +1696,7 @@ function buildTable(data, compact) {
         <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
         <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge">${esc(r.badge_id)} ${badge}</div></div></td>
         <td>${toursHtml}</td>
-        <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open">+${DISTANCE_TOUR}km estimé</div>`:''}</td>
+        <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
         <td class="mono elapsed-ok">${fmtTime(r.lastLapTime)}<br><small style="color:var(--text-dim)">${fmtHour(r.lastArrival)}</small></td>
         <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
         <td class="mono">${fmtTime(r.avgLapTime)}</td>
@@ -3356,7 +3369,7 @@ const ROW_H = 46; // hauteur fixe de chaque ligne en px — doit correspondre au
 
 function makeLbRow(r, i) {
   const delta   = storedDeltas[r.badge_id] || '';
-  const distTot = (r.onCourse ? r.distance + DISTANCE_TOUR : r.distance).toFixed(1);
+  const distTot = r.distance.toFixed(1); // km = tours complétés uniquement
   const nlaps   = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
   const ptsHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--teal);line-height:1">${r.points}pts</div>`
     + (nlaps > 0 ? `<div style="font-size:9px;color:var(--purple)">&#9790;${nlaps}</div>` : '');
