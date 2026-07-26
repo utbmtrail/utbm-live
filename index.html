@@ -399,7 +399,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.48.0
+    v1.49.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1684,7 +1684,7 @@ function buildTable(data, compact) {
     if (compact) {
       html += `<tr class="${rowCls}">
         <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
-        <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge">${esc(r.badge_id)} ${badge}</div></div></td>
+        <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div></div></td>
         <td>${toursHtml}</td>
         <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
         <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
@@ -1694,7 +1694,7 @@ function buildTable(data, compact) {
     } else {
       html += `<tr class="${rowCls}">
         <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
-        <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge">${esc(r.badge_id)} ${badge}</div></div></td>
+        <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div></div></td>
         <td>${toursHtml}</td>
         <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
         <td class="mono elapsed-ok">${fmtTime(r.lastLapTime)}<br><small style="color:var(--text-dim)">${fmtHour(r.lastArrival)}</small></td>
@@ -3384,7 +3384,7 @@ function makeLbRow(r, i) {
     </div>
     <div class="name-cell">
       <div class="name-primary" style="font-size:12px">${esc(r.name)} ${inCourse}</div>
-      <div class="name-badge">${esc(r.badge_id)}</div>
+      <div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
     </div>
     <div><div class="tours-num" style="font-size:${i<3?16:13}px">${r.tours}</div>${ptsHtml}</div>
     <div class="dist-val" style="font-size:11px">${distTot} km</div>
@@ -3531,7 +3531,7 @@ function makeFsRow(r, i, rowH) {
     </div>
     <div>
       <div style="font-size:${i<3?(h>60?26:22):( h>60?20:17)}px;font-weight:${i<3?800:700};color:${i===0?'var(--white)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${inCourse}</div>
-      <div style="font-size:${h>60?13:11}px;color:var(--text-dim);font-family:var(--mono)">${esc(r.badge_id)}</div>
+      <div style="font-size:${h>60?13:11}px;color:var(--teal);font-family:var(--mono)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
     </div>
     <div style="text-align:center">
       <div style="font-size:${i<3?(h>60?30:26):( h>60?24:20)}px;font-weight:800;font-family:var(--mono);color:var(--white)">${r.tours}</div>
