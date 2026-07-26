@@ -289,6 +289,12 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 #pi-mode.active{display:flex}
 .pi-scan-entry{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
 .pi-scan-entry:last-child{border-bottom:none}
+/* Overlay d'animation scan */
+.pi-scan-overlay{position:absolute;inset:0;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:2px solid var(--border);opacity:0;pointer-events:none;transition:opacity .15s}
+.pi-scan-overlay.active{opacity:1;pointer-events:auto}
+.pi-scan-bar{width:80%;height:4px;border-radius:2px;background:var(--muted);overflow:hidden}
+.pi-scan-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--amber),var(--teal));width:0%;transition:width 2s linear}
+.pi-scan-label{font-size:13px;font-weight:700;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
 .pi-scan-time{font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:55px}
 .pi-scan-chk{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700}
 .pi-scan-chk.d{background:rgba(245,166,35,.15);color:var(--amber)}
@@ -399,7 +405,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.50.0
+    v1.51.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -953,18 +959,27 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       En attente d&#x27;un scan...
     </div>
 
-    <!-- Champ badge -->
+    <!-- Champ badge invisible — reçoit les données du lecteur RFID -->
+    <!-- L'utilisateur ne voit pas ce champ, mais il est actif et capte le clavier -->
     <div style="position:relative;width:100%;max-width:560px">
+
+      <!-- Input masqué visuellement mais fonctionnel -->
       <input id="pi-badge-input" class="badge-input-big"
-        type="text" placeholder="Scanner le badge RFID..."
+        type="text" placeholder=""
         autocomplete="off" autocorrect="off" spellcheck="false"
         onkeydown="handlePiBadgeKey(event)" oninput="this.value=this.value.toUpperCase()"
-        style="font-size:24px;padding:20px 60px 20px 20px;width:100%">
-      <button class="badge-clear" onclick="clearPiInput()" style="font-size:22px;right:16px">×</button>
+        style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;border:none;padding:0;margin:0;overflow:hidden">
+
+      <!-- Overlay visible : état d'attente ou animation d'enregistrement -->
+      <div id="pi-scan-overlay" class="pi-scan-overlay active"
+        style="position:relative;width:100%;height:72px;border-radius:8px">
+        <div class="pi-scan-label" id="pi-scan-label">Prêt — en attente d'un scan</div>
+        <div class="pi-scan-bar" id="pi-scan-bar-wrap" style="display:none">
+          <div class="pi-scan-fill" id="pi-scan-fill"></div>
+        </div>
+      </div>
+
     </div>
-    <button class="btn-start" style="width:100%;max-width:560px;padding:16px;font-size:16px" onclick="submitPiScan()">
-      ✓ Valider le pointage
-    </button>
 
     <!-- Dernier scan -->
     <div id="pi-last-scan" style="width:100%;max-width:560px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px">
@@ -3110,8 +3125,34 @@ function handlePiBadgeKey(e) {
 
 function clearPiInput() {
   const el = document.getElementById('pi-badge-input');
-  el.value = ''; el.className = 'badge-input-big'; el.focus();
+  el.value = ''; el.focus();
+  hideScanAnimation();
   resetPiFeedback();
+}
+
+function showScanAnimation(label) {
+  const lbl  = document.getElementById('pi-scan-label');
+  const bar  = document.getElementById('pi-scan-bar-wrap');
+  const fill = document.getElementById('pi-scan-fill');
+  if (lbl)  lbl.textContent = label || 'Enregistrement...';
+  if (bar)  bar.style.display = 'block';
+  if (fill) {
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    requestAnimationFrame(() => {
+      fill.style.transition = 'width 2s linear';
+      fill.style.width = '100%';
+    });
+  }
+}
+
+function hideScanAnimation() {
+  const lbl  = document.getElementById('pi-scan-label');
+  const bar  = document.getElementById('pi-scan-bar-wrap');
+  const fill = document.getElementById('pi-scan-fill');
+  if (lbl)  lbl.textContent = 'Prêt — en attente d\u0027un scan';
+  if (bar)  bar.style.display = 'none';
+  if (fill) { fill.style.transition = 'none'; fill.style.width = '0%'; }
 }
 
 async function submitPiScan() {
@@ -3152,6 +3193,7 @@ async function submitPiScan() {
 
   // Feedback "envoi en cours" — déjà avec le nom, sans l'ID
   soundSending();
+  showScanAnimation(p ? 'Enregistrement — ' + p.name : 'Enregistrement...');
   const displayName = p ? esc(p.name) : '⚠️ Inconnu';
   showPiFeedback(
     '<div class="pi-feedback-icon">⟳</div>'
@@ -3227,9 +3269,13 @@ async function submitPiScan() {
   updatePiScanList();
   updatePiCount();
 
-  input.disabled     = false;
+  input.disabled      = false;
   input.style.opacity = '1';
-  input.focus();
+  // Laisser l'animation 2s minimum, puis remettre "Prêt"
+  setTimeout(() => {
+    hideScanAnimation();
+    input.focus();
+  }, 2000);
 }
 
 function showPiFeedback(html, ok) {
