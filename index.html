@@ -405,7 +405,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.54.0
+    v1.55.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -2788,22 +2788,17 @@ async function fetchRaceConfig() {
 }
 
 async function pushScanToSupabase(scan) {
-  if (!SUPA_URL || !SUPA_OP_KEY) return false;
-  try {
-    await supaFetch('scans', {
-      method: 'POST',
-      write: true,
-      body: JSON.stringify(Object.assign({
-        badge_id:   scan.badge_id,
-        checkpoint: scan.checkpoint,
-        timestamp:  scan.timestamp.toISOString(),
-      }, scan.source ? { source: scan.source } : {}))
-    });
-    return true;
-  } catch(e) {
-    console.warn('Supabase push error:', e.message);
-    return false;
-  }
+  if (!SUPA_URL || !SUPA_OP_KEY) throw new Error('Supabase non configuré');
+  // Propager l'erreur — l'appelant doit gérer le succès/échec
+  await supaFetch('scans', {
+    method: 'POST',
+    write: true,
+    body: JSON.stringify({
+      badge_id:   scan.badge_id,
+      checkpoint: scan.checkpoint,
+      timestamp:  scan.timestamp.toISOString(),
+    })
+  });
 }
 
 async function fetchSupabase() {
@@ -4160,17 +4155,17 @@ async function validateWarmupLap() {
     };
 
     try {
-      // Pousser vers Supabase
       await pushScanToSupabase(scanArr);
-      await pushScanToSupabase(scanDep);
-      // Ajouter localement
       scanArr.supaId = 'pushed';
+      await pushScanToSupabase(scanDep);
       scanDep.supaId = 'pushed';
       allScans.push(scanArr);
       allScans.push(scanDep);
       injected++;
     } catch(e) {
-      console.warn('Warmup injection error for', badge, e.message);
+      console.warn('Warmup injection error for', badge, ':', e.message);
+      // Ajouter quand même localement — le poll les lira depuis Supabase si push OK
+      if (scanArr.supaId) allScans.push(scanArr); // arr OK, dep KO
       errors++;
     }
   }
