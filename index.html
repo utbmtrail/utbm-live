@@ -405,7 +405,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.51.0
+    v1.54.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -581,6 +581,22 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         <div style="display:flex;flex-direction:column;gap:10px">
           <button class="btn-start" style="font-size:11px;padding:8px 14px" onclick="exportCSV()">💾 Exporter la liste (CSV)</button>
           <button class="btn-start" style="font-size:11px;padding:8px 14px;background:var(--teal)" onclick="pushAllParticipants()">☁ Sync tous → Supabase</button>
+
+          <!-- TOUR DE CHAUFFE -->
+          <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
+          <div style="font-size:11px;font-weight:700;color:var(--amber);letter-spacing:.06em;text-transform:uppercase">⚡ Tour de chauffe</div>
+          <div style="font-size:10px;color:var(--text-dim);line-height:1.5">
+            Valide le tour de chauffe pour tous les participants ayant un pré-enregistrement (scan Départ sans Arrivée).
+            Injecte automatiquement un scan Arrivée + un scan Départ pour chacun.
+          </div>
+          <div style="font-size:10px;color:var(--text-dim)" id="warmup-preview">—</div>
+          <button class="btn-start" style="font-size:11px;padding:10px 14px;background:var(--amber);color:#000;font-weight:800"
+            onclick="validateWarmupLap()">
+            ⚡ Valider le tour de chauffe
+          </button>
+          <div id="warmup-msg" class="confirm-msg"></div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
+
           <button class="btn-reset" style="color:var(--red);border-color:rgba(231,76,60,.4);border-width:2px" onclick="clearAllParticipants()">
             🗑 Réinitialiser la liste complète
           </button>
@@ -621,7 +637,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
             <input class="badge-input-big" id="badge-input" type="text"
               placeholder="Scanner ou saisir le badge..."
               autocomplete="off" autocorrect="off" spellcheck="false"
-              onkeydown="handleBadgeKey(event)" oninput="this.value=this.value.toUpperCase()">
+              onkeydown="handleBadgeKey(event)" oninput="this.value=this.value.toUpperCase();handlePiBadgeInput()">
             <button class="badge-clear" onclick="clearBadgeInput()">x</button>
           </div>
           <div class="scan-fb idle" id="scan-fb"><span>En attente d&#x27;un scan...</span></div>
@@ -2777,11 +2793,11 @@ async function pushScanToSupabase(scan) {
     await supaFetch('scans', {
       method: 'POST',
       write: true,
-      body: JSON.stringify({
+      body: JSON.stringify(Object.assign({
         badge_id:   scan.badge_id,
         checkpoint: scan.checkpoint,
         timestamp:  scan.timestamp.toISOString(),
-      })
+      }, scan.source ? { source: scan.source } : {}))
     });
     return true;
   } catch(e) {
@@ -3119,8 +3135,28 @@ function startPiTimer() {
   tick();
 }
 
+let piDebounceTimer = null;
+
 function handlePiBadgeKey(e) {
-  if (e.key === 'Enter') { e.preventDefault(); submitPiScan(); }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // Attendre 100ms que le lecteur ait fini d'envoyer tous les caractères
+    clearTimeout(piDebounceTimer);
+    piDebounceTimer = setTimeout(() => submitPiScan(), 100);
+  }
+}
+
+// Déclenchement automatique si le lecteur envoie une longue chaîne sans Enter
+// (certains lecteurs ne transmettent pas Enter du tout)
+function handlePiBadgeInput() {
+  const val = document.getElementById('pi-badge-input')?.value || '';
+  // Si le badge fait >= 4 caractères et n'a pas bougé depuis 300ms → soumettre
+  clearTimeout(piDebounceTimer);
+  if (val.length >= 4) {
+    piDebounceTimer = setTimeout(() => {
+      if (!document.getElementById('pi-badge-input').disabled) submitPiScan();
+    }, 300);
+  }
 }
 
 function clearPiInput() {
@@ -3269,11 +3305,12 @@ async function submitPiScan() {
   updatePiScanList();
   updatePiCount();
 
-  input.disabled      = false;
-  input.style.opacity = '1';
-  // Laisser l'animation 2s minimum, puis remettre "Prêt"
+  // Champ bloqué pendant toute la durée de l'animation (2s)
+  // impossible de scanner un second badge pendant ce délai
   setTimeout(() => {
     hideScanAnimation();
+    input.disabled      = false;
+    input.style.opacity = '1';
     input.focus();
   }, 2000);
 }
@@ -4041,6 +4078,121 @@ function soundSending() {
 }
 
 /* ================================================================
+   TOUR DE CHAUFFE
+   ================================================================ */
+
+function getPreRegistered() {
+  // Participants ayant un scan DEPART sans ARRIVEE correspondante
+  // (= pré-enregistrés, pas encore rentrés)
+  const state = {};
+  for (const scan of allScans) {
+    const b = scan.badge_id;
+    if (!state[b]) state[b] = { deps: 0, arrs: 0 };
+    if (scan.checkpoint === 'DEPART')  state[b].deps++;
+    if (scan.checkpoint === 'ARRIVEE') state[b].arrs++;
+  }
+  // Un participant est pré-enregistré si deps > arrs (tour ouvert)
+  return Object.entries(state)
+    .filter(([b, s]) => s.deps > s.arrs)
+    .map(([b]) => b);
+}
+
+function updateWarmupPreview() {
+  const preReg = getPreRegistered();
+  const el = document.getElementById('warmup-preview');
+  if (!el) return;
+  if (preReg.length === 0) {
+    el.innerHTML = '<span style="color:var(--text-dim)">Aucun participant pre-enregistre pour l&#x27;instant</span>';
+  } else {
+    const names = preReg.map(b => {
+      const p = PARTICIPANTS[b];
+      return p ? p.name : b;
+    }).slice(0, 5).join(', ') + (preReg.length > 5 ? '...' : '');
+    el.innerHTML = '<span style="color:var(--green)">'
+      + preReg.length + ' participant(s) prêts : </span>'
+      + '<span style="color:var(--text-mid)">' + names + '</span>';
+  }
+}
+
+async function validateWarmupLap() {
+  // Vérification PIN
+  const pin = prompt('PIN opérateur pour valider le tour de chauffe :');
+  if (pin === null) return;
+  if (OPERATOR_PIN && pin !== OPERATOR_PIN) { alert('PIN incorrect.'); return; }
+
+  const preReg = getPreRegistered();
+  if (preReg.length === 0) {
+    alert('Aucun participant pré-enregistré trouvé.\nAssurez-vous que les participants ont scanné au départ.');
+    return;
+  }
+
+  const ok = confirm(
+    'Valider le tour de chauffe pour ' + preReg.length + ' participant(s) ?\n\n'
+    + 'Cette action va :\n'
+    + '• Injecter 1 scan ARRIVÉE pour chacun (tour 1 validé)\n'
+    + '• Injecter 1 scan DÉPART pour chacun (tour 2 lancé)\n\n'
+    + 'Action irréversible.'
+  );
+  if (!ok) return;
+
+  const msgEl = document.getElementById('warmup-msg');
+  if (msgEl) { msgEl.style.color = 'var(--amber)'; msgEl.textContent = '⏳ Injection en cours...'; }
+
+  const now    = new Date();
+  const nowP1  = new Date(now.getTime() + 1000); // +1s pour le départ
+  let injected = 0;
+  let errors   = 0;
+
+  for (const badge of preReg) {
+    // Scan ARRIVÉE — valide le tour de chauffe
+    const scanArr = {
+      timestamp:  now,
+      badge_id:   badge,
+      checkpoint: 'ARRIVEE',
+      source:     'organisation', // marqué comme injection manuelle
+    };
+    // Scan DÉPART — lance le tour 2
+    const scanDep = {
+      timestamp:  nowP1,
+      badge_id:   badge,
+      checkpoint: 'DEPART',
+      source:     'organisation',
+    };
+
+    try {
+      // Pousser vers Supabase
+      await pushScanToSupabase(scanArr);
+      await pushScanToSupabase(scanDep);
+      // Ajouter localement
+      scanArr.supaId = 'pushed';
+      scanDep.supaId = 'pushed';
+      allScans.push(scanArr);
+      allScans.push(scanDep);
+      injected++;
+    } catch(e) {
+      console.warn('Warmup injection error for', badge, e.message);
+      errors++;
+    }
+  }
+
+  // Trier allScans après injection
+  allScans.sort((a, b) => a.timestamp - b.timestamp);
+  saveState();
+  updateUI();
+  updateWarmupPreview();
+
+  if (msgEl) {
+    if (errors === 0) {
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = '✓ Tour de chauffe validé pour ' + injected + ' participant(s). Ils sont tous en course !';
+    } else {
+      msgEl.style.color = 'var(--amber)';
+      msgEl.textContent = '⚠ ' + injected + ' OK, ' + errors + ' erreur(s). Vérifiez la connexion Supabase.';
+    }
+  }
+}
+
+/* ================================================================
    NAVIGATION
    ================================================================ */
 function switchTab(name, btn) {
@@ -4048,7 +4200,8 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (name === 'passages') { setTimeout(renderPassagesTable, 50); }
+  if (name === 'passages')    { setTimeout(renderPassagesTable, 50); }
+  if (name === 'participants') { setTimeout(updateWarmupPreview, 50); }
   if (name === 'saisie') {
     if (deviceType === 'admin') {
       // Admin : toujours accès direct
