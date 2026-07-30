@@ -321,6 +321,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .status-ok{font-size:10px;background:rgba(46,204,113,.12);color:var(--green);padding:2px 7px;border-radius:3px;font-weight:700}
 .status-ko{font-size:10px;background:rgba(231,76,60,.12);color:var(--red);padding:2px 7px;border-radius:3px;font-weight:700}
 .status-open{font-size:10px;background:rgba(245,166,35,.12);color:var(--amber);padding:2px 7px;border-radius:3px;font-weight:700}
+.status-manual{font-size:10px;background:rgba(155,89,182,.12);color:var(--purple);padding:2px 7px;border-radius:3px;font-weight:700}
 </style>
 </head>
 <body>
@@ -409,7 +410,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.58.0
+    v1.62.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -824,53 +825,76 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   <!-- TAB: Passages -->
   <div id="tab-passages" class="tab-section">
 
-    <!-- Barre de recherche et filtres -->
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-      <div style="position:relative;flex:1;min-width:200px">
-        <input id="passages-search" class="input-field" type="text"
-          placeholder="Rechercher un participant, un badge..."
-          oninput="renderPassagesTable()"
-          style="padding-left:32px">
-        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim)">🔍</span>
+    <!-- VERROU PIN -->
+    <div id="passages-lock" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px">
+      <div style="font-size:48px">🔒</div>
+      <div style="font-size:18px;font-weight:700;color:var(--white)">Accès restreint</div>
+      <div style="font-size:13px;color:var(--text-dim);text-align:center">
+        Cet onglet permet de modifier les passages.<br>Saisissez le PIN opérateur pour continuer.
       </div>
-      <select id="passages-filter-chk" class="input-field" style="width:160px" onchange="renderPassagesTable()">
-        <option value="">Tous les checkpoints</option>
-        <option value="DEPART">Départ seulement</option>
-        <option value="ARRIVEE">Arrivée seulement</option>
-      </select>
-      <select id="passages-sort" class="input-field" style="width:180px" onchange="renderPassagesTable()">
-        <option value="time-desc">Plus récents d'abord</option>
-        <option value="time-asc">Plus anciens d'abord</option>
-        <option value="name-asc">Nom A→Z</option>
-        <option value="badge-asc">Badge A→Z</option>
-      </select>
-      <button class="btn-reset" onclick="document.getElementById('passages-search').value='';renderPassagesTable()">✕ Effacer</button>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+        <input id="passages-pin-input" class="input-field" type="password"
+          placeholder="••••" style="width:140px;font-size:22px;letter-spacing:.3em;text-align:center"
+          onkeydown="if(event.key==='Enter')unlockPassages()">
+        <button class="btn-start" onclick="unlockPassages()" style="padding:10px 20px">Déverrouiller</button>
+      </div>
+      <div id="passages-pin-error" style="display:none;color:var(--red);font-size:12px">PIN incorrect</div>
     </div>
 
-    <!-- Compteur -->
-    <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px" id="passages-info">—</div>
+    <!-- CONTENU (masqué jusqu'au déverrouillage) -->
+    <div id="passages-content" style="display:none">
 
-    <!-- Tableau -->
-    <div class="table-wrap" id="passages-table-wrap">
-      <table id="passages-table">
-        <thead>
-          <tr>
-            <th style="width:50px">#</th>
-            <th onclick="setSortPassages('badge-asc')" style="cursor:pointer">Badge ↕</th>
-            <th onclick="setSortPassages('name-asc')" style="cursor:pointer">Participant ↕</th>
-            <th>Checkpoint</th>
-            <th onclick="setSortPassages('time-asc')" style="cursor:pointer">Heure ↕</th>
-            <th>Tour #</th>
-            <th>Durée tour</th>
-            <th>Statut</th>
-            <th>Source</th>
-          </tr>
-        </thead>
-        <tbody id="passages-tbody">
-          <tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage enregistré</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Barre de recherche et filtres -->
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <div style="position:relative;flex:1;min-width:200px">
+          <input id="passages-search" class="input-field" type="text"
+            placeholder="Rechercher un participant, un badge..."
+            oninput="renderPassagesTable()"
+            style="padding-left:32px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim)">🔍</span>
+        </div>
+        <select id="passages-filter-chk" class="input-field" style="width:160px" onchange="renderPassagesTable()">
+          <option value="">Tous les checkpoints</option>
+          <option value="DEPART">Départ seulement</option>
+          <option value="ARRIVEE">Arrivée seulement</option>
+        </select>
+        <select id="passages-sort" class="input-field" style="width:180px" onchange="renderPassagesTable()">
+          <option value="time-desc">Plus récents d'abord</option>
+          <option value="time-asc">Plus anciens d'abord</option>
+          <option value="name-asc">Nom A→Z</option>
+          <option value="badge-asc">Badge A→Z</option>
+        </select>
+        <button class="btn-reset" onclick="document.getElementById('passages-search').value='';renderPassagesTable()">✕ Effacer</button>
+        <button class="btn-start" onclick="openNewTourModal()" style="background:var(--teal);padding:8px 14px;font-size:11px">+ Ajouter un tour</button>
+        <button class="btn-reset" onclick="lockPassages()" style="color:var(--text-dim)">🔒 Verrouiller</button>
+      </div>
+
+      <!-- Compteur -->
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px" id="passages-info">—</div>
+
+      <!-- Tableau -->
+      <div class="table-wrap" id="passages-table-wrap">
+        <table id="passages-table">
+          <thead>
+            <tr>
+              <th style="width:40px">#</th>
+              <th onclick="setSortPassages('badge-asc')" style="cursor:pointer">Badge ↕</th>
+              <th onclick="setSortPassages('name-asc')" style="cursor:pointer">Participant ↕</th>
+              <th>Checkpoint</th>
+              <th onclick="setSortPassages('time-asc')" style="cursor:pointer">Heure ↕</th>
+              <th>Tour #</th>
+              <th>Durée</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="passages-tbody">
+            <tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage enregistré</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- #passages-content -->
 
   </div>
 
@@ -1072,6 +1096,72 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         style="padding:24px 16px;background:rgba(46,204,113,.15);border:2px solid var(--green);border-radius:10px;color:var(--green);font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase">
         &#127937;<br>ARRIVEE
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ÉDITION PASSAGE -->
+<div class="modal-overlay" id="scan-edit-modal" onclick="if(event.target===this)closeScanEditModal()">
+  <div class="modal-card" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="sem-title">✏️ Modifier un tour</div>
+      <button class="modal-close" onclick="closeScanEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Indices cachés -->
+      <input type="hidden" id="sem-dep-idx">
+      <input type="hidden" id="sem-arr-idx">
+
+      <!-- Participant -->
+      <div class="input-row">
+        <div class="input-label">Participant</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="input-field" id="sem-badge" type="text"
+            style="font-family:var(--mono);text-transform:uppercase;flex:1"
+            oninput="this.value=this.value.toUpperCase();semUpdateName()">
+          <span id="sem-name" style="font-size:13px;color:var(--text-mid);min-width:100px"></span>
+        </div>
+      </div>
+
+      <!-- Tour # -->
+      <div class="input-row">
+        <div class="input-label">Tour</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--white);padding:4px 0" id="sem-lap-num">—</div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+
+      <!-- Heure de départ -->
+      <div class="input-row">
+        <div class="input-label">
+          <span style="color:var(--amber)">🚦</span> Heure de départ
+          <span id="sem-no-dep" style="display:none;font-size:10px;color:var(--text-dim);font-weight:400"> (non enregistré)</span>
+        </div>
+        <input class="input-field" id="sem-dep-ts" type="datetime-local" step="1"
+          oninput="semUpdateDuration()">
+      </div>
+
+      <!-- Heure d'arrivée -->
+      <div class="input-row">
+        <div class="input-label">
+          <span style="color:var(--green)">🏁</span> Heure d'arrivée
+          <span id="sem-no-arr" style="display:none;font-size:10px;color:var(--text-dim);font-weight:400"> (non enregistré)</span>
+        </div>
+        <input class="input-field" id="sem-arr-ts" type="datetime-local" step="1"
+          oninput="semUpdateDuration()">
+      </div>
+
+      <!-- Durée calculée -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-top:4px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:var(--text-dim)">Durée du tour</span>
+        <span id="sem-duration" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--teal)">—</span>
+      </div>
+
+      <div id="sem-error" style="display:none;color:var(--red);font-size:12px;margin-top:10px;padding:8px;background:rgba(231,76,60,.1);border-radius:4px"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn-start" style="flex:1" onclick="saveScanEdit()">💾 Enregistrer</button>
+      <button class="btn-reset" onclick="closeScanEditModal()">Annuler</button>
     </div>
   </div>
 </div>
@@ -3973,6 +4063,30 @@ function switchPiCheckpoint(newChk) {
 }
 
 /* ================================================================
+   ONGLET PASSAGES — VERROU PIN
+   ================================================================ */
+function unlockPassages() {
+  const pin   = document.getElementById('passages-pin-input').value.trim();
+  const errEl = document.getElementById('passages-pin-error');
+  if (OPERATOR_PIN && pin !== OPERATOR_PIN) {
+    errEl.style.display = 'block';
+    document.getElementById('passages-pin-input').value = '';
+    document.getElementById('passages-pin-input').focus();
+    return;
+  }
+  errEl.style.display = 'none';
+  document.getElementById('passages-lock').style.display    = 'none';
+  document.getElementById('passages-content').style.display = 'block';
+  renderPassagesTable();
+}
+
+function lockPassages() {
+  document.getElementById('passages-lock').style.display    = 'flex';
+  document.getElementById('passages-content').style.display = 'none';
+  document.getElementById('passages-pin-input').value = '';
+}
+
+/* ================================================================
    TABLEAU DES PASSAGES
    ================================================================ */
 let passagesSortKey = 'time-desc';
@@ -3980,6 +4094,222 @@ let passagesSortKey = 'time-desc';
 function setSortPassages(key) {
   passagesSortKey = key;
   document.getElementById('passages-sort').value = key;
+  renderPassagesTable();
+}
+
+function toDatetimeLocal(date) {
+  if (!date) return '';
+  const d    = new Date(date);
+  const pad2 = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate())
+    + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+}
+
+function openNewTourModal() {
+  // Réinitialiser le modal en mode création
+  document.getElementById('sem-title').textContent = '+ Créer un tour';
+  document.getElementById('sem-badge').value    = '';
+  document.getElementById('sem-dep-idx').value  = '-1';
+  document.getElementById('sem-arr-idx').value  = '-1';
+  document.getElementById('sem-lap-num').textContent = '(calculé automatiquement)';
+  document.getElementById('sem-name').textContent = '';
+  // Pré-remplir avec l'heure actuelle
+  const now = new Date();
+  document.getElementById('sem-dep-ts').value = toDatetimeLocal(now);
+  document.getElementById('sem-arr-ts').value = '';
+  document.getElementById('sem-no-dep').style.display = 'none';
+  document.getElementById('sem-no-arr').style.display = 'inline';
+  document.getElementById('sem-error').style.display = 'none';
+  semUpdateDuration();
+  document.getElementById('scan-edit-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('sem-badge').focus(), 100);
+}
+
+function openScanEditModal(idx) {
+  const scan = allScans[idx];
+  if (!scan) return;
+
+  const badge = scan.badge_id;
+  const chk   = scan.checkpoint;
+
+  // Trouver le départ et l'arrivée du même tour
+  // Reconstruire l'état jusqu'à ce scan pour trouver la paire
+  let depIdx = -1, arrIdx = -1, lapNum = 0;
+  let lastDep = null, lastDepIdx = -1, lastDepLap = 0;
+
+  for (let i = 0; i < allScans.length; i++) {
+    const s = allScans[i];
+    if (s.badge_id !== badge) continue;
+    if (s.checkpoint === 'DEPART') {
+      lapNum++;
+      lastDep    = s.timestamp;
+      lastDepIdx = i;
+      lastDepLap = lapNum;
+    } else if (s.checkpoint === 'ARRIVEE') {
+      if (i === idx) {
+        // C'est le scan qu'on édite (une arrivée)
+        depIdx = lastDepIdx;
+        arrIdx = i;
+        lapNum = lastDepLap;
+        break;
+      }
+      lastDep    = null;
+      lastDepIdx = -1;
+    }
+    if (i === idx && s.checkpoint === 'DEPART') {
+      // C'est le scan qu'on édite (un départ) — chercher l'arrivée suivante
+      depIdx = i;
+      lapNum = lastDepLap || lapNum;
+      // Chercher l'arrivée correspondante
+      for (let j = i+1; j < allScans.length; j++) {
+        if (allScans[j].badge_id === badge && allScans[j].checkpoint === 'ARRIVEE') {
+          arrIdx = j; break;
+        }
+        if (allScans[j].badge_id === badge && allScans[j].checkpoint === 'DEPART') break;
+      }
+      break;
+    }
+  }
+
+  const p = PARTICIPANTS[badge];
+  document.getElementById('sem-title').textContent = '✏️ Modifier le tour — ' + (p ? p.name : badge);
+  document.getElementById('sem-badge').value = badge;
+  document.getElementById('sem-dep-idx').value = depIdx;
+  document.getElementById('sem-arr-idx').value = arrIdx;
+  document.getElementById('sem-lap-num').textContent = lapNum > 0 ? 'Tour ' + lapNum : '—';
+
+  // Départ
+  const depScan = depIdx >= 0 ? allScans[depIdx] : null;
+  document.getElementById('sem-dep-ts').value = depScan ? toDatetimeLocal(depScan.timestamp) : '';
+  document.getElementById('sem-no-dep').style.display = depScan ? 'none' : 'inline';
+
+  // Arrivée
+  const arrScan = arrIdx >= 0 ? allScans[arrIdx] : null;
+  document.getElementById('sem-arr-ts').value = arrScan ? toDatetimeLocal(arrScan.timestamp) : '';
+  document.getElementById('sem-no-arr').style.display = arrScan ? 'none' : 'inline';
+
+  document.getElementById('sem-error').style.display = 'none';
+  semUpdateName();
+  semUpdateDuration();
+  document.getElementById('scan-edit-modal').style.display = 'flex';
+}
+
+function semUpdateName() {
+  const badge = document.getElementById('sem-badge').value.trim().toUpperCase();
+  const p = PARTICIPANTS[badge];
+  document.getElementById('sem-name').textContent = p ? p.name : (badge ? '⚠ Inconnu' : '');
+}
+
+function semUpdateDuration() {
+  const depStr = document.getElementById('sem-dep-ts').value;
+  const arrStr = document.getElementById('sem-arr-ts').value;
+  const el     = document.getElementById('sem-duration');
+  if (!depStr || !arrStr) { el.textContent = '—'; el.style.color = 'var(--text-dim)'; return; }
+  const dep = new Date(depStr), arr = new Date(arrStr);
+  if (isNaN(dep) || isNaN(arr)) { el.textContent = '—'; return; }
+  const dur = (arr - dep) / 1000;
+  if (dur < 0) { el.textContent = '⚠ Arrivée avant départ'; el.style.color = 'var(--red)'; return; }
+  el.textContent = fmtTime(dur);
+  el.style.color = 'var(--teal)';
+}
+
+function closeScanEditModal() {
+  document.getElementById('scan-edit-modal').style.display = 'none';
+}
+
+async function saveScanEdit() {
+  const badge  = document.getElementById('sem-badge').value.trim().toUpperCase();
+  const depIdx = parseInt(document.getElementById('sem-dep-idx').value);
+  const arrIdx = parseInt(document.getElementById('sem-arr-idx').value);
+  const depStr = document.getElementById('sem-dep-ts').value;
+  const arrStr = document.getElementById('sem-arr-ts').value;
+  const errEl  = document.getElementById('sem-error');
+
+  if (!badge) {
+    errEl.textContent = 'Le badge est obligatoire.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!depStr && !arrStr) {
+    errEl.textContent = 'Au moins une heure doit être renseignée.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const newDep = depStr ? new Date(depStr) : null;
+  const newArr = arrStr ? new Date(arrStr) : null;
+
+  if (newDep && isNaN(newDep)) {
+    errEl.textContent = 'Heure de départ invalide.'; errEl.style.display = 'block'; return;
+  }
+  if (newArr && isNaN(newArr)) {
+    errEl.textContent = "Heure d'arrivee invalide."; errEl.style.display = 'block'; return;
+  }
+  if (newDep && newArr && newArr <= newDep) {
+    errEl.textContent = "L'arrivee doit etre apres le depart."; errEl.style.display = 'block'; return;
+  }
+
+  errEl.style.display = 'none';
+
+  async function upsertScan(idx, badge, chk, newTs) {
+    if (!newTs) return; // champ vide = on ne touche pas
+    const old = idx >= 0 ? allScans[idx] : null;
+
+    // Supprimer l'ancien dans Supabase si il existait
+    if (old && old.supaId && SUPA_URL && SUPA_OP_KEY) {
+      try {
+        await supaFetch(
+          'scans?badge_id=eq.' + encodeURIComponent(old.badge_id)
+          + '&checkpoint=eq.' + old.checkpoint
+          + '&timestamp=eq.' + encodeURIComponent(old.timestamp.toISOString()),
+          { method: 'DELETE', write: true }
+        );
+      } catch(e) { console.warn('Delete scan error:', e.message); }
+    }
+
+    const newScan = { badge_id: badge, checkpoint: chk, timestamp: newTs, source: 'organisation' };
+    if (old) {
+      allScans[idx] = { ...old, ...newScan };
+    } else {
+      allScans.push(newScan);
+    }
+
+    // Pousser vers Supabase
+    const target = old ? allScans[idx] : allScans[allScans.length - 1];
+    try {
+      await pushScanToSupabase(target);
+      target.supaId = 'pushed';
+    } catch(e) { console.warn('Push scan error:', e.message); }
+  }
+
+  // Sauvegarder départ et/ou arrivée
+  await upsertScan(depIdx, badge, 'DEPART',  newDep);
+  await upsertScan(arrIdx, badge, 'ARRIVEE', newArr);
+
+  allScans.sort((a, b) => a.timestamp - b.timestamp);
+  closeScanEditModal();
+  updateUI();
+  renderPassagesTable();
+}
+
+async function deleteScan(idx) {
+  const scan = allScans[idx];
+  if (!scan) return;
+  const p    = PARTICIPANTS[scan.badge_id];
+  const name = p ? p.name : scan.badge_id;
+  if (!confirm('Supprimer : ' + name + ' — ' + scan.checkpoint + ' — ' + fmtHour(scan.timestamp))) return;
+
+  // Supprimer dans Supabase
+  if (scan.supaId && SUPA_URL && SUPA_OP_KEY) {
+    try {
+      await supaFetch('scans?badge_id=eq.' + encodeURIComponent(scan.badge_id)
+        + '&checkpoint=eq.' + scan.checkpoint
+        + '&timestamp=eq.' + encodeURIComponent(scan.timestamp.toISOString()),
+        { method: 'DELETE', write: true });
+    } catch(e) { console.warn('Delete scan error:', e.message); }
+  }
+
+  // Supprimer localement
+  allScans.splice(idx, 1);
+  updateUI();
   renderPassagesTable();
 }
 
@@ -3995,7 +4325,7 @@ function renderPassagesTable() {
 
   for (const scan of allScans) {
     const bid = scan.badge_id;
-    if (!lapState[bid]) lapState[bid] = { lapNum: 0, lastDep: null, lastDepIdx: null };
+    if (!lapState[bid]) lapState[bid] = { lapNum: 0, lastDep: null, lastDepIdx: null, lastDepSrc: null };
     const st = lapState[bid];
     const p  = PARTICIPANTS[bid];
     const name = p ? p.name : bid;
@@ -4005,17 +4335,19 @@ function renderPassagesTable() {
         // Double départ : marquer le précédent comme invalide
         if (st.lastDepIdx !== null) rows[st.lastDepIdx].statut = 'invalide';
       }
+      const srcDep = scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local');
       st.lapNum++;
-      st.lastDep = scan.timestamp;
+      st.lastDep    = scan.timestamp;
       st.lastDepIdx = rows.length;
+      st.lastDepSrc = srcDep; // mémoriser pour le statut à l'arrivée
       rows.push({
         badge_id:   bid, name,
         checkpoint: 'DEPART',
         timestamp:  scan.timestamp,
         lapNum:     st.lapNum,
         duration:   null,
-        statut:     'ouvert',   // sera mis à jour si une arrivée suit
-        source:     scan.id ? 'supabase' : 'local',
+        statut:     srcDep === 'organisation' ? 'manuel' : 'ouvert',
+        source:     srcDep,
         known:      !!p,
       });
     } else if (scan.checkpoint === 'ARRIVEE') {
@@ -4028,25 +4360,32 @@ function renderPassagesTable() {
           lapNum:     st.lapNum,
           duration:   null,
           statut:     'invalide',
-          source:     scan.id ? 'supabase' : 'local',
+          source:     scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local'),
           known:      !!p,
         });
       } else {
         const dur = (scan.timestamp - st.lastDep) / 1000;
         // Marquer le départ correspondant comme validé
         if (st.lastDepIdx !== null) rows[st.lastDepIdx].statut = 'valide';
+        const srcArr = scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local');
+        const isManual = srcArr === 'organisation' || st.lastDepSrc === 'organisation';
+        // Mettre à jour le statut du départ correspondant
+        if (st.lastDepIdx !== null) {
+          rows[st.lastDepIdx].statut = isManual ? 'manuel' : 'valide';
+        }
         rows.push({
           badge_id: bid, name,
           checkpoint: 'ARRIVEE',
           timestamp:  scan.timestamp,
           lapNum:     st.lapNum,
           duration:   dur,
-          statut:     'valide',
-          source:     scan.id ? 'supabase' : 'local',
+          statut:     isManual ? 'manuel' : 'valide',
+          source:     srcArr,
           known:      !!p,
         });
         st.lastDep    = null;
         st.lastDepIdx = null;
+        st.lastDepSrc = null;
       }
     }
   }
@@ -4092,7 +4431,24 @@ function renderPassagesTable() {
     return;
   }
 
-  tbody.innerHTML = filtered.map((r, i) => {
+  // Event delegation : édition/suppression
+  const oldTbody = document.getElementById('passages-tbody');
+  if (oldTbody) {
+    const newTbody = oldTbody.cloneNode(false);
+    oldTbody.parentNode.replaceChild(newTbody, oldTbody);
+    newTbody.id = 'passages-tbody';
+    newTbody.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const idx    = parseInt(btn.dataset.idx);
+      const action = btn.dataset.action;
+      if (action === 'edit')   openScanEditModal(idx);
+      if (action === 'delete') deleteScan(idx);
+    });
+  }
+  const tbody2 = document.getElementById('passages-tbody');
+  if (!tbody2) return;
+  tbody2.innerHTML = filtered.map((r, i) => {
     const chkHtml = r.checkpoint === 'DEPART'
       ? '<span class="chk-dep">🚦 DÉP</span>'
       : '<span class="chk-arr">🏁 ARR</span>';
@@ -4104,10 +4460,24 @@ function renderPassagesTable() {
       : '<span style="color:var(--text-dim)">—</span>';
     const statusHtml = r.statut === 'valide'
       ? '<span class="status-ok">✓ Validé</span>'
-      : r.statut === 'invalide'
-        ? '<span class="status-ko">✗ Invalide</span>'
-        : '<span class="status-open">⏳ Ouvert</span>';
+      : r.statut === 'manuel'
+        ? '<span class="status-manual">✎ Complété manuellement</span>'
+        : r.statut === 'invalide'
+          ? '<span class="status-ko">✗ Invalide</span>'
+          : '<span class="status-open">⏳ Ouvert</span>';
     const nameStyle = r.known ? '' : 'color:var(--red)';
+    // Trouver l'index réel dans allScans pour l'édition
+    const scanIdx = allScans.findIndex(s =>
+      s.badge_id === r.badge_id &&
+      s.checkpoint === r.checkpoint &&
+      Math.abs(s.timestamp - r.timestamp) < 1000
+    );
+    const actionsHtml = `<div style="display:flex;gap:4px">
+      <button data-idx="${scanIdx}" data-action="edit"
+        style="background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);color:var(--amber);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">✏</button>
+      <button data-idx="${scanIdx}" data-action="delete"
+        style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">✕</button>
+    </div>`;
     return '<tr>'
       + '<td style="color:var(--text-dim);font-family:var(--mono)">' + (i+1) + '</td>'
       + '<td><span style="font-family:var(--mono);font-size:11px;color:var(--amber)">' + esc(r.badge_id) + '</span></td>'
@@ -4117,7 +4487,7 @@ function renderPassagesTable() {
       + '<td><span style="font-family:var(--mono);font-weight:700;color:var(--white)">' + (r.lapNum || '—') + '</span></td>'
       + '<td>' + durHtml + '</td>'
       + '<td>' + statusHtml + '</td>'
-      + '<td>' + srcHtml + '</td>'
+      + '<td>' + actionsHtml + '</td>'
       + '</tr>';
   }).join('');
 }
@@ -4324,7 +4694,7 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (name === 'passages')    { setTimeout(renderPassagesTable, 50); }
+  if (name === 'passages')    { setTimeout(() => { lockPassages(); }, 50); }
   if (name === 'participants') { setTimeout(updateWarmupPreview, 50); }
   if (name === 'saisie') {
     if (deviceType === 'admin') {
