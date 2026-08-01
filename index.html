@@ -410,7 +410,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.64.0
+    v1.65.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -2797,6 +2797,28 @@ function disconnectSupa() {
   showMsg('supa-confirm-msg', 'Supabase deconnecte.');
 }
 
+async function supaFetchAll(table, order) {
+  // Récupère TOUTES les lignes en paginant par 1000
+  let all = [], offset = 0;
+  const headers = {
+    'apikey': SUPA_ANON_KEY,
+    'Authorization': 'Bearer ' + SUPA_ANON_KEY,
+  };
+  while (true) {
+    const res = await fetch(
+      SUPA_URL + '/rest/v1/' + table + '?select=*&order=' + order
+      + '&limit=1000&offset=' + offset,
+      { headers }
+    );
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    all = all.concat(data);
+    if (data.length < 1000) break;
+    offset += 1000;
+  }
+  return all;
+}
+
 async function supaFetch(path, opts) {
   const key    = (opts && opts.write) ? SUPA_OP_KEY || SUPA_ANON_KEY : SUPA_ANON_KEY;
   const method = (opts && opts.method) || 'GET';
@@ -2967,7 +2989,7 @@ async function fetchSupabase() {
   try {
     // Lire les 3 tables en parallèle à chaque poll
     const [scanRows, partRows, cfgRows] = await Promise.all([
-      supaFetch('scans?select=*&order=timestamp.asc&limit=10000'),
+      supaFetchAll('scans', 'timestamp.asc'),
       supaFetch('participants?select=*'),
       supaFetch('config?select=*'),
     ]);
