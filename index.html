@@ -410,7 +410,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.67.0
+    v1.68.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -1182,6 +1182,46 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
 </div>
 
+<!-- MODAL BONUS POINTS -->
+<div class="modal-overlay" id="bonus-modal" onclick="if(event.target===this)closeBonusModal()">
+  <div class="modal-card" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">🏆 Points défi</div>
+      <button class="modal-close" onclick="closeBonusModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="bonus-badge">
+      <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:16px" id="bonus-name">—</div>
+
+      <div class="input-row">
+        <div class="input-label">Points bonus actuels</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--purple)" id="bonus-current">0</div>
+      </div>
+
+      <div class="input-row" style="margin-top:12px">
+        <div class="input-label">Nouveau total de points bonus</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="input-field" id="bonus-value" type="number" min="0" max="999" value="0"
+            style="width:100px;font-size:22px;font-weight:700;text-align:center">
+          <div style="display:flex;gap:4px">
+            <button onclick="document.getElementById('bonus-value').value=Math.max(0,parseInt(document.getElementById('bonus-value').value||0)-1)"
+              style="background:var(--surface);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:5px 12px;font-size:16px;cursor:pointer">−</button>
+            <button onclick="document.getElementById('bonus-value').value=parseInt(document.getElementById('bonus-value').value||0)+1"
+              style="background:var(--surface);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:5px 12px;font-size:16px;cursor:pointer">+</button>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px">
+        Ces points s'ajoutent aux points de tours. Pas de km supplémentaire.
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn-start" style="flex:1" onclick="saveBonusPoints()">💾 Enregistrer</button>
+      <button class="btn-reset" onclick="closeBonusModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ÉDITION PASSAGE -->
 <div class="modal-overlay" id="scan-edit-modal" onclick="if(event.target===this)closeScanEditModal()">
   <div class="modal-card" style="max-width:480px">
@@ -1814,7 +1854,7 @@ function processScans(scans) {
     results.push({
       badge_id, name: s.name, cat: s.cat,
       tours:   n,
-      points:  n > 0 ? s.laps.reduce((acc, l) => acc + lapPoints(l), 0) : 0,
+      points:  (n > 0 ? s.laps.reduce((acc, l) => acc + lapPoints(l), 0) : 0) + (bonusPoints[badge_id] || 0),
       onCourse: s.openLapStart !== null, openStart: s.openLapStart,
       totalTime:   n > 0 ? (s.laps[n-1].end - s.laps[0].start) / 1000 : 0,
       lastLapTime: n > 0 ? s.laps[n-1].duration : null,
@@ -1887,7 +1927,7 @@ function buildTable(data, compact) {
       html += `<tr class="${rowCls}">
         <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
         <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div></div></td>
-        <td>${toursHtml}</td>
+        <td>${toursHtml}<button onclick="openBonusModal('${esc(r.badge_id)}','${esc(r.name)}')" style="background:none;border:1px solid rgba(155,89,182,.4);color:var(--purple);border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;margin-top:3px;display:block">+pts défi</button></td>
         <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
         <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
         <td class="mono">${fmtTime(r.avgLapTime)}</td>
@@ -1897,7 +1937,7 @@ function buildTable(data, compact) {
       html += `<tr class="${rowCls}">
         <td><div class="rank-cell"><div class="rank-num ${rankColor(i)}">${i+1}</div>${delta}</div></td>
         <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div></div></td>
-        <td>${toursHtml}</td>
+        <td>${toursHtml}<button onclick="openBonusModal('${esc(r.badge_id)}','${esc(r.name)}')" style="background:none;border:1px solid rgba(155,89,182,.4);color:var(--purple);border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;margin-top:3px;display:block">+pts défi</button></td>
         <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
         <td class="mono elapsed-ok">${fmtTime(r.lastLapTime)}<br><small style="color:var(--text-dim)">${fmtHour(r.lastArrival)}</small></td>
         <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
@@ -2981,7 +3021,8 @@ async function fetchRaceConfig() {
 }
 
 // File d'attente des scans non envoyés (coupure réseau)
-let retryQueue = [];
+let retryQueue   = [];
+let bonusPoints  = {}; // { badge_id: N } — points bonus manuels (défis)
 let retryTimer = null;
 
 async function pushScanToSupabase(scan) {
@@ -3090,6 +3131,7 @@ async function fetchSupabase() {
       const nuitDeb = get('heure_nuit_deb');
       const nuitFin = get('heure_nuit_fin');
       let cfgChanged = false;
+      applyBonusFromConfig(cfgRows);
       if (get('distance_tour')  && !isNaN(dist)   && dist   > 0  && dist   !== DISTANCE_TOUR)  { DISTANCE_TOUR  = dist;    cfgChanged = true; }
       if (get('denivele_tour')  && !isNaN(dpluss)  && dpluss >= 0 && dpluss !== DENIVELE_TOUR)  { DENIVELE_TOUR  = dpluss;  cfgChanged = true; }
       if (get('duree_course')   && !isNaN(duree)  && duree  > 0  && duree  !== DUREE_COURSE)   { DUREE_COURSE   = duree;   cfgChanged = true; }
@@ -4928,6 +4970,55 @@ function renderCorrHistory() {
     + '<span style="color:var(--text-dim);font-size:11px">' + fmtHour(h.ts) + '</span>'
     + '</div>'
   ).join('');
+}
+
+/* ================================================================
+   BONUS POINTS (défis)
+   ================================================================ */
+function openBonusModal(badge, name) {
+  document.getElementById('bonus-badge').value = badge;
+  document.getElementById('bonus-name').textContent = name;
+  const cur = bonusPoints[badge] || 0;
+  document.getElementById('bonus-current').textContent = cur + ' pt' + (cur > 1 ? 's' : '');
+  document.getElementById('bonus-value').value = cur;
+  document.getElementById('bonus-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('bonus-value').select(), 100);
+}
+
+function closeBonusModal() {
+  document.getElementById('bonus-modal').style.display = 'none';
+}
+
+async function saveBonusPoints() {
+  const badge = document.getElementById('bonus-badge').value;
+  const val   = parseInt(document.getElementById('bonus-value').value || 0);
+  if (isNaN(val) || val < 0) return;
+
+  bonusPoints[badge] = val;
+  if (val === 0) delete bonusPoints[badge];
+
+  // Sauvegarder dans Supabase config (clé bonus_<badge>)
+  if (SUPA_URL && SUPA_OP_KEY) {
+    try {
+      await pushConfigKey('bonus_' + badge, val);
+    } catch(e) { console.warn('Bonus push error:', e.message); }
+  }
+
+  closeBonusModal();
+  updateUI();
+}
+
+// Charger les bonus depuis Supabase (appelé dans fetchSupabase)
+function applyBonusFromConfig(cfgRows) {
+  if (!cfgRows) return;
+  bonusPoints = {};
+  for (const row of cfgRows) {
+    if (row.key && row.key.startsWith('bonus_') && row.value) {
+      const badge = row.key.slice(6); // enlever 'bonus_'
+      const val   = parseInt(row.value);
+      if (!isNaN(val) && val > 0) bonusPoints[badge] = val;
+    }
+  }
 }
 
 /* ================================================================
