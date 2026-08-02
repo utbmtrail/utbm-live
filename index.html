@@ -410,7 +410,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.69.0
+    v1.70.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -4994,30 +4994,44 @@ async function saveBonusPoints() {
   const val   = parseInt(document.getElementById('bonus-value').value || 0);
   if (isNaN(val) || val < 0) return;
 
-  bonusPoints[badge] = val;
-  if (val === 0) delete bonusPoints[badge];
-
-  // Sauvegarder dans Supabase config (clé bonus_<badge>)
-  if (SUPA_URL && SUPA_OP_KEY) {
-    try {
-      await pushConfigKey('bonus_' + badge, val);
-    } catch(e) { console.warn('Bonus push error:', e.message); }
+  // Mettre à jour localement en premier (immédiat)
+  if (val > 0) {
+    bonusPoints[badge] = val;
+  } else {
+    delete bonusPoints[badge];
   }
 
   closeBonusModal();
-  updateUI();
+  updateUI(); // recalcule immédiatement avec la valeur locale
+
+  // Puis pousser vers Supabase (asynchrone)
+  if (SUPA_URL && SUPA_OP_KEY) {
+    pushConfigKey('bonus_' + badge, val)
+      .then(() => console.log('Bonus sauvé:', badge, val))
+      .catch(e => console.warn('Bonus push error:', e.message));
+  }
 }
 
 // Charger les bonus depuis Supabase (appelé dans fetchSupabase)
 function applyBonusFromConfig(cfgRows) {
   if (!cfgRows) return;
-  bonusPoints = {};
+  // Construire un nouveau map depuis Supabase
+  const fromDB = {};
   for (const row of cfgRows) {
     if (row.key && row.key.startsWith('bonus_') && row.value) {
-      const badge = row.key.slice(6); // enlever 'bonus_'
+      const badge = row.key.slice(6);
       const val   = parseInt(row.value);
-      if (!isNaN(val) && val > 0) bonusPoints[badge] = val;
+      if (!isNaN(val) && val > 0) fromDB[badge] = val;
     }
+  }
+  // Merger : les valeurs locales récentes (pas encore en base) ont priorité
+  // On remplace uniquement si la base a une valeur différente
+  for (const [b, v] of Object.entries(fromDB)) {
+    bonusPoints[b] = v;
+  }
+  // Supprimer les entrées locales que la base a supprimées
+  for (const b of Object.keys(bonusPoints)) {
+    if (!(b in fromDB)) delete bonusPoints[b];
   }
 }
 
