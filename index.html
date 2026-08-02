@@ -410,7 +410,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.66.0
+    v1.67.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -4349,16 +4349,17 @@ async function saveScanEdit() {
     if (!newTs) return; // champ vide = on ne touche pas
     const old = idx >= 0 ? allScans[idx] : null;
 
-    // Supprimer l'ancien dans Supabase si il existait
-    if (old && old.supaId && SUPA_URL && SUPA_OP_KEY) {
+    // Supprimer l'ancien dans Supabase — par id si possible
+    if (old && SUPA_URL && SUPA_OP_KEY) {
       try {
-        await supaFetch(
-          'scans?badge_id=eq.' + encodeURIComponent(old.badge_id)
-          + '&checkpoint=eq.' + old.checkpoint
-          + '&timestamp=eq.' + encodeURIComponent(old.timestamp.toISOString()),
-          { method: 'DELETE', write: true }
-        );
-      } catch(e) { console.warn('Delete scan error:', e.message); }
+        const query = old.id
+          ? 'scans?id=eq.' + old.id
+          : 'scans?badge_id=eq.' + encodeURIComponent(old.badge_id)
+            + '&checkpoint=eq.' + old.checkpoint
+            + '&timestamp=eq.' + encodeURIComponent(old.timestamp.toISOString());
+        await supaFetch(query, { method: 'DELETE', write: true });
+        console.log('Ancien scan supprimé:', old.id || old.badge_id);
+      } catch(e) { console.warn('Delete old scan error:', e.message); }
     }
 
     const newScan = { badge_id: badge, checkpoint: chk, timestamp: newTs, source: 'organisation' };
@@ -4393,17 +4394,19 @@ async function deleteScan(idx) {
   const name = p ? p.name : scan.badge_id;
   if (!confirm('Supprimer : ' + name + ' — ' + scan.checkpoint + ' — ' + fmtHour(scan.timestamp))) return;
 
-  // Supprimer dans Supabase
-  if (scan.supaId && SUPA_URL && SUPA_OP_KEY) {
+  // Supprimer dans Supabase — par id si disponible, sinon par badge+checkpoint+timestamp
+  if (SUPA_URL && SUPA_OP_KEY) {
     try {
-      await supaFetch('scans?badge_id=eq.' + encodeURIComponent(scan.badge_id)
-        + '&checkpoint=eq.' + scan.checkpoint
-        + '&timestamp=eq.' + encodeURIComponent(scan.timestamp.toISOString()),
-        { method: 'DELETE', write: true });
+      const query = scan.id
+        ? 'scans?id=eq.' + scan.id
+        : 'scans?badge_id=eq.' + encodeURIComponent(scan.badge_id)
+          + '&checkpoint=eq.' + scan.checkpoint
+          + '&timestamp=eq.' + encodeURIComponent(scan.timestamp.toISOString());
+      await supaFetch(query, { method: 'DELETE', write: true });
+      console.log('Scan supprimé en base:', scan.id || scan.badge_id);
     } catch(e) { console.warn('Delete scan error:', e.message); }
   }
 
-  // Supprimer localement
   allScans.splice(idx, 1);
   updateUI();
   renderPassagesTable();
