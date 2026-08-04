@@ -410,7 +410,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.70.0
+    v1.71.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -434,6 +434,10 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       <div class="timer-label" id="timerLabel">En attente du départ</div>
     </div>
     <button class="btn-start" style="font-size:11px;padding:7px 14px" onclick="openFullscreen()">⛶ Plein écran</button>
+    <button class="btn-start" onclick="closeCourse()"
+      style="font-size:11px;padding:7px 14px;background:var(--red);border-color:var(--red);color:#fff">
+      🏁 Clôturer la course
+    </button>
     <button class="btn-reset" onclick="resetRace()">↺ Réinitialiser</button>
   </div>
 </header>
@@ -1503,6 +1507,76 @@ function startWithDemo() {
   startSimulation();
   startTimer();
   updateUI();
+}
+
+async function closeCourse() {
+  // PIN requis
+  const pin = prompt('PIN opérateur pour clôturer la course :');
+  if (pin === null) return;
+  if (OPERATOR_PIN && pin !== OPERATOR_PIN) { alert('PIN incorrect.'); return; }
+
+  // Trouver tous les participants "en cours" (DEPART sans ARRIVEE)
+  const openLaps = {};
+  for (const scan of allScans) {
+    const b = scan.badge_id, chk = scan.checkpoint;
+    if (!openLaps[b]) openLaps[b] = null;
+    if (chk === 'DEPART')  openLaps[b] = scan.timestamp;
+    if (chk === 'ARRIVEE') openLaps[b] = null;
+  }
+  const openBadges = Object.entries(openLaps).filter(([b,t]) => t !== null).map(([b]) => b);
+
+  if (openBadges.length === 0) {
+    alert('Aucun participant en cours — la course est déjà propre.');
+    return;
+  }
+
+  const names = openBadges.map(b => {
+    const p = PARTICIPANTS[b];
+    return p ? p.name : b;
+  });
+
+  const ok = confirm(
+    'Cloturer la course ? ' + openBadges.length + ' participant(s) en cours perdent leur tour ouvert : '
+    + names.slice(0,5).join(', ') + (names.length > 5 ? ' ...' : '')
+    + ' — Les points acquis sont conserves.'
+  );
+  if (!ok) return;
+
+  // Injecter un scan DEPART fictif "annulé" pour fermer proprement
+  // La solution la plus simple : supprimer le dernier DEPART de chaque participant en cours
+  // → leur tour ouvert disparaît, ils ne sont plus "en cours"
+  let fixed = 0, errors = 0;
+
+  for (const badge of openBadges) {
+    // Trouver le dernier scan DEPART de ce badge
+    let lastDepIdx = -1;
+    for (let i = allScans.length - 1; i >= 0; i--) {
+      if (allScans[i].badge_id === badge && allScans[i].checkpoint === 'DEPART') {
+        lastDepIdx = i; break;
+      }
+    }
+    if (lastDepIdx < 0) continue;
+
+    const scan = allScans[lastDepIdx];
+    // Supprimer en Supabase
+    if (SUPA_URL && SUPA_OP_KEY) {
+      try {
+        const query = scan.id
+          ? 'scans?id=eq.' + scan.id
+          : 'scans?badge_id=eq.' + encodeURIComponent(scan.badge_id)
+            + '&checkpoint=eq.DEPART'
+            + '&timestamp=eq.' + encodeURIComponent(scan.timestamp.toISOString());
+        await supaFetch(query, { method: 'DELETE', write: true });
+      } catch(e) { console.warn('Delete open lap error:', badge, e.message); errors++; continue; }
+    }
+    // Supprimer localement
+    allScans.splice(lastDepIdx, 1);
+    fixed++;
+  }
+
+  updateUI();
+
+  alert('Course cloturee : ' + fixed + ' tour(s) annule(s).' + (errors > 0 ? ' ' + errors + ' erreur(s).' : ''));
 }
 
 async function resetRace() {
