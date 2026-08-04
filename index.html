@@ -272,16 +272,93 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   .lb-r>*:nth-child(n+5),.lb-head>*:nth-child(n+5){display:none}
 }
 
+/* ── MOBILE (iPhone / écran étroit ≤ 480px) ─────────────── */
+@media(max-width:480px){
+  /* Header : 2 lignes empilées pleine largeur */
+  header{
+    padding:8px 12px;gap:4px;
+    flex-direction:column;align-items:stretch;
+    flex-wrap:nowrap
+  }
+  /* Ligne 1 : logo + timer */
+  header>*{width:100%}
+  .logo{justify-content:flex-start}
+  .logo img{height:32px!important}
+  .logo-sub{display:none}
+
+  /* header-right : ligne horizontale pleine largeur */
+  .header-right{
+    display:flex;align-items:center;justify-content:space-between;
+    width:100%;gap:6px;flex-wrap:nowrap
+  }
+  /* Boutons de rôle compacts */
+  .role-btn{padding:4px 7px;font-size:9px;gap:2px;flex-shrink:0}
+  /* Cacher boutons secondaires */
+  #exportBtn,.btn-reset[onclick*="resetRace"]{display:none}
+  .btn-start[onclick*="closeCourse"]{display:none}
+  /* Timer compact */
+  .timer-block{text-align:right;flex-shrink:0}
+  .timer-block .timer-display{font-size:16px!important;line-height:1}
+  .timer-label{font-size:8px}
+
+  /* Nav tabs : scroll horizontal pleine largeur */
+  .nav-tabs{
+    overflow-x:auto;flex-wrap:nowrap;gap:0;
+    padding:0;margin:0;width:100%;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none
+  }
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .tab-btn{white-space:nowrap;padding:9px 12px;font-size:11px;flex-shrink:0}
+
+  /* Stats banner — 2×2 */
+  .stats-banner{grid-template-columns:1fr 1fr!important;gap:6px;padding:8px 10px}
+  .stat-card{padding:10px 8px}
+  .stat-val{font-size:20px!important}
+  .stat-lbl{font-size:9px}
+
+  /* Classement */
+  .lb-r,.lb-head{grid-template-columns:32px 1fr 56px}
+  .lb-r>*:nth-child(n+4),.lb-head>*:nth-child(n+4){display:none}
+  .lb-r{min-height:50px}
+  .rank-num{font-size:13px!important}
+  .name-primary{font-size:12px!important}
+  .name-badge{font-size:10px!important}
+  .tours-num{font-size:17px!important}
+
+  /* Tables scrollables */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:480px}
+
+  /* Content */
+  .content{padding:8px 10px}
+
+  /* Config — 1 colonne */
+  .config-grid,.dual-grid{grid-template-columns:1fr!important}
+  .config-panel{padding:12px}
+
+  /* Modales */
+  .modal-card{margin:10px;max-width:calc(100vw - 20px)!important}
+  .modal-body{padding:12px}
+}
+
+/* iPhone landscape */
+@media(max-width:812px) and (orientation:landscape){
+  header{padding:6px 16px;flex-direction:row;flex-wrap:wrap}
+  .stats-banner{display:none}
+  .nav-tabs{padding:0 8px}
+}
+
 /* MODE PLEIN ÉCRAN */
 #fs-overlay{display:none;position:fixed;inset:0;background:var(--ink);z-index:600;flex-direction:column}
 #fs-overlay.open{display:flex}
-.fs-header{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:var(--panel);border-bottom:3px solid var(--border);flex-shrink:0;gap:24px}
-.fs-timer{font-family:var(--mono);font-size:64px;font-weight:700;color:var(--amber);line-height:1;letter-spacing:.02em}
-.fs-close{background:none;border:2px solid var(--border);color:var(--text-dim);border-radius:8px;padding:10px 20px;font-size:16px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:var(--fsh-pad,10px 24px);background:var(--panel);border-bottom:2px solid var(--border);flex-shrink:0;gap:16px}
+.fs-timer{font-family:var(--mono);font-size:var(--fsh-timer,48px);font-weight:700;color:var(--amber);line-height:1;letter-spacing:.02em}
+.fs-close{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 14px;font-size:14px;cursor:pointer;font-family:var(--sans);flex-shrink:0}
 .fs-close:hover{border-color:var(--red);color:var(--red)}
-.fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;overflow:hidden;min-height:0}
+.fs-body{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;overflow:hidden;min-height:0}
 .fs-col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.fs-col-title{font-size:18px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--white);margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--border);flex-shrink:0}
+.fs-col-title{font-size:var(--fsh-col-title,16px);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--white);margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border);flex-shrink:0}
 .fs-lb{flex:1;overflow:hidden;display:flex;flex-direction:column}
 
 /* PI MODE */
@@ -410,7 +487,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.71.0
+    v1.83.0
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -434,6 +511,10 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       <div class="timer-label" id="timerLabel">En attente du départ</div>
     </div>
     <button class="btn-start" style="font-size:11px;padding:7px 14px" onclick="openFullscreen()">⛶ Plein écran</button>
+    <button id="exportBtn" class="btn-start" onclick="exportClassementHTML()"
+      style="font-size:11px;padding:7px 14px;background:var(--teal)">
+      📄 Exporter classement
+    </button>
     <button class="btn-start" onclick="closeCourse()"
       style="font-size:11px;padding:7px 14px;background:var(--red);border-color:var(--red);color:#fff">
       🏁 Clôturer la course
@@ -747,6 +828,51 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         </div>
 
         <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:10px">🖥️ Affichage plein écran</div>
+        <div class="config-row">
+          <span class="config-key">Préset d'écran</span>
+          <select class="input-field" id="cfg-fs-preset" style="width:220px" onchange="applyFsPreset()">
+            <option value="custom">Personnalisé</option>
+            <option value="tv110">📺 TV 110cm / 1920×1080</option>
+            <option value="laptop1920">💻 Laptop 1920×1200</option>
+            <option value="thinkpad16">💻 ThinkPad P16 / 2560×1600</option>
+            <option value="4k">🖥️ 4K / 3840×2160</option>
+            <option value="tablet">📱 Tablette 10"</option>
+          </select>
+        </div>
+        <div class="config-row" style="margin-top:8px">
+          <span class="config-key">Hauteur ligne top 3 (px)</span>
+          <input class="input-field" id="cfg-fs-row-h" type="number" min="40" max="150" style="width:90px"
+            value="72" oninput="applyFsCustom()">
+        </div>
+        <div class="config-row" style="margin-top:8px">
+          <span class="config-key">Hauteur lignes défilantes (px)</span>
+          <input class="input-field" id="cfg-fs-scroll-h" type="number" min="30" max="120" style="width:90px"
+            value="56" oninput="applyFsCustom()">
+        </div>
+        <div class="config-row" style="margin-top:8px">
+          <span class="config-key">Lignes visibles en défilement</span>
+          <input class="input-field" id="cfg-fs-scroll-rows" type="number" min="3" max="15" style="width:90px"
+            value="5" oninput="applyFsCustom()">
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">
+          1920×1200 : row=76, scroll=60, lignes=6 · ThinkPad P16 : row=60, scroll=48, lignes=6
+        </div>
+        <div class="config-row" style="margin-top:8px">
+          <span class="config-key">Taille du header (S/M/L)</span>
+          <div style="display:flex;gap:6px">
+            <button onclick="setFsHeaderSize('S')"
+              style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-family:var(--sans);font-size:12px">S</button>
+            <button onclick="setFsHeaderSize('M')"
+              style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-family:var(--sans);font-size:12px">M</button>
+            <button onclick="setFsHeaderSize('L')"
+              style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-family:var(--sans);font-size:12px">L</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;line-height:1.5">S = compact (1920×1200) · M = normal · L = grande TV
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+
         <div class="config-panel-title" style="margin-bottom:10px">🎨 Apparence</div>
         <div class="config-row">
           <span class="config-key">Thème de l'interface</span>
@@ -1304,41 +1430,63 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       </div>
     </div>
 
-    <!-- Centre : fun stats -->
-    <div style="display:flex;align-items:center;gap:28px;padding:0 20px">
+    <!-- Centre : stats + leaders -->
+    <div style="display:flex;align-items:center;gap:20px;padding:0 12px;flex:1;justify-content:center">
 
-      <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km parcourus</div>
+      <!-- Stats globales -->
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="text-align:center">
+          <div style="font-family:var(--mono);font-size:36px;font-weight:700;color:var(--teal)" id="fs-km">—</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Km</div>
+        </div>
+        <div style="width:1px;height:50px;background:var(--border)"></div>
+        <div style="text-align:center">
+          <div style="font-family:var(--mono);font-size:36px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+</div>
+        </div>
+        <div style="width:1px;height:50px;background:var(--border)"></div>
+        <div style="text-align:center">
+          <div style="font-family:var(--mono);font-size:36px;font-weight:700;color:var(--amber)" id="fs-tours">—</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Tours</div>
+        </div>
       </div>
 
       <div style="width:1px;height:60px;background:var(--border)"></div>
 
-      <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--teal)" id="fs-dplus">—</div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">D+ cumulé</div>
+      <!-- Record du tour (général) -->
+      <div style="text-align:center;min-width:130px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:3px">⚡ Record général</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:#F07300" id="fs-best-time">—</div>
+        <div style="font-size:12px;font-weight:600;color:#F07300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" id="fs-best-who">—</div>
       </div>
 
       <div style="width:1px;height:60px;background:var(--border)"></div>
 
-      <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:38px;font-weight:700;color:#F07300" id="fs-best-time">—</div>
-        <div style="font-family:var(--sans);font-size:16px;font-weight:600;color:#F07300;margin-top:4px;opacity:.85" id="fs-best-who">—</div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Record tour</div>
+      <!-- Record solo -->
+      <div style="text-align:center;min-width:130px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:3px">🏃 Record solo</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--teal)" id="fs-best-solo-time">—</div>
+        <div style="font-size:12px;font-weight:600;color:var(--teal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" id="fs-best-solo-who">—</div>
       </div>
 
       <div style="width:1px;height:60px;background:var(--border)"></div>
 
-      <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--amber)" id="fs-tours">—</div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Tours validés</div>
+      <!-- Leader Solo -->
+      <div style="text-align:center;min-width:160px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:3px">🏃 Leader solo</div>
+        <div style="font-size:18px;font-weight:800;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" id="fs-leader-solo-name">—</div>
+        <div style="font-family:var(--mono);font-size:14px;color:var(--amber)" id="fs-leader-solo-pts">—</div>
+        <div style="font-size:11px;color:var(--green);font-weight:600" id="fs-leader-solo-gap"></div>
       </div>
 
       <div style="width:1px;height:60px;background:var(--border)"></div>
 
-      <div style="text-align:center">
-        <div style="font-family:var(--mono);font-size:42px;font-weight:700;color:var(--red)" id="fs-open">—</div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">En parcours</div>
+      <!-- Leader Équipes -->
+      <div style="text-align:center;min-width:160px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:3px">👥 Leader équipe</div>
+        <div style="font-size:18px;font-weight:800;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" id="fs-leader-eq-name">—</div>
+        <div style="font-family:var(--mono);font-size:14px;color:var(--amber)" id="fs-leader-eq-pts">—</div>
+        <div style="font-size:11px;color:var(--green);font-weight:600" id="fs-leader-eq-gap"></div>
       </div>
 
     </div>
@@ -1507,6 +1655,134 @@ function startWithDemo() {
   startSimulation();
   startTimer();
   updateUI();
+}
+
+function exportClassementHTML() {
+  const { solos, equipes } = processScans(allScans);
+  const now = new Date().toLocaleString('fr-FR');
+  const logo = 'data:image/png;base64,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';
+
+  function renderRows(data) {
+    // Filtrer 0 points
+    data = data.filter(r => r.points > 0);
+    if (data.length === 0) return '<tr><td colspan="6" style="text-align:center;color:#666;padding:20px">Aucun participant</td></tr>';
+    // Médailles vitesse (3 meilleurs tours)
+    const speedTop = data.filter(r => r.bestLapTime).sort((a,b) => a.bestLapTime - b.bestLapTime).slice(0,3).map(r => r.badge_id);
+    const speedM   = ['⚡🥇','⚡🥈','⚡🥉'];
+    return data.map((r, i) => {
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+      const bg = i === 0 ? '#1a2a1a' : i === 1 ? '#1a1a2a' : i === 2 ? '#2a1a0a' : (i%2===0 ? '#111820' : '#16202b');
+      const bonus = bonusPoints[r.badge_id] ? ' <span style="color:#9b59b6;font-size:11px">(+' + bonusPoints[r.badge_id] + ' bonus)</span>' : '';
+      const speedBadge = speedTop.includes(r.badge_id) ? ' ' + speedM[speedTop.indexOf(r.badge_id)] : '';
+      return '<tr style="background:' + bg + '">'
+        + '<td style="padding:10px 16px;font-size:20px;font-weight:800;color:' + (i<3?'#F07300':'#8aafc8') + '">' + medal + '</td>'
+        + '<td style="padding:10px 16px;font-weight:700;color:#ebf4ff;font-size:15px">' + esc(r.name) + bonus + '</td>'
+        + '<td style="padding:10px 16px;font-family:monospace;color:#1abc9c;font-size:18px;font-weight:800;text-align:center">' + r.tours + '</td>'
+        + '<td style="padding:10px 16px;font-family:monospace;color:#F07300;font-size:18px;font-weight:800;text-align:center">' + r.points + '</td>'
+        + '<td style="padding:10px 16px;font-family:monospace;color:#1abc9c;text-align:center">' + r.distance.toFixed(1) + ' km</td>'
+        + '<td style="padding:10px 16px;font-family:monospace;color:#5a7a96;text-align:center">'
+        + (speedTop.includes(r.badge_id) ? speedM[speedTop.indexOf(r.badge_id)] + ' ' : '')
+        + (r.bestLapTime ? fmtTime(r.bestLapTime) : '—') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  const gs = computeGlobalStats(solos, equipes);
+  const totalParticipants = solos.length + equipes.length;
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTBM 24H — Classement Final</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#0b0f14; color:#c8dcf0; font-family:system-ui,sans-serif; }
+  header { background:#16202b; border-bottom:3px solid #F07300; padding:20px 40px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { height:60px; }
+  .title { font-size:24px; font-weight:800; color:#fff; }
+  .subtitle { font-size:13px; color:#5a7a96; margin-top:4px; }
+  .stats-bar { background:#111820; padding:16px 40px; display:flex; gap:40px; border-bottom:1px solid #1e2d3d; }
+  .stat { text-align:center; }
+  .stat-val { font-family:monospace; font-size:28px; font-weight:700; color:#1abc9c; }
+  .stat-lbl { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#5a7a96; margin-top:3px; }
+  .section { max-width:1100px; margin:30px auto; padding:0 20px; }
+  .section-title { font-size:18px; font-weight:800; color:#fff; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #1e2d3d; display:flex; align-items:center; gap:10px; }
+  table { width:100%; border-collapse:collapse; }
+  th { background:#16202b; padding:10px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:#5a7a96; font-weight:700; }
+  th:nth-child(3),th:nth-child(4),th:nth-child(5),th:nth-child(6) { text-align:center; }
+  tr { border-bottom:1px solid #1e2d3d; }
+  .record { background:#1a1200; border:1px solid #F07300; border-radius:8px; padding:14px 20px; margin-bottom:20px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+  .record-item { text-align:center; }
+  .record-val { font-family:monospace; font-size:22px; font-weight:700; color:#F07300; }
+  .record-lbl { font-size:10px; color:#5a7a96; text-transform:uppercase; margin-top:3px; }
+  footer { text-align:center; padding:30px; color:#2a3d52; font-size:12px; margin-top:40px; }
+  @media print { body { background:#fff!important; color:#000!important; } }
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:20px">
+    <img src="${logo}" class="logo" alt="UTBM">
+    <div>
+      <div class="title">UTBM — Ultra Trail de Blegny Mine</div>
+      <div class="subtitle">Classement final · Exporté le ${now}</div>
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-family:monospace;font-size:36px;font-weight:700;color:#f5a623">${fmtTime(DUREE_COURSE*3600)} course</div>
+    <div style="font-size:11px;color:#5a7a96">Distance par tour : ${DISTANCE_TOUR} km · D+ : ${DENIVELE_TOUR} m</div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-val">${gs.totalTours}</div><div class="stat-lbl">Tours validés</div></div>
+  <div class="stat"><div class="stat-val">${gs.totalKm.toFixed(0)} km</div><div class="stat-lbl">Distance totale</div></div>
+  <div class="stat"><div class="stat-val">${gs.totalDplus.toFixed(0)} m</div><div class="stat-lbl">D+ cumulé</div></div>
+  <div class="stat"><div class="stat-val">${solos.length}</div><div class="stat-lbl">Solos</div></div>
+  <div class="stat"><div class="stat-val">${equipes.length}</div><div class="stat-lbl">Équipes</div></div>
+  <div class="stat"><div class="stat-val">${totalParticipants}</div><div class="stat-lbl">Total</div></div>
+</div>
+
+<div class="section">
+  <div class="record">
+    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">⚡ Record général</div><div class="record-val">${gs.bestLap ? fmtTime(gs.bestLap) : '—'}</div><div class="record-lbl">${gs.bestLapWho || ''}</div></div>
+    <div style="width:1px;height:40px;background:#1e2d3d"></div>
+    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">🏃 Record solo</div><div class="record-val" style="color:#1abc9c">${gs.bestSoloLap ? fmtTime(gs.bestSoloLap) : '—'}</div><div class="record-lbl">${gs.bestSoloWho || ''}</div></div>
+    <div style="width:1px;height:40px;background:#1e2d3d"></div>
+    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">🏃 Leader solo</div><div class="record-val" style="color:#f5a623;font-size:18px">${solos.length > 0 ? esc(solos[0].name) : '—'}</div><div class="record-lbl">${solos.length > 0 ? solos[0].points + ' pts · ' + solos[0].tours + ' tours' : ''}</div></div>
+    <div style="width:1px;height:40px;background:#1e2d3d"></div>
+    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">👥 Leader équipe</div><div class="record-val" style="color:#f5a623;font-size:18px">${equipes.length > 0 ? esc(equipes[0].name) : '—'}</div><div class="record-lbl">${equipes.length > 0 ? equipes[0].points + ' pts · ' + equipes[0].tours + ' tours' : ''}</div></div>
+  </div>
+
+  <div class="section-title">🏃 Classement Solo</div>
+  <table>
+    <thead><tr><th>Rang</th><th>Participant</th><th>Tours</th><th>Points</th><th>Distance</th><th>Meilleur tour</th></tr></thead>
+    <tbody>${renderRows(solos)}</tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">👥 Classement Équipes</div>
+  <table>
+    <thead><tr><th>Rang</th><th>Équipe</th><th>Tours</th><th>Points</th><th>Distance</th><th>Meilleur tour</th></tr></thead>
+    <tbody>${renderRows(equipes)}</tbody>
+  </table>
+</div>
+
+<footer>UTBM — Ultra Trail de Blegny Mine · Classement généré le ${now} · Système de classement live</footer>
+</body>
+</html>`;
+
+  // Télécharger
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'UTBM_Classement_' + new Date().toISOString().slice(0,16).replace('T','_') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function closeCourse() {
@@ -1981,6 +2257,13 @@ function esc(s) {
    TABLEAUX CLASSEMENT
    ================================================================ */
 function buildTable(data, compact) {
+  // Masquer les participants à 0 points
+  data = data.filter(r => r.points > 0);
+
+  // Top 3 meilleurs tours (médailles vitesse)
+  const speedRanks  = data.filter(r => r.bestLapTime).sort((a,b) => a.bestLapTime - b.bestLapTime).slice(0,3).map(r => r.badge_id);
+  const speedMedals = ['⚡🥇','⚡🥈','⚡🥉'];
+
   const cols = compact
     ? ['Rang','Nom','Tours · Pts','Distance','Meilleur','Tps moyen','Tps total']
     : ['Rang','Nom','Tours · Pts','Distance','Dernier tour','Meilleur tour','Tps moyen','Total course'];
@@ -2003,7 +2286,7 @@ function buildTable(data, compact) {
         <td><div class="name-cell"><div class="name-primary">${esc(r.name)}</div><div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div></div></td>
         <td>${toursHtml}<button data-badge="${r.badge_id}" data-bname="${r.name}" onclick="openBonusModal(this.dataset.badge,this.dataset.bname)" style="background:none;border:1px solid rgba(155,89,182,.4);color:var(--purple);border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;margin-top:3px;display:block">+pts défi</button></td>
         <td><div class="dist-val">${distTotal.toFixed(1)} km</div>${r.onCourse?`<div class="dist-open" style="color:var(--amber)">⟳ en cours</div>`:''}</td>
-        <td class="mono time-good">${fmtTime(r.bestLapTime)}</td>
+        <td class="mono time-good">${speedRanks.includes(r.badge_id) ? speedMedals[speedRanks.indexOf(r.badge_id)] + ' ' : ''}${fmtTime(r.bestLapTime)}</td>
         <td class="mono">${fmtTime(r.avgLapTime)}</td>
         <td class="mono">${fmtTime(r.totalTime)}</td>
       </tr>`;
@@ -2042,6 +2325,8 @@ function computeGlobalStats(solos, equipes) {
     totalDplus:  all.reduce((s,r) => s + r.dplus, 0),
     openTours:   all.filter(r => r.onCourse).length,
     bestLap, bestLapWho,
+    bestSoloLap: solos.reduce((b,r) => r.bestLapTime && (!b || r.bestLapTime < b) ? r.bestLapTime : b, null),
+    bestSoloWho: solos.reduce((w,r,_,a) => { const b=a.reduce((x,s)=>s.bestLapTime&&(!x||s.bestLapTime<x)?s.bestLapTime:x,null); return r.bestLapTime===b?r.name:w; }, '—'),
     leaderSolo:   solos.length  > 0 ? solos[0].name  : '—',
     leaderEquipe: equipes.length > 0 ? equipes[0].name : '—',
   };
@@ -3904,15 +4189,15 @@ async function pushParticipantToSupabase(badge, p) {
    ================================================================ */
 const TOP_FIXED      = 3;    // top 3 toujours visible en haut
 const SCROLL_ROWS    = 12;   // lignes visibles dans la zone défilante
-const FS_SCROLL_ROWS = 5;    // lignes visibles dans la zone défilante plein écran
+let FS_SCROLL_ROWS = 5;    // lignes visibles dans la zone défilante plein écran
 const SCROLL_STEP    = 3;    // avance de 3 positions à chaque tick
 const SCROLL_MS      = 10000; // ms entre chaque défilement (10s)
 
 let scrollStates = {}; // { 'solo': { offset, timer }, 'equipe': { offset, timer } }
 
 const ROW_H = 46; // hauteur lignes classement normal
-const FS_ROW_H        = 72; // hauteur top 3 (grand format)
-const FS_SCROLL_ROW_H = 56; // hauteur lignes défilantes (légèrement plus petites, 5 visibles)
+let FS_ROW_H        = 72; // hauteur top 3 (grand format)
+let FS_SCROLL_ROW_H = 56; // hauteur lignes défilantes (légèrement plus petites, 5 visibles)
 
 function makeLbRow(r, i) {
   const delta   = storedDeltas[r.badge_id] || '';
@@ -3929,7 +4214,7 @@ function makeLbRow(r, i) {
     </div>
     <div class="name-cell">
       <div class="name-primary" style="font-size:12px">${esc(r.name)} ${inCourse}</div>
-      <div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
+      <div class="name-badge" style="color:var(--teal)">${speedRanks.includes(r.badge_id) ? speedMedals[speedRanks.indexOf(r.badge_id)] + ' ' : ''}${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
     </div>
     <div><div class="tours-num" style="font-size:${i<3?16:13}px">${r.tours}</div>${ptsHtml}</div>
     <div class="dist-val" style="font-size:11px">${distTot} km</div>
@@ -4076,7 +4361,7 @@ function makeFsRow(r, i, rowH) {
     </div>
     <div>
       <div style="font-size:${i<3?(h>60?26:22):( h>60?20:17)}px;font-weight:${i<3?800:700};color:${i===0?'var(--white)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${inCourse}</div>
-      <div style="font-size:${h>60?13:11}px;color:var(--teal);font-family:var(--mono)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
+      <div style="font-size:${h>60?13:11}px;color:var(--teal);font-family:var(--mono)">${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
     </div>
     <div style="text-align:center">
       <div style="font-size:${i<3?(h>60?30:26):( h>60?24:20)}px;font-weight:800;font-family:var(--mono);color:var(--white)">${r.tours}</div>
@@ -4161,14 +4446,44 @@ function updateFsLeaderboard() {
   // Mettre à jour uniquement les stats (éléments individuels, pas le DOM classement)
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   const gs = computeGlobalStats(solos, equipes);
-  set('fs-tours',        gs.totalTours + ' tours');
-  set('fs-km',          gs.totalKm.toFixed(1) + ' km');
-  set('fs-dplus',       gs.totalDplus.toFixed(0) + ' m');
-  set('fs-best-time',   fmtTime(gs.bestLap));
-  set('fs-best-who',    gs.bestLapWho || '—');
-  set('fs-open',        gs.openTours);
-  set('fs-solo-count',  solos.length + ' participants');
-  set('fs-equipe-count',equipes.length + ' équipes');
+  set('fs-tours',   gs.totalTours + ' tours');
+  set('fs-km',      gs.totalKm.toFixed(1) + ' km');
+  set('fs-dplus',   gs.totalDplus.toFixed(0) + ' m');
+  set('fs-best-time', fmtTime(gs.bestLap));
+  set('fs-best-who',  gs.bestLapWho || '—');
+  set('fs-best-solo-time', gs.bestSoloLap ? fmtTime(gs.bestSoloLap) : '—');
+  set('fs-best-solo-who',  gs.bestSoloWho || '—');
+  set('fs-open',    gs.openTours);
+  set('fs-solo-count',   solos.length + ' participants');
+  set('fs-equipe-count', equipes.length + ' equipes');
+
+  // Leader solo
+  if (solos.length > 0) {
+    const l1 = solos[0], l2 = solos[1];
+    set('fs-leader-solo-name', l1.name);
+    set('fs-leader-solo-pts',  l1.points + ' pts · ' + l1.tours + ' tours');
+    if (l2 && l1.points > l2.points) {
+      set('fs-leader-solo-gap', '+' + (l1.points - l2.points) + ' pt' + (l1.points - l2.points > 1 ? 's' : '') + ' sur 2e');
+    } else if (l2 && l1.tours > l2.tours) {
+      set('fs-leader-solo-gap', '+' + (l1.tours - l2.tours) + ' tour' + (l1.tours - l2.tours > 1 ? 's' : '') + ' sur 2e');
+    } else {
+      set('fs-leader-solo-gap', l2 ? 'Ex-aequo avec ' + l2.name : 'Seul au classement');
+    }
+  }
+
+  // Leader equipes
+  if (equipes.length > 0) {
+    const e1 = equipes[0], e2 = equipes[1];
+    set('fs-leader-eq-name', e1.name);
+    set('fs-leader-eq-pts',  e1.points + ' pts · ' + e1.tours + ' tours');
+    if (e2 && e1.points > e2.points) {
+      set('fs-leader-eq-gap', '+' + (e1.points - e2.points) + ' pt' + (e1.points - e2.points > 1 ? 's' : '') + ' sur 2e');
+    } else if (e2 && e1.tours > e2.tours) {
+      set('fs-leader-eq-gap', '+' + (e1.tours - e2.tours) + ' tour' + (e1.tours - e2.tours > 1 ? 's' : '') + ' sur 2e');
+    } else {
+      set('fs-leader-eq-gap', e2 ? 'Ex-aequo avec ' + e2.name : 'Seule au classement');
+    }
+  }
 
   setTimeout(updateFsLeaderboard, 5000);
 }
@@ -4712,6 +5027,69 @@ function renderPassagesTable() {
    ================================================================ */
 let currentTheme = 'dark';
 
+// Présets d'écran plein écran
+const FS_PRESETS = {
+  tv110:       { rowH: 72,  scrollH: 56, rows: 5 },  // TV 110cm
+  laptop1920:  { rowH: 62,  scrollH: 50, rows: 7 },  // 1920x1200 top10
+  thinkpad16:  { rowH: 60,  scrollH: 48, rows: 6 },  // ThinkPad P16 2560×1600
+  '4k':        { rowH: 90,  scrollH: 70, rows: 5 },  // 4K
+  tablet:      { rowH: 50,  scrollH: 38, rows: 6 },  // Tablette 10"
+};
+
+function setFsHeaderSize(size) {
+  const root = document.documentElement;
+  const sizes = {
+    S: { pad: '6px 16px',  timer: '38px', title: '13px' },
+    M: { pad: '10px 24px', timer: '48px', title: '16px' },
+    L: { pad: '18px 40px', timer: '64px', title: '18px' },
+  };
+  const s = sizes[size] || sizes.M;
+  root.style.setProperty('--fsh-pad',       s.pad);
+  root.style.setProperty('--fsh-timer',     s.timer);
+  root.style.setProperty('--fsh-col-title', s.title);
+  try { localStorage.setItem('utbm_fs_header_size', size); } catch(e) {}
+}
+
+function loadFsHeaderSize() {
+  try {
+    const s = localStorage.getItem('utbm_fs_header_size');
+    if (s) setFsHeaderSize(s);
+  } catch(e) {}
+}
+
+function applyFsPreset() {
+  const val = document.getElementById('cfg-fs-preset')?.value;
+  if (!val || val === 'custom') return;
+  const p = FS_PRESETS[val];
+  if (!p) return;
+  document.getElementById('cfg-fs-row-h').value       = p.rowH;
+  document.getElementById('cfg-fs-scroll-h').value    = p.scrollH;
+  document.getElementById('cfg-fs-scroll-rows').value = p.rows;
+  applyFsCustom();
+}
+
+function applyFsCustom() {
+  const rowH    = parseInt(document.getElementById('cfg-fs-row-h')?.value    || 72);
+  const scrollH = parseInt(document.getElementById('cfg-fs-scroll-h')?.value  || 56);
+  const rows    = parseInt(document.getElementById('cfg-fs-scroll-rows')?.value || 5);
+  if (rowH    > 0) FS_ROW_H        = rowH;
+  if (scrollH > 0) FS_SCROLL_ROW_H = scrollH;
+  if (rows    > 0) FS_SCROLL_ROWS  = rows;
+  // Sauvegarder dans localStorage
+  try { localStorage.setItem('utbm_fs_config', JSON.stringify({rowH, scrollH, rows})); } catch(e) {}
+}
+
+function loadFsConfig() {
+  try {
+    const s = localStorage.getItem('utbm_fs_config');
+    if (!s) return;
+    const p = JSON.parse(s);
+    if (p.rowH)    { FS_ROW_H        = p.rowH;    document.getElementById('cfg-fs-row-h').value       = p.rowH; }
+    if (p.scrollH) { FS_SCROLL_ROW_H = p.scrollH; document.getElementById('cfg-fs-scroll-h').value    = p.scrollH; }
+    if (p.rows)    { FS_SCROLL_ROWS  = p.rows;    document.getElementById('cfg-fs-scroll-rows').value = p.rows; }
+  } catch(e) {}
+}
+
 function setTheme(theme) {
   currentTheme = theme;
   if (theme === 'light') {
@@ -5140,6 +5518,7 @@ function switchTab(name, btn) {
 (function init() {
   // Charger le thème en premier (évite le flash)
   loadTheme();
+  setTimeout(() => { loadFsConfig(); loadFsHeaderSize(); }, 100);
   // Supabase est pré-configuré — dataMode par défaut
   if (!dataMode || dataMode === 'none') dataMode = 'supabase';
   // Démarrage automatique : cacher l'overlay et lancer le polling
