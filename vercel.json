@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/db/rest/v1/:table", "destination": "/api/db?__t=:table" }
+  ]
+}
