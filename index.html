@@ -10,9 +10,20 @@
   --muted:#2A3D52; --text-dim:#5A7A96; --text-mid:#8AAFC8; --text:#C8DCF0;
   --white:#EBF4FF; --amber:#F5A623; --amber-dim:#7A5010; --green:#2ECC71;
   --red:#E74C3C; --purple:#9B59B6; --teal:#1ABC9C;
+  --amber-rgb:245,166,35; --teal-rgb:26,188,156; --record:#F07300;
   --mono:'Courier New','Lucida Console',monospace;
   --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
 }
+/* AIDE */
+.help details{background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;padding:0}
+.help summary{cursor:pointer;padding:12px 16px;font-weight:700;color:var(--white);list-style:none}
+.help summary::-webkit-details-marker{display:none}
+.help summary::before{content:'▸';color:var(--amber);margin-right:10px;display:inline-block;transition:transform .15s}
+.help details[open] summary::before{transform:rotate(90deg)}
+.help details>*:not(summary){margin:0 16px 14px;color:var(--text);line-height:1.6;font-size:13px}
+.help ul,.help ol{padding-left:20px}.help li{margin-bottom:6px}.help p{margin-bottom:8px}
+.help code{font-family:var(--mono);background:var(--surface);padding:1px 5px;border-radius:3px;font-size:12px;color:var(--amber)}
+@media print{header,.nav-tabs,.stats-banner,footer,.help input,.help button{display:none!important}.tab-section{display:none!important}#tab-aide{display:block!important}.help details{border:none;break-inside:avoid}.help details>*{display:block!important}}
 /* MODE CLAIR */
 html.light {
   --ink:#F0F4F8; --surface:#FFFFFF; --panel:#E8EDF2; --border:#D0DAE5;
@@ -31,14 +42,14 @@ html{scroll-behavior:smooth}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
 
 body::before{content:'';position:fixed;inset:0;
-  background-image:radial-gradient(ellipse 120% 60% at 70% 20%,rgba(245,166,35,.04) 0%,transparent 60%),
+  background-image:radial-gradient(ellipse 120% 60% at 70% 20%,rgba(var(--amber-rgb),.04) 0%,transparent 60%),
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Cg fill='none' stroke='%231E2D3D' stroke-width='1'%3E%3Cellipse cx='400' cy='200' rx='380' ry='180'/%3E%3Cellipse cx='400' cy='200' rx='320' ry='150'/%3E%3Cellipse cx='400' cy='200' rx='260' ry='120'/%3E%3Cellipse cx='400' cy='200' rx='200' ry='90'/%3E%3Cellipse cx='400' cy='200' rx='140' ry='60'/%3E%3Cellipse cx='400' cy='200' rx='80' ry='30'/%3E%3C/g%3E%3C/svg%3E");
   background-size:cover,800px 400px;background-position:center;pointer-events:none;z-index:0;opacity:.6}
 
 #app{position:relative;z-index:1}
 
 /* HEADER */
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(11,15,20,.92);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100;gap:16px;flex-wrap:wrap}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(11,15,20,.92);background:color-mix(in srgb,var(--ink) 92%,transparent);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100;gap:16px;flex-wrap:wrap}
 .logo{display:flex;align-items:baseline;gap:12px}
 .logo-title{font-size:22px;font-weight:800;color:var(--white);letter-spacing:.06em;text-transform:uppercase}
 .logo-sub{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.12em;text-transform:uppercase}
@@ -54,7 +65,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 
 /* BUTTONS */
 .btn-start{display:inline-flex;align-items:center;gap:8px;background:var(--amber);color:#000;border:none;border-radius:6px;padding:10px 18px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s;font-family:var(--sans)}
-.btn-start:hover{background:#ffc045;transform:translateY(-1px)}
+.btn-start:hover{filter:brightness(1.12);transform:translateY(-1px)}
 .btn-reset{background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:8px 14px;font-size:11px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s;font-family:var(--sans)}
 .btn-reset:hover{border-color:var(--red);color:var(--red)}
 
@@ -77,7 +88,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .btn-demo{width:100%;padding:12px;background:none;color:var(--text-mid);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;margin-top:10px;font-family:var(--sans)}
 .btn-demo:hover{border-color:var(--text-mid);color:var(--white)}
 .source-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:3px 8px;border-radius:4px;text-transform:uppercase;margin-top:10px}
-.source-badge.demo{background:rgba(26,188,156,.15);color:var(--teal);border:1px solid rgba(26,188,156,.3)}
+.source-badge.demo{background:rgba(var(--teal-rgb),.15);color:var(--teal);border:1px solid rgba(var(--teal-rgb),.3)}
 .source-badge.sheets{background:rgba(46,204,113,.15);color:var(--green);border:1px solid rgba(46,204,113,.3)}
 
 /* SHEETS STATUS */
@@ -111,7 +122,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-title{display:flex;align-items:center;gap:10px}
 .section-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.section-icon.solo{background:rgba(245,166,35,.15)}
+.section-icon.solo{background:rgba(var(--amber-rgb),.15)}
 .section-icon.equipe{background:rgba(155,89,182,.15)}
 .section-name{font-size:14px;font-weight:700;color:var(--white);letter-spacing:.06em;text-transform:uppercase}
 .section-count{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
@@ -125,8 +136,8 @@ th:first-child{text-align:center;width:50px}
 tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,.03)}
-tbody tr.on-course{background:rgba(245,166,35,.05)}
-tbody tr.on-course:hover{background:rgba(245,166,35,.09)}
+tbody tr.on-course{background:rgba(var(--amber-rgb),.05)}
+tbody tr.on-course:hover{background:rgba(var(--amber-rgb),.09)}
 td{padding:11px 14px;font-size:13px;color:var(--text)}
 td:first-child{text-align:center;padding:11px 8px}
 .rank-cell{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -137,7 +148,7 @@ td:first-child{text-align:center;padding:11px 8px}
 .name-cell{display:flex;flex-direction:column;gap:2px}
 .name-primary{font-weight:600;color:var(--white);font-size:13px}
 .name-badge{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:.06em}
-.on-course-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--amber);background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.25);border-radius:3px;padding:1px 5px;text-transform:uppercase}
+.on-course-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--amber);background:rgba(var(--amber-rgb),.12);border:1px solid rgba(var(--amber-rgb),.25);border-radius:3px;padding:1px 5px;text-transform:uppercase}
 .on-course-badge::before{content:'▶';font-size:7px}
 .mono{font-family:var(--mono);font-size:12px}
 .tours-num{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--white)}
@@ -231,7 +242,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .badge-input-big:focus{outline:none;border-color:var(--amber)}
 .flash-ok{border-color:var(--green)!important;background:rgba(46,204,113,.1)!important}
 .flash-err{border-color:var(--red)!important;background:rgba(231,76,60,.1)!important}
-.sending{border-color:var(--amber)!important;background:rgba(245,166,35,.08)!important;pointer-events:none;opacity:.7}
+.sending{border-color:var(--amber)!important;background:rgba(var(--amber-rgb),.08)!important;pointer-events:none;opacity:.7}
 .send-indicator{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;animation:spin 1s linear infinite;color:var(--amber)}
 @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
 .badge-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px;line-height:1}
@@ -243,7 +254,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .log-item:last-child{border-bottom:none}
 .log-time{font-family:var(--mono);font-size:10px;color:var(--text-dim);min-width:55px;flex-shrink:0}
 .log-chk{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:700}
-.log-chk.d{background:rgba(245,166,35,.15);color:var(--amber)}
+.log-chk.d{background:rgba(var(--amber-rgb),.15);color:var(--amber)}
 .log-chk.a{background:rgba(46,204,113,.15);color:var(--green)}
 .log-name{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .log-bid{font-family:var(--mono);font-size:10px;color:var(--text-dim);flex-shrink:0}
@@ -263,7 +274,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 /* Une ligne */
 .lb-r{display:grid;grid-template-columns:44px 1fr 80px 76px 68px 68px 72px;align-items:center;border-bottom:1px solid var(--border);padding:7px 14px;gap:6px;box-sizing:border-box}
 .lb-r:last-child{border-bottom:none}
-.lb-r.oc {background:rgba(245,166,35,.05)}
+.lb-r.oc {background:rgba(var(--amber-rgb),.05)}
 .lb-r.r1 {background:rgba(245,197,24,.08)}
 .lb-r.r2 {background:rgba(160,176,192,.05)}
 .lb-r.r3 {background:rgba(205,127,50,.05)}
@@ -374,7 +385,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 .pi-scan-label{font-size:13px;font-weight:700;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
 .pi-scan-time{font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:55px}
 .pi-scan-chk{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700}
-.pi-scan-chk.d{background:rgba(245,166,35,.15);color:var(--amber)}
+.pi-scan-chk.d{background:rgba(var(--amber-rgb),.15);color:var(--amber)}
 .pi-scan-chk.a{background:rgba(46,204,113,.15);color:var(--green)}
 .pi-scan-name{flex:1;font-size:13px}
 @keyframes pi-flash-ok{0%{background:rgba(46,204,113,.3);border-color:var(--green)}100%{background:var(--surface);border-color:var(--border)}}
@@ -391,13 +402,13 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 
 /* TABLEAU PASSAGES */
 #passages-table th{cursor:default}
-.chk-dep{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(245,166,35,.15);color:var(--amber)}
+.chk-dep{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(var(--amber-rgb),.15);color:var(--amber)}
 .chk-arr{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(46,204,113,.15);color:var(--green)}
-.src-supa{font-size:9px;background:rgba(26,188,156,.1);color:var(--teal);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
+.src-supa{font-size:9px;background:rgba(var(--teal-rgb),.1);color:var(--teal);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
 .src-local{font-size:9px;background:rgba(155,89,182,.1);color:var(--purple);padding:1px 5px;border-radius:3px;font-family:var(--mono)}
 .status-ok{font-size:10px;background:rgba(46,204,113,.12);color:var(--green);padding:2px 7px;border-radius:3px;font-weight:700}
 .status-ko{font-size:10px;background:rgba(231,76,60,.12);color:var(--red);padding:2px 7px;border-radius:3px;font-weight:700}
-.status-open{font-size:10px;background:rgba(245,166,35,.12);color:var(--amber);padding:2px 7px;border-radius:3px;font-weight:700}
+.status-open{font-size:10px;background:rgba(var(--amber-rgb),.12);color:var(--amber);padding:2px 7px;border-radius:3px;font-weight:700}
 .status-manual{font-size:10px;background:rgba(155,89,182,.12);color:var(--purple);padding:2px 7px;border-radius:3px;font-weight:700}
 </style>
 </head>
@@ -415,11 +426,11 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <hr class="overlay-divider">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
       <button onclick="selectDeviceType('admin')"
-        style="padding:28px 16px;background:rgba(245,166,35,.12);border:2px solid var(--amber);border-radius:12px;color:var(--amber);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-align:center;font-family:var(--sans)">
+        style="padding:28px 16px;background:rgba(var(--amber-rgb),.12);border:2px solid var(--amber);border-radius:12px;color:var(--amber);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-align:center;font-family:var(--sans)">
         🖥️<br><br>PC ADMIN<br><span style="font-size:11px;font-weight:400;color:var(--text-mid)">Accès complet,<br>classement, config</span>
       </button>
       <button onclick="selectDeviceType('checkpoint')"
-        style="padding:28px 16px;background:rgba(26,188,156,.12);border:2px solid var(--teal);border-radius:12px;color:var(--teal);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-align:center;font-family:var(--sans)">
+        style="padding:28px 16px;background:rgba(var(--teal-rgb),.12);border:2px solid var(--teal);border-radius:12px;color:var(--teal);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-align:center;font-family:var(--sans)">
         📡<br><br>PI CHECKPOINT<br><span style="font-size:11px;font-weight:400;color:var(--text-mid)">Saisie RFID<br>uniquement</span>
       </button>
     </div>
@@ -457,7 +468,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <input type="hidden" id="ov-pi-anon">
     <input type="hidden" id="ov-pi-op">
     <hr class="overlay-divider">
-    <div style="background:rgba(26,188,156,.1);border:1px solid rgba(26,188,156,.25);border-radius:8px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+    <div style="background:rgba(var(--teal-rgb),.1);border:1px solid rgba(var(--teal-rgb),.25);border-radius:8px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
       <span style="font-size:24px">&#9989;</span>
       <div>
         <div style="font-size:14px;font-weight:700;color:var(--teal)">Base de données connectée</div>
@@ -480,14 +491,14 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 <!-- HEADER -->
 <header>
   <div class="logo" style="display:flex;align-items:center;gap:14px">
-    <img src="data:image/png;base64,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" alt="UTBM Logo" style="height:56px;width:auto;display:block">
+    <img src="data:image/png;base64,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" alt="Logo" id="hdr-logo" style="height:56px;width:auto;display:block"><div class="logo-title" id="hdr-event-name" style="display:none"></div>
     <div>
-      <div class="logo-sub" style="font-size:11px;letter-spacing:.08em;margin-top:2px">Classement Live</div>
+      <div class="logo-sub" id="hdr-event-sub" style="font-size:11px;letter-spacing:.08em;margin-top:2px">Classement Live</div>
     </div>
   </div>
   <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;
     background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px">
-    v1.83.0
+    v2.0.0-dev
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live</div>
@@ -498,12 +509,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       <button class="role-btn role-admin" id="rbtn-admin" onclick="selectRole('admin')" title="Accès complet">
         🖥️ Admin
       </button>
-      <button class="role-btn role-dep" id="rbtn-dep" onclick="selectRole('depart')" title="Checkpoint Départ">
-        🚦 Départ
-      </button>
-      <button class="role-btn role-arr" id="rbtn-arr" onclick="selectRole('arrivee')" title="Checkpoint Arrivée">
-        🏁 Arrivée
-      </button>
+      <span id="role-cp-btns" style="display:contents"></span>
     </div>
 
     <div class="timer-block">
@@ -514,6 +520,10 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <button id="exportBtn" class="btn-start" onclick="exportClassementHTML()"
       style="font-size:11px;padding:7px 14px;background:var(--teal)">
       📄 Exporter classement
+    </button>
+    <button class="btn-start" onclick="exportOdooSnippet()"
+      style="font-size:11px;padding:7px 14px;background:#9b59b6">
+      🔗 Snippet Odoo
     </button>
     <button class="btn-start" onclick="closeCourse()"
       style="font-size:11px;padding:7px 14px;background:var(--red);border-color:var(--red);color:#fff">
@@ -538,10 +548,13 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   <button class="tab-btn"         onclick="switchTab('equipes',this)">Équipes</button>
   <button class="tab-btn"         onclick="switchTab('speaker',this)">Mode Speaker</button>
   <button class="tab-btn"         onclick="switchTab('participants',this)">Participants <span id="participantCount"></span></button>
+  <button class="tab-btn"         onclick="switchTab('bracelets',this)">Bracelets <span id="wbCount"></span></button>
   <button class="tab-btn"         onclick="switchTab('saisie',this)">&#9000; Saisie <span id="saisieCount"></span></button>
   <button class="tab-btn"         onclick="switchTab('config',this)">Configuration</button>
   <button class="tab-btn"         onclick="switchTab('passages',this)">Passages <span id="passagesCount"></span></button>
   <button class="tab-btn"         onclick="switchTab('anomalies',this)">Anomalies <span id="anomalyCount"></span></button>
+  <button class="tab-btn"         onclick="switchTab('aide',this)">Aide</button>
+  <button class="tab-btn"         onclick="switchTab('simulation',this)">Simulation</button>
   <button class="tab-btn" style="color:var(--amber);font-weight:800" onclick="switchTab('correction',this)">⚡ Correction tours</button>
 </div>
 
@@ -677,7 +690,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
           <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
           <div style="font-size:11px;font-weight:700;color:var(--amber);letter-spacing:.06em;text-transform:uppercase">⚡ Tour de chauffe</div>
           <div style="font-size:10px;color:var(--text-dim);line-height:1.5">
-            Valide le tour de chauffe pour tous les participants ayant un pré-enregistrement (scan Départ sans Arrivée).
+            Valide le tour de chauffe pour tous les concurrents ayant au moins un membre pré-enregistré (scan Présence). Un seul point par concurrent.
             Injecte automatiquement un scan Arrivée + un scan Départ pour chacun.
           </div>
           <div style="font-size:10px;color:var(--text-dim)" id="warmup-preview">—</div>
@@ -720,10 +733,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
             <button class="btn-start" style="padding:12px 24px" onclick="showPinOverlay()">Saisir le PIN</button>
           </div>
           <div id="saisie-unlocked-content">
-          <div class="chk-toggle">
-            <button class="chk-btn dep-on" id="btn-dep" onclick="setCheckpoint('DEPART')">&#128678; Depart</button>
-            <button class="chk-btn" id="btn-arr" onclick="setCheckpoint('ARRIVEE')">&#127937; Arrivee</button>
-          </div>
+          <div class="chk-toggle" id="chk-toggle"></div>
           <div class="badge-input-wrap">
             <input class="badge-input-big" id="badge-input" type="text"
               placeholder="Scanner ou saisir le badge..."
@@ -826,6 +836,30 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
         <div style="background:rgba(155,89,182,.08);border:1px solid rgba(155,89,182,.2);border-radius:6px;padding:10px 12px;margin-top:10px">
           <div style="font-size:11px;color:var(--text-mid)" id="cfg-nuit-preview">—</div>
         </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:6px">🎨 Identité de l'événement</div>
+        <div class="config-row"><span class="config-key">Nom complet</span><input class="input-field" id="cfg-ev-name" type="text" maxlength="60" style="width:260px"></div>
+        <div class="config-row"><span class="config-key">Nom court (onglet, exports)</span><input class="input-field" id="cfg-ev-short" type="text" maxlength="24" style="width:160px"></div>
+        <div class="config-row"><span class="config-key">Sous-titre du bandeau</span><input class="input-field" id="cfg-ev-sub" type="text" maxlength="40" style="width:200px"></div>
+        <div class="config-row"><span class="config-key">URL du logo (https://…)</span><input class="input-field" id="cfg-ev-logo" type="text" placeholder="vide = logo par défaut" style="width:260px"></div>
+        <div class="config-row"><span class="config-key">Couleur principale</span><span style="display:flex;gap:8px;align-items:center"><input type="color" id="cfg-col-primary-p" oninput="brandSync('primary',this.value)"><input class="input-field" id="cfg-col-primary" type="text" maxlength="7" style="width:90px;font-family:var(--mono)" oninput="brandSync('primary',this.value,true)"></span></div>
+        <div class="config-row"><span class="config-key">Couleur secondaire</span><span style="display:flex;gap:8px;align-items:center"><input type="color" id="cfg-col-secondary-p" oninput="brandSync('secondary',this.value)"><input class="input-field" id="cfg-col-secondary" type="text" maxlength="7" style="width:90px;font-family:var(--mono)" oninput="brandSync('secondary',this.value,true)"></span></div>
+        <div class="config-row"><span class="config-key">Fond</span><span style="display:flex;gap:8px;align-items:center"><input type="color" id="cfg-col-bg-p" oninput="brandSync('bg',this.value)"><input class="input-field" id="cfg-col-bg" type="text" maxlength="7" style="width:90px;font-family:var(--mono)" oninput="brandSync('bg',this.value,true)"></span></div>
+        <div class="config-row"><span class="config-key">Panneaux</span><span style="display:flex;gap:8px;align-items:center"><input type="color" id="cfg-col-panel-p" oninput="brandSync('panel',this.value)"><input class="input-field" id="cfg-col-panel" type="text" maxlength="7" style="width:90px;font-family:var(--mono)" oninput="brandSync('panel',this.value,true)"></span></div>
+        <div id="cfg-brand-warn" style="font-size:11px;color:var(--amber);margin-top:6px"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-start" style="padding:8px 16px" onclick="saveIdentity()">Enregistrer l'identité</button>
+          <button class="btn-reset" onclick="resetIdentity()">Valeurs par défaut</button>
+        </div>
+        <div class="confirm-msg" id="cfg-ev-msg"></div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+        <div class="config-panel-title" style="margin-bottom:6px">📍 Checkpoints</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Départ et Arrivée sont obligatoires. Le pré-enregistrement et le point intermédiaire sont facultatifs.</div>
+        <div id="cfg-cp-list"></div>
+        <button class="btn-start" style="padding:8px 16px;margin-top:8px" onclick="saveCheckpointsConfig()">Enregistrer les checkpoints</button>
+        <div class="confirm-msg" id="cfg-cp-msg"></div>
 
         <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
         <div class="config-panel-title" style="margin-bottom:10px">🖥️ Affichage plein écran</div>
@@ -1030,10 +1064,186 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   </div>
 
   <!-- TAB: CORRECTION TOURS -->
+  <!-- TAB: Bracelets -->
+  <div id="tab-bracelets" class="tab-section">
+    <div class="section-header"><div class="section-title">
+      <div class="section-icon equipe">📿</div>
+      <div><div class="section-name">Attribution des bracelets</div><div class="section-count" id="wb-progress">—</div></div>
+    </div></div>
+    <div style="position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Bracelet pour</div>
+        <div id="wb-target" style="font-size:20px;font-weight:800;color:var(--amber)">Choisissez une personne</div>
+        <div id="wb-target-sub" style="font-size:12px;color:var(--text-mid)"></div>
+      </div>
+      <input id="wb-input" class="input-field" type="text" autocomplete="off" placeholder="Scannez le bracelet…" style="width:260px;font-family:var(--mono)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();wbAssignFromInput();}">
+      <input id="wb-search" class="input-field" type="text" placeholder="Rechercher…" style="width:200px" oninput="renderWristbandTab()">
+      <label style="font-size:12px;color:var(--text-mid);display:flex;gap:6px;align-items:center"><input type="checkbox" id="wb-only-missing" onchange="renderWristbandTab()"> Sans bracelet seulement</label>
+    </div>
+    <div id="wb-msg" class="confirm-msg"></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concurrent</th><th>Personne</th><th>Bracelet</th><th style="width:150px">Actions</th></tr></thead>
+      <tbody id="wb-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- TAB: Aide -->
+  <div id="tab-aide" class="tab-section">
+    <div class="section-header"><div class="section-title">
+      <div class="section-icon solo">📖</div>
+      <div><div class="section-name">Aide et mode d'emploi</div><div class="section-count">Fonctionne sans connexion · v2.0.0-dev</div></div>
+    </div></div>
+    <div class="help">
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <input id="help-search" class="input-field" type="text" placeholder="Rechercher dans l'aide…" style="flex:1;min-width:220px" oninput="helpFilter()">
+        <button class="btn-reset" onclick="document.querySelectorAll('#tab-aide details').forEach(d=>d.open=true)">Tout ouvrir</button>
+        <button class="btn-reset" onclick="document.querySelectorAll('#tab-aide details').forEach(d=>d.open=false)">Tout fermer</button>
+        <button class="btn-reset" onclick="window.print()">Imprimer</button>
+      </div>
+
+      <details open><summary>1. Comment ça marche, en bref</summary>
+        <p>Le but : compter les tours de chaque concurrent sur une boucle, pendant la durée de la course. Chaque participant porte un <b>bracelet RFID</b>. Un bracelet scanné à un <b>checkpoint</b> (Départ, Arrivée, éventuellement un point intermédiaire) enregistre un <b>passage</b>.</p>
+        <ul>
+          <li>Un <b>tour</b> s'ouvre au scan de Départ et se valide au scan d'Arrivée.</li>
+          <li>Seuls les tours <b>validés</b> comptent. Un tour en cours n'ajoute ni point ni kilomètre.</li>
+          <li>Le classement porte sur le <b>concurrent</b> : un solo est un concurrent d'une personne, une équipe est un concurrent de plusieurs personnes.</li>
+          <li>Classement : points, puis nombre de tours, puis temps total, puis heure du dernier tour validé.</li>
+          <li>Un tour de nuit vaut plus de points (coefficient et plage horaire dans Configuration).</li>
+        </ul>
+      </details>
+
+      <details><summary>2. La règle d'équipe : un seul coureur à la fois</summary>
+        <p>Dans une équipe, <b>une seule personne est sur le parcours à la fois</b>. Tant que le coureur parti n'est pas revenu, personne d'autre dans l'équipe ne peut partir.</p>
+        <ul>
+          <li><b>Celui qui part doit revenir.</b> Une arrivée (ou un passage intermédiaire) avec un autre bracelet que celui du départ est refusée.</li>
+          <li>Le contrôle se fait au moment du scan : l'écran affiche <b>REFUSÉ</b> et la raison. Le scan n'est pas enregistré.</li>
+          <li>Si le réseau est coupé, le scan est accepté et signalé « contrôle hors-ligne ». Une anomalie peut apparaître ensuite dans l'onglet Anomalies.</li>
+          <li><b>Abandon en cours de tour</b> : l'organisation clôture le tour dans l'onglet Passages (bouton « Abandon »). Aucun point pour ce tour, l'équipe peut repartir.</li>
+        </ul>
+      </details>
+
+      <details><summary>3. Le tour de chauffe</summary>
+        <ol>
+          <li>Avant le départ, chaque participant qui veut courir scanne son bracelet au point <b>Présence</b> (à activer dans Configuration → Checkpoints).</li>
+          <li>L'heure de départ de la course est celle saisie dans <b>Configuration</b>.</li>
+          <li>Quand le tour de chauffe est terminé, l'organisation clique sur « Valider le tour de chauffe » (onglet Participants, PIN requis).</li>
+          <li>Chaque concurrent ayant <b>au moins un membre pré-enregistré</b> reçoit <b>un seul point</b>, même en équipe. Le tour compte dans les tours, les kilomètres et le dénivelé, mais pas dans les temps de tour.</li>
+          <li>Le <b>tour 2</b> est alors déjà ouvert pour ces concurrents. N'importe quel membre qui a scanné au point intermédiaire peut le clôturer à l'arrivée. Pas de scan de départ à faire.</li>
+        </ol>
+      </details>
+
+      <details><summary>4. Préparer une course (organisation)</summary>
+        <ol>
+          <li><b>Configuration</b> : nom de l'événement, couleurs (codes HEX), distance et dénivelé du tour, durée, heure de départ, coefficient de nuit, checkpoints, PIN opérateur.</li>
+          <li><b>Participants</b> : import CSV (colonnes <code>nom, prenom, badge_id, categorie, membres</code>) ou ajout à la main. Pour une équipe, listez les membres séparés par <code>|</code>.</li>
+          <li><b>Bracelets</b> : choisissez une personne, scannez son bracelet, la personne suivante est proposée automatiquement.</li>
+          <li><b>Appareils</b> : sur chaque Raspberry, cliquez le bouton du checkpoint voulu en haut, saisissez le PIN. Le choix est verrouillé sur l'appareil.</li>
+          <li>Faites un essai de bout en bout avec 2 bracelets avant le départ.</li>
+        </ol>
+      </details>
+
+      <details><summary>5. Les appareils et leurs rôles</summary>
+        <ul>
+          <li><b>Admin</b> : accès complet (ordinateur de l'organisation).</li>
+          <li><b>Checkpoint</b> : écran de scan plein écran. Un bouton par checkpoint actif dans le bandeau. Le choix est verrouillé jusqu'à la saisie du PIN.</li>
+          <li><b>Affichage</b> : l'onglet Classement en plein écran, pour la salle ou l'écran géant.</li>
+          <li>Tous les appareils lisent la même base de données : une modification faite sur l'un apparaît sur les autres en moins d'une minute (les suppressions peuvent prendre jusqu'à 5 minutes).</li>
+        </ul>
+      </details>
+
+      <details><summary>6. Pendant la course</summary>
+        <ul>
+          <li>Surveillez l'onglet <b>Anomalies</b> : il liste les scans ignorés ou douteux (double départ, arrivée refusée, tour sans passage intermédiaire…).</li>
+          <li>L'onglet <b>Passages</b> (PIN) liste tous les scans. Vous pouvez modifier l'heure d'un tour, supprimer un scan, ajouter un tour manuel ou clôturer un tour pour abandon.</li>
+          <li><b>+pts défi</b> (onglet Classement) ajoute des points bonus à un concurrent.</li>
+          <li>Un scan manuel peut être saisi dans l'onglet <b>Saisie</b>.</li>
+        </ul>
+      </details>
+
+      <details><summary>7. Après la course</summary>
+        <ul>
+          <li>Utilisez « Clôturer la course » pour fermer les tours encore en cours.</li>
+          <li>Exportez le classement en <b>HTML</b> (à partager) ou en <b>snippet Odoo</b>. Les exports reprennent le nom et la couleur de l'événement.</li>
+          <li>Conservez une copie des données : exportez les passages avant de réinitialiser la base pour la course suivante.</li>
+        </ul>
+      </details>
+
+      <details><summary>8. Problèmes fréquents</summary>
+        <ul>
+          <li><b>Caractères bizarres à la lecture d'un bracelet</b> (par exemple <code>ÀÀ(Ç</code>) : le lecteur émet des touches et le clavier est en AZERTY ou QWERTY. Le plus simple est de garder le même clavier sur tous les appareils : les identifiants restent alors cohérents.</li>
+          <li><b>Le classement ne bouge plus</b> : regardez la barre d'état (Supabase connecté ?). Une erreur 402 signifie que le quota mensuel de données du service est atteint.</li>
+          <li><b>Un scan est refusé à tort</b> : vérifiez dans Passages qui est « en cours » pour ce concurrent. Clôturez le tour par « Abandon » si le coureur est rentré sans scanner.</li>
+          <li><b>Bracelet inconnu</b> : il n'est pas attribué. Attribuez-le dans l'onglet Bracelets. Le scan déjà fait reste enregistré et sera pris en compte dès l'attribution.</li>
+          <li><b>Horloges</b> : les heures viennent de l'horloge de chaque appareil. Vérifiez qu'elles sont à l'heure avant la course.</li>
+        </ul>
+      </details>
+
+      <details><summary>9. Où sont stockées les données ?</summary>
+        <p>Les passages, participants, bracelets et réglages sont dans la base <b>Supabase</b>. Le fichier de l'application (HTML) est hébergé sur Vercel ou copié sur chaque Raspberry. Un appareil sans internet continue de scanner et renvoie les passages dès que la connexion revient, tant que la page reste ouverte.</p>
+        <p style="color:var(--amber)">Attention : si vous rechargez la page d'un appareil hors-ligne, les scans non envoyés sont perdus.</p>
+      </details>
+
+      <details><summary>10. Glossaire</summary>
+        <ul>
+          <li><b>Concurrent</b> : ce qui est classé (un solo ou une équipe).</li>
+          <li><b>Bracelet</b> : identifiant RFID d'une personne.</li>
+          <li><b>Passage</b> : un scan à un checkpoint.</li>
+          <li><b>Tour</b> : un Départ suivi d'une Arrivée par le même bracelet.</li>
+          <li><b>Point intermédiaire</b> : validation à mi-parcours, pour éviter qu'on coupe le parcours. Une fois par tour.</li>
+          <li><b>Anomalie</b> : scan ignoré ou douteux, visible dans l'onglet Anomalies.</li>
+        </ul>
+      </details>
+    </div>
+  </div>
+
+  <!-- TAB: Simulation -->
+  <div id="tab-simulation" class="tab-section">
+    <div class="section-header"><div class="section-title">
+      <div class="section-icon solo">🧪</div>
+      <div><div class="section-name">Simulation de charge</div><div class="section-count" id="sim-state">Locale : aucune donnée n'est envoyée à Supabase</div></div>
+    </div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+      <div class="config-panel">
+        <div class="config-panel-title">Course simulée</div>
+        <div class="config-row"><span class="config-key">Solos</span><input class="input-field" id="sim-solos" type="number" value="100" min="0" max="1000" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Équipes</span><input class="input-field" id="sim-teams" type="number" value="50" min="0" max="300" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Membres par équipe</span><input class="input-field" id="sim-tsize" type="number" value="8" min="1" max="12" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Vitesse (× temps réel)</span><input class="input-field" id="sim-accel" type="number" value="600" min="60" max="3600" style="width:90px"></div>
+        <div class="config-panel-title" style="margin-top:14px">Appareils connectés</div>
+        <div class="config-row"><span class="config-key">Raspberry (checkpoints)</span><input class="input-field" id="sim-pi" type="number" value="3" min="0" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Écrans d'affichage</span><input class="input-field" id="sim-display" type="number" value="2" min="0" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Postes admin</span><input class="input-field" id="sim-admin" type="number" value="2" min="0" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Spectateurs simultanés (moy.)</span><input class="input-field" id="sim-spec" type="number" value="30" min="0" style="width:90px"></div>
+        <div class="config-row"><span class="config-key">Rafraîchissement spectateurs (s)</span><input class="input-field" id="sim-spec-int" type="number" value="15" min="15" step="15" style="width:90px"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn-start" style="padding:8px 16px" onclick="simStart()">▶ Lancer la simulation</button>
+          <button class="btn-reset" onclick="simCompute()">Calculer la projection seule</button>
+          <button class="btn-reset" style="border-color:var(--red);color:var(--red)" onclick="simStop()">■ Arrêter et recharger</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:10px">La simulation remplace temporairement les données affichées sur CET appareil et bloque tout échange avec Supabase. « Arrêter » recharge la page et restaure les vraies données. À lancer hors course.</div>
+      </div>
+      <div class="config-panel">
+        <div class="config-panel-title">Performance sur cet appareil</div>
+        <div id="sim-perf" style="font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--text)">—</div>
+        <div class="config-panel-title" style="margin-top:14px">Poids des données (mesuré)</div>
+        <div id="sim-size" style="font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--text)">—</div>
+      </div>
+    </div>
+    <div class="config-panel" style="margin-top:16px">
+      <div class="config-panel-title">Projection de la consommation Supabase sur 24 h</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stratégie de mise à jour</th><th>Sans compression</th><th>Avec gzip</th><th>Requêtes</th><th>Quota gratuit (5 Go)</th></tr></thead>
+        <tbody id="sim-proj"><tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px">Cliquez sur « Calculer la projection ».</td></tr></tbody>
+      </table></div>
+      <div id="sim-notes" style="font-size:12px;color:var(--text-mid);margin-top:10px;line-height:1.6"></div>
+    </div>
+  </div>
+
   <div id="tab-correction" class="tab-section">
     <div style="max-width:600px;margin:0 auto">
 
-      <div style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:8px;padding:16px;margin-bottom:24px">
+      <div style="background:rgba(var(--amber-rgb),.1);border:1px solid rgba(var(--amber-rgb),.3);border-radius:8px;padding:16px;margin-bottom:24px">
         <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px">⚡ Ajout de tours manuels</div>
         <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
           Scannez un badge ou entrez l'ID manuellement, indiquez le nombre de tours à ajouter.<br>
@@ -1244,14 +1454,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
   <div style="padding:8px 12px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0">
     <div id="pi-scan-count" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);white-space:nowrap">0 scan</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-      <button onclick="switchPiCheckpoint('DEPART')" id="pi-switch-dep"
-        style="background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.4);color:var(--amber);border-radius:4px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--sans)">
-        🚦 Départ
-      </button>
-      <button onclick="switchPiCheckpoint('ARRIVEE')" id="pi-switch-arr"
-        style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);color:var(--green);border-radius:4px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--sans)">
-        🏁 Arrivée
-      </button>
+      <span id="pi-switch-btns" style="display:contents"></span>
       <button onclick="exitPiMode()"
         style="background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:5px 8px;font-size:10px;cursor:pointer;font-family:var(--sans)">
         Quitter
@@ -1299,16 +1502,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
     <div style="font-size:36px;margin-bottom:16px">&#127915;</div>
     <div style="font-size:18px;font-weight:800;color:var(--white);margin-bottom:8px">Choisir le checkpoint</div>
     <div style="font-size:13px;color:var(--text-mid);margin-bottom:28px">Ce choix sera verrouille sur cet appareil.<br>Pour changer, resaisir le PIN.</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <button onclick="lockCheckpoint('DEPART')"
-        style="padding:24px 16px;background:rgba(245,166,35,.15);border:2px solid var(--amber);border-radius:10px;color:var(--amber);font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase">
-        &#128678;<br>DEPART
-      </button>
-      <button onclick="lockCheckpoint('ARRIVEE')"
-        style="padding:24px 16px;background:rgba(46,204,113,.15);border:2px solid var(--green);border-radius:10px;color:var(--green);font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase">
-        &#127937;<br>ARRIVEE
-      </button>
-    </div>
+    <div id="chk-lock-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px"></div>
   </div>
 </div>
 
@@ -1456,8 +1650,8 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
       <!-- Record du tour (général) -->
       <div style="text-align:center;min-width:130px">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:3px">⚡ Record général</div>
-        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:#F07300" id="fs-best-time">—</div>
-        <div style="font-size:12px;font-weight:600;color:#F07300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" id="fs-best-who">—</div>
+        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--record)" id="fs-best-time">—</div>
+        <div style="font-size:12px;font-weight:600;color:var(--record);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" id="fs-best-who">—</div>
       </div>
 
       <div style="width:1px;height:60px;background:var(--border)"></div>
@@ -1516,7 +1710,7 @@ footer{border-top:1px solid var(--border);padding:10px 28px;display:flex;justify
 </div>
 
 <footer>
-  <span>UTBM 24H Trail · Système de classement live</span>
+  <span id="footer-event">UTBM 24H Trail · Système de classement live</span>
   <span style="font-family:var(--mono)">Mise à jour : <span id="lastUpdate">—</span></span>
 </footer>
 </div><!-- #app -->
@@ -1576,12 +1770,14 @@ let timerRafId      = null;
 let piTimerRafId    = null;
 
 /* Supabase — credentials pré-configurés */
-let SUPA_URL        = 'https://xxthgejhnxnzotgyxiaj.supabase.co';
-let SUPA_ANON_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dGhnZWpobnhuem90Z3l4aWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjI0NzgsImV4cCI6MjA5NzQ5ODQ3OH0.lVO6E0e0BX9fR_9-o1CK8eQtLpGk4X6gitABiO-wUKY';
-let SUPA_OP_KEY     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dGhnZWpobnhuem90Z3l4aWFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTkyMjQ3OCwiZXhwIjoyMDk3NDk4NDc4fQ.vZK_8IngUOoCSD56Ip9HjccSv1-W07ejLPC3ESP3u3o';
+/* Les clés Supabase ne sont plus dans la page : tout passe par le relais sécurisé (api/db) */
+let SUPA_URL        = 'https://utbm-live.vercel.app/api/db';
+let SUPA_ANON_KEY   = 'proxy';   // valeur factice (indicateur « connecté »)
+let SUPA_OP_KEY     = 'proxy';   // valeur factice
+let ADMIN_PIN       = '';        // PIN administrateur (session uniquement, jamais enregistré)
 let supaTimerId     = null;
 
-/* Sécurité opérateur */
+/* Sécurité opérateur (le PIN est vérifié côté serveur par le relais) */
 let OPERATOR_PIN    = '';   // PIN défini par l'organisateur
 let sessionUnlocked = false;// true après saisie correcte du PIN
 let lockedCheckpoint = null;// 'DEPART' | 'ARRIVEE' | null (verrouillé après choix)
@@ -1592,6 +1788,7 @@ let lockedCheckpoint = null;// 'DEPART' | 'ARRIVEE' | null (verrouillé après c
 const LS_KEY = 'utbm_race_v2';
 
 function saveState() {
+  if (typeof SIM_ACTIVE !== 'undefined' && SIM_ACTIVE) return;
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       raceStart:    RACE_START ? RACE_START.toISOString() : null,
@@ -1604,9 +1801,10 @@ function saveState() {
       heureNuitDeb: HEURE_NUIT_DEB,
       heureNuitFin: HEURE_NUIT_FIN,
       participants: PARTICIPANTS,
+      checkpoints:  CHECKPOINTS.map(c => ({ code: c.code, name: c.name, enabled: c.enabled !== false })),
+      wristbands:   WRISTBANDS,
+      identity:     { event: EVENT, brand: { primary: BRAND.primary, secondary: BRAND.secondary, bg: BRAND.bg, panel: BRAND.panel } },
       supaUrl:      SUPA_URL,
-      supaAnonKey:  SUPA_ANON_KEY,
-      supaOpKey:    SUPA_OP_KEY,
       operatorPin:  OPERATOR_PIN,
       lockedChk:    deviceType === 'checkpoint' ? lockedCheckpoint : null,
     }));
@@ -1675,10 +1873,10 @@ function exportClassementHTML() {
       const bonus = bonusPoints[r.badge_id] ? ' <span style="color:#9b59b6;font-size:11px">(+' + bonusPoints[r.badge_id] + ' bonus)</span>' : '';
       const speedBadge = speedTop.includes(r.badge_id) ? ' ' + speedM[speedTop.indexOf(r.badge_id)] : '';
       return '<tr style="background:' + bg + '">'
-        + '<td style="padding:10px 16px;font-size:20px;font-weight:800;color:' + (i<3?'#F07300':'#8aafc8') + '">' + medal + '</td>'
+        + '<td style="padding:10px 16px;font-size:20px;font-weight:800;color:' + (i<3?BRAND.record:'#8aafc8') + '">' + medal + '</td>'
         + '<td style="padding:10px 16px;font-weight:700;color:#ebf4ff;font-size:15px">' + esc(r.name) + bonus + '</td>'
         + '<td style="padding:10px 16px;font-family:monospace;color:#1abc9c;font-size:18px;font-weight:800;text-align:center">' + r.tours + '</td>'
-        + '<td style="padding:10px 16px;font-family:monospace;color:#F07300;font-size:18px;font-weight:800;text-align:center">' + r.points + '</td>'
+        + '<td style="padding:10px 16px;font-family:monospace;color:' + BRAND.record + ';font-size:18px;font-weight:800;text-align:center">' + r.points + '</td>'
         + '<td style="padding:10px 16px;font-family:monospace;color:#1abc9c;text-align:center">' + r.distance.toFixed(1) + ' km</td>'
         + '<td style="padding:10px 16px;font-family:monospace;color:#5a7a96;text-align:center">'
         + (speedTop.includes(r.badge_id) ? speedM[speedTop.indexOf(r.badge_id)] + ' ' : '')
@@ -1694,50 +1892,49 @@ function exportClassementHTML() {
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UTBM 24H — Classement Final</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>${esc(EVENT.short)} — Classement Final</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
+  html { overflow-x:hidden; }
+  body { overflow-x:hidden; max-width:100vw; }
+  html, body { width:100%; }
   body { background:#0b0f14; color:#c8dcf0; font-family:system-ui,sans-serif; }
-  header { background:#16202b; border-bottom:3px solid #F07300; padding:20px 40px; display:flex; align-items:center; justify-content:space-between; }
-  .logo { height:60px; }
-  .title { font-size:24px; font-weight:800; color:#fff; }
-  .subtitle { font-size:13px; color:#5a7a96; margin-top:4px; }
-  .stats-bar { background:#111820; padding:16px 40px; display:flex; gap:40px; border-bottom:1px solid #1e2d3d; }
+  .title { font-size:14px; font-weight:800; color:#fff; }
+  .subtitle { font-size:10px; color:#5a7a96; margin-top:1px; }
+  .stats-bar { background:#111820; padding:6px 16px; display:flex; gap:16px; border-bottom:1px solid #1e2d3d; flex-wrap:nowrap; align-items:center; width:100%; box-sizing:border-box; overflow-x:auto; }
   .stat { text-align:center; }
-  .stat-val { font-family:monospace; font-size:28px; font-weight:700; color:#1abc9c; }
-  .stat-lbl { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#5a7a96; margin-top:3px; }
-  .section { max-width:1100px; margin:30px auto; padding:0 20px; }
+  .stat-val { font-family:monospace; font-size:15px; font-weight:700; color:#1abc9c; }
+  .stat-lbl { font-size:8px; text-transform:uppercase; letter-spacing:.08em; color:#5a7a96; margin-top:1px; }
+  .section { max-width:100%; margin:12px 0; padding:0 10px; }
   .section-title { font-size:18px; font-weight:800; color:#fff; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #1e2d3d; display:flex; align-items:center; gap:10px; }
-  table { width:100%; border-collapse:collapse; }
+  table { width:100%; border-collapse:collapse; display:block; overflow-x:auto; }
   th { background:#16202b; padding:10px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:#5a7a96; font-weight:700; }
   th:nth-child(3),th:nth-child(4),th:nth-child(5),th:nth-child(6) { text-align:center; }
   tr { border-bottom:1px solid #1e2d3d; }
-  .record { background:#1a1200; border:1px solid #F07300; border-radius:8px; padding:14px 20px; margin-bottom:20px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+  .record { background:#1a1200; border:1px solid ${BRAND.record}; border-radius:6px; padding:8px 12px; margin:8px 10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; box-sizing:border-box; }
   .record-item { text-align:center; }
-  .record-val { font-family:monospace; font-size:22px; font-weight:700; color:#F07300; }
-  .record-lbl { font-size:10px; color:#5a7a96; text-transform:uppercase; margin-top:3px; }
+  .record-val { font-family:monospace; font-size:16px; font-weight:700; color:${BRAND.record}; }
+  .record-lbl { font-size:9px; color:#5a7a96; text-transform:uppercase; margin-top:2px; }
   footer { text-align:center; padding:30px; color:#2a3d52; font-size:12px; margin-top:40px; }
   @media print { body { background:#fff!important; color:#000!important; } }
 </style>
 </head>
 <body>
-<header>
-  <div style="display:flex;align-items:center;gap:20px">
-    <img src="${logo}" class="logo" alt="UTBM">
-    <div>
-      <div class="title">UTBM — Ultra Trail de Blegny Mine</div>
-      <div class="subtitle">Classement final · Exporté le ${now}</div>
-    </div>
+<header style="display:flex;align-items:center;background:#16202b;border-bottom:2px solid ${BRAND.record};padding:8px 16px;gap:10px;box-sizing:border-box">
+  <img src="${logo}" alt="" width="38" height="32" style="flex-shrink:0;display:block">
+  <div style="flex:1;min-width:0;overflow:hidden">
+    <div style="font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(EVENT.name)}</div>
+    <div style="font-size:9px;color:#5a7a96;margin-top:1px">Classement final · ${now}</div>
   </div>
-  <div style="text-align:right">
-    <div style="font-family:monospace;font-size:36px;font-weight:700;color:#f5a623">${fmtTime(DUREE_COURSE*3600)} course</div>
-    <div style="font-size:11px;color:#5a7a96">Distance par tour : ${DISTANCE_TOUR} km · D+ : ${DENIVELE_TOUR} m</div>
+  <div style="flex-shrink:0;text-align:right;white-space:nowrap">
+    <div style="font-family:monospace;font-size:13px;font-weight:700;color:${BRAND.primary}">${fmtTime(DUREE_COURSE*3600)}</div>
+    <div style="font-size:9px;color:#5a7a96">${DISTANCE_TOUR}km · ${DENIVELE_TOUR}m D+</div>
   </div>
 </header>
 
-<div class="stats-bar">
-  <div class="stat"><div class="stat-val">${gs.totalTours}</div><div class="stat-lbl">Tours validés</div></div>
+<div class="stats-bar" style="justify-content:space-around;flex-wrap:nowrap">
+  <div class="stat"><div class="stat-val">${gs.totalTours}</div><div class="stat-lbl">Tours</div></div>
   <div class="stat"><div class="stat-val">${gs.totalKm.toFixed(0)} km</div><div class="stat-lbl">Distance totale</div></div>
   <div class="stat"><div class="stat-val">${gs.totalDplus.toFixed(0)} m</div><div class="stat-lbl">D+ cumulé</div></div>
   <div class="stat"><div class="stat-val">${solos.length}</div><div class="stat-lbl">Solos</div></div>
@@ -1751,16 +1948,16 @@ function exportClassementHTML() {
     <div style="width:1px;height:40px;background:#1e2d3d"></div>
     <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">🏃 Record solo</div><div class="record-val" style="color:#1abc9c">${gs.bestSoloLap ? fmtTime(gs.bestSoloLap) : '—'}</div><div class="record-lbl">${gs.bestSoloWho || ''}</div></div>
     <div style="width:1px;height:40px;background:#1e2d3d"></div>
-    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">🏃 Leader solo</div><div class="record-val" style="color:#f5a623;font-size:18px">${solos.length > 0 ? esc(solos[0].name) : '—'}</div><div class="record-lbl">${solos.length > 0 ? solos[0].points + ' pts · ' + solos[0].tours + ' tours' : ''}</div></div>
+    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">🏃 Leader solo</div><div class="record-val" style="color:${BRAND.primary};font-size:18px">${solos.length > 0 ? esc(solos[0].name) : '—'}</div><div class="record-lbl">${solos.length > 0 ? solos[0].points + ' pts · ' + solos[0].tours + ' tours' : ''}</div></div>
     <div style="width:1px;height:40px;background:#1e2d3d"></div>
-    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">👥 Leader équipe</div><div class="record-val" style="color:#f5a623;font-size:18px">${equipes.length > 0 ? esc(equipes[0].name) : '—'}</div><div class="record-lbl">${equipes.length > 0 ? equipes[0].points + ' pts · ' + equipes[0].tours + ' tours' : ''}</div></div>
+    <div class="record-item"><div style="font-size:12px;color:#5a7a96;margin-bottom:4px">👥 Leader équipe</div><div class="record-val" style="color:${BRAND.primary};font-size:18px">${equipes.length > 0 ? esc(equipes[0].name) : '—'}</div><div class="record-lbl">${equipes.length > 0 ? equipes[0].points + ' pts · ' + equipes[0].tours + ' tours' : ''}</div></div>
   </div>
 
   <div class="section-title">🏃 Classement Solo</div>
-  <table>
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table>
     <thead><tr><th>Rang</th><th>Participant</th><th>Tours</th><th>Points</th><th>Distance</th><th>Meilleur tour</th></tr></thead>
     <tbody>${renderRows(solos)}</tbody>
-  </table>
+  </table></div>
 </div>
 
 <div class="section">
@@ -1768,10 +1965,10 @@ function exportClassementHTML() {
   <table>
     <thead><tr><th>Rang</th><th>Équipe</th><th>Tours</th><th>Points</th><th>Distance</th><th>Meilleur tour</th></tr></thead>
     <tbody>${renderRows(equipes)}</tbody>
-  </table>
+  </table></div>
 </div>
 
-<footer>UTBM — Ultra Trail de Blegny Mine · Classement généré le ${now} · Système de classement live</footer>
+<footer>${esc(EVENT.name)} · Classement généré le ${now} · Système de classement live</footer>
 </body>
 </html>`;
 
@@ -1780,7 +1977,77 @@ function exportClassementHTML() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = 'UTBM_Classement_' + new Date().toISOString().slice(0,16).replace('T','_') + '.html';
+  a.download = fileSlug() + '_Classement_' + new Date().toISOString().slice(0,16).replace('T','_') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportOdooSnippet() {
+  const { solos, equipes } = processScans(allScans);
+  const now = new Date().toLocaleString('fr-FR');
+  const gs  = computeGlobalStats(solos, equipes);
+
+  function rows(data) {
+    return data.filter(r => r.points > 0).map((r, i) => {
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+      const bg    = i===0?'background:#1a2a1a':i===1?'background:#1a1a2a':i===2?'background:#2a1a0a':'';
+      return `<tr style="${bg}">
+        <td style="padding:8px 12px;font-size:16px;font-weight:800">${medal}</td>
+        <td style="padding:8px 12px;font-weight:700;color:#ebf4ff">${esc(r.name)}${bonusPoints[r.badge_id]?' <small style="color:#9b59b6">(+'+bonusPoints[r.badge_id]+' bonus)</small>':''}</td>
+        <td style="padding:8px 12px;text-align:center;font-family:monospace;font-size:16px;font-weight:800;color:#1abc9c">${r.tours}</td>
+        <td style="padding:8px 12px;text-align:center;font-family:monospace;font-size:16px;font-weight:800;color:${BRAND.primary}">${r.points}</td>
+        <td style="padding:8px 12px;text-align:center;color:#5a7a96;font-family:monospace">${r.distance.toFixed(1)} km</td>
+        <td style="padding:8px 12px;text-align:center;color:#5a7a96;font-family:monospace">${r.bestLapTime?fmtTime(r.bestLapTime):'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const snippet = `<!-- ${esc(EVENT.short)} Classement Final — ${now} -->
+<style>
+#utbm-result *{box-sizing:border-box;margin:0;padding:0}
+#utbm-result{font-family:system-ui,sans-serif;background:#0b0f14;color:#c8dcf0;border-radius:10px;overflow:hidden;max-width:100%}
+#utbm-result table{width:100%;border-collapse:collapse}
+#utbm-result th{background:#16202b;padding:7px 12px;text-align:left;font-size:10px;text-transform:uppercase;color:#5a7a96}
+#utbm-result td{border-bottom:1px solid #1e2d3d}
+</style>
+<div id="utbm-result">
+  <div style="background:#16202b;border-bottom:2px solid ${BRAND.record};padding:10px 16px;display:flex;align-items:center;gap:10px">
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:800;color:#fff">${esc(EVENT.name)}</div>
+      <div style="font-size:9px;color:#5a7a96;margin-top:2px">Classement final · ${now}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-family:monospace;font-size:13px;font-weight:700;color:${BRAND.primary}">${fmtTime(DUREE_COURSE*3600)}</div>
+      <div style="font-size:9px;color:#5a7a96">${DISTANCE_TOUR}km · ${DENIVELE_TOUR}m D+</div>
+    </div>
+  </div>
+  <div style="background:#111820;padding:6px 16px;display:flex;gap:20px;flex-wrap:wrap;border-bottom:1px solid #1e2d3d">
+    <div style="text-align:center"><div style="font-family:monospace;font-size:15px;font-weight:700;color:#1abc9c">${gs.totalTours}</div><div style="font-size:8px;text-transform:uppercase;color:#5a7a96">Tours</div></div>
+    <div style="text-align:center"><div style="font-family:monospace;font-size:15px;font-weight:700;color:#1abc9c">${gs.totalKm.toFixed(0)} km</div><div style="font-size:8px;text-transform:uppercase;color:#5a7a96">Distance</div></div>
+    <div style="text-align:center"><div style="font-family:monospace;font-size:15px;font-weight:700;color:#1abc9c">${solos.length}</div><div style="font-size:8px;text-transform:uppercase;color:#5a7a96">Solos</div></div>
+    <div style="text-align:center"><div style="font-family:monospace;font-size:15px;font-weight:700;color:#1abc9c">${equipes.length}</div><div style="font-size:8px;text-transform:uppercase;color:#5a7a96">Équipes</div></div>
+  </div>
+  <div style="background:#1a1200;border-bottom:1px solid ${BRAND.record};padding:8px 16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+    <div style="text-align:center"><div style="font-size:8px;color:#5a7a96">⚡ Record général</div><div style="font-family:monospace;font-size:15px;font-weight:700;color:${BRAND.record}">${gs.bestLap?fmtTime(gs.bestLap):'—'}</div><div style="font-size:9px;color:#5a7a96">${gs.bestLapWho||''}</div></div>
+    <div style="text-align:center"><div style="font-size:8px;color:#5a7a96">🏃 Record solo</div><div style="font-family:monospace;font-size:15px;font-weight:700;color:#1abc9c">${gs.bestSoloLap?fmtTime(gs.bestSoloLap):'—'}</div><div style="font-size:9px;color:#5a7a96">${gs.bestSoloWho||''}</div></div>
+    <div style="text-align:center"><div style="font-size:8px;color:#5a7a96">🏃 Leader solo</div><div style="font-size:13px;font-weight:800;color:${BRAND.primary}">${solos.length>0?esc(solos[0].name):'—'}</div><div style="font-size:9px;color:#5a7a96">${solos.length>0?solos[0].points+' pts':''}</div></div>
+    <div style="text-align:center"><div style="font-size:8px;color:#5a7a96">👥 Leader équipe</div><div style="font-size:13px;font-weight:800;color:${BRAND.primary}">${equipes.length>0?esc(equipes[0].name):'—'}</div><div style="font-size:9px;color:#5a7a96">${equipes.length>0?equipes[0].points+' pts':''}</div></div>
+  </div>
+  <div style="padding:14px 16px">
+    <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #1e2d3d">🏃 Classement Solo</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Rang</th><th>Participant</th><th style="text-align:center">Tours</th><th style="text-align:center">Pts</th><th style="text-align:center">Km</th><th style="text-align:center">Meilleur</th></tr></thead><tbody>${rows(solos)}</tbody></table></div>
+  </div>
+  <div style="padding:14px 16px;border-top:1px solid #1e2d3d">
+    <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #1e2d3d">👥 Classement Équipes</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Rang</th><th>Équipe</th><th style="text-align:center">Tours</th><th style="text-align:center">Pts</th><th style="text-align:center">Km</th><th style="text-align:center">Meilleur</th></tr></thead><tbody>${rows(equipes)}</tbody></table></div>
+  </div>
+</div>`;
+
+  const blob = new Blob([snippet], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = fileSlug() + '_Odoo_' + new Date().toISOString().slice(0,10) + '.html';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -1791,68 +2058,34 @@ async function closeCourse() {
   if (pin === null) return;
   if (OPERATOR_PIN && pin !== OPERATOR_PIN) { alert('PIN incorrect.'); return; }
 
-  // Trouver tous les participants "en cours" (DEPART sans ARRIVEE)
-  const openLaps = {};
-  for (const scan of allScans) {
-    const b = scan.badge_id, chk = scan.checkpoint;
-    if (!openLaps[b]) openLaps[b] = null;
-    if (chk === 'DEPART')  openLaps[b] = scan.timestamp;
-    if (chk === 'ARRIVEE') openLaps[b] = null;
-  }
-  const openBadges = Object.entries(openLaps).filter(([b,t]) => t !== null).map(([b]) => b);
-
-  if (openBadges.length === 0) {
-    alert('Aucun participant en cours — la course est déjà propre.');
+  // Concurrents dont un tour est encore ouvert (calcul du moteur)
+  const { solos, equipes } = processScans(allScans);
+  const open = [...solos, ...equipes].filter(r => r.onCourse);
+  if (open.length === 0) {
+    alert('Aucun concurrent en cours — la course est déjà propre.');
     return;
   }
-
-  const names = openBadges.map(b => {
-    const p = PARTICIPANTS[b];
-    return p ? p.name : b;
-  });
-
+  const names = open.map(r => r.name);
   const ok = confirm(
-    'Cloturer la course ? ' + openBadges.length + ' participant(s) en cours perdent leur tour ouvert : '
-    + names.slice(0,5).join(', ') + (names.length > 5 ? ' ...' : '')
-    + ' — Les points acquis sont conserves.'
+    'Clôturer la course ? ' + open.length + ' concurrent(s) en cours perdent leur tour ouvert : '
+    + names.slice(0, 5).join(', ') + (names.length > 5 ? ' ...' : '')
+    + ' — Les points acquis sont conservés.'
   );
   if (!ok) return;
 
-  // Injecter un scan DEPART fictif "annulé" pour fermer proprement
-  // La solution la plus simple : supprimer le dernier DEPART de chaque participant en cours
-  // → leur tour ouvert disparaît, ils ne sont plus "en cours"
+  // Un passage ABANDON (organisation) clôt chaque tour ouvert, sans point.
+  // Rien n'est supprimé : l'historique reste intact.
   let fixed = 0, errors = 0;
-
-  for (const badge of openBadges) {
-    // Trouver le dernier scan DEPART de ce badge
-    let lastDepIdx = -1;
-    for (let i = allScans.length - 1; i >= 0; i--) {
-      if (allScans[i].badge_id === badge && allScans[i].checkpoint === 'DEPART') {
-        lastDepIdx = i; break;
-      }
-    }
-    if (lastDepIdx < 0) continue;
-
-    const scan = allScans[lastDepIdx];
-    // Supprimer en Supabase
-    if (SUPA_URL && SUPA_OP_KEY) {
-      try {
-        const query = scan.id
-          ? 'scans?id=eq.' + scan.id
-          : 'scans?badge_id=eq.' + encodeURIComponent(scan.badge_id)
-            + '&checkpoint=eq.DEPART'
-            + '&timestamp=eq.' + encodeURIComponent(scan.timestamp.toISOString());
-        await supaFetch(query, { method: 'DELETE', write: true });
-      } catch(e) { console.warn('Delete open lap error:', badge, e.message); errors++; continue; }
-    }
-    // Supprimer localement
-    allScans.splice(lastDepIdx, 1);
-    fixed++;
+  const now = new Date();
+  for (const r of open) {
+    const ab = { timestamp: now, badge_id: r.badge_id, checkpoint: 'ABANDON', source: 'organisation' };
+    try { await pushScanToSupabase(ab); ab.supaId = 'pushed'; fixed++; }
+    catch (e) { console.warn('Close open lap error:', r.badge_id, e.message); errors++; }
+    allScans.push(ab);
   }
-
+  allScans.sort((a, b) => a.timestamp - b.timestamp);
   updateUI();
-
-  alert('Course cloturee : ' + fixed + ' tour(s) annule(s).' + (errors > 0 ? ' ' + errors + ' erreur(s).' : ''));
+  alert('Course clôturée : ' + fixed + ' tour(s) clôturé(s).' + (errors > 0 ? ' ' + errors + ' erreur(s) d\'envoi (appliqué localement seulement).' : ''));
 }
 
 async function resetRace() {
@@ -2078,7 +2311,7 @@ function parseCSV(csv) {
     if (cols.length < 3) continue;
     const date = new Date(cols[iTs].replace(' ','T'));
     const chk  = cols[iChk].toUpperCase();
-    if (isNaN(date) || (chk !== 'DEPART' && chk !== 'ARRIVEE')) continue;
+    if (isNaN(date) || cpType(chk) === null) continue;
     scans.push({ timestamp: date, badge_id: cols[iBid], checkpoint: chk });
   }
   scans.sort((a, b) => a.timestamp - b.timestamp);
@@ -2156,63 +2389,660 @@ function debugLapPoints() {
 /* ================================================================
    TRAITEMENT DES SCANS
    ================================================================ */
+/* ── Checkpoints configurables & bracelets ─────────────────────────
+   type : presence (pré-enregistrement) | start | mid | end
+   Codes réservés : WARMUP (validation du tour de chauffe, injecté par
+   l'organisation) et ABANDON (clôture d'un tour sans point).          */
+const DEFAULT_CHECKPOINTS = [
+  { code:'PRESENCE', name:'Pré-enregistrement', type:'presence', enabled:false },
+  { code:'DEPART',   name:'Départ',             type:'start',    enabled:true  },
+  { code:'INTER',    name:'Intermédiaire',      type:'mid',      enabled:false },
+  { code:'ARRIVEE',  name:'Arrivée',            type:'end',      enabled:true  },
+];
+let CHECKPOINTS = DEFAULT_CHECKPOINTS.map(c => ({ ...c }));
+// Bracelets : { bracelet_id: { comp: <clé PARTICIPANTS>, person: 'Nom' } }
+// Un badge absent de cette table mais présent dans PARTICIPANTS = ancien mode
+// (le badge identifie directement le concurrent, sans personne).
+let WRISTBANDS = {};
+
+function cpType(code) {
+  const c = CHECKPOINTS.find(c => c.code === code);
+  if (c) return c.type;
+  if (code === 'WARMUP')  return 'warmup';
+  if (code === 'ABANDON') return 'abort';
+  return null;
+}
+function resolveWristband(badge) {
+  const w = WRISTBANDS[badge];
+  if (w && PARTICIPANTS[w.comp]) return { comp: w.comp, person: w.person || null };
+  if (PARTICIPANTS[badge])       return { comp: badge,  person: null };
+  return null;
+}
+/* ── Présentation des checkpoints (boutons dynamiques) ── */
+const CP_STYLE = {
+  presence: { icon:'📋', color:'var(--purple)', cls:'role-dep', on:'dep-on' },
+  start:    { icon:'🚦', color:'var(--amber)',  cls:'role-dep', on:'dep-on' },
+  mid:      { icon:'⛰️', color:'var(--teal)',   cls:'role-arr', on:'arr-on' },
+  end:      { icon:'🏁', color:'var(--green)',  cls:'role-arr', on:'arr-on' },
+};
+function cpMeta(code) {
+  const c  = CHECKPOINTS.find(x => x.code === code) || { code, name: code, type: 'start' };
+  const st = CP_STYLE[c.type] || CP_STYLE.start;
+  return { code: c.code, name: c.name, type: c.type, ...st };
+}
+function activeCheckpoints() { return CHECKPOINTS.filter(c => c.enabled !== false); }
+const ROLE_ALIAS = { depart: 'DEPART', arrivee: 'ARRIVEE' };
+
+function renderCheckpointButtons() {
+  const cps = activeCheckpoints();
+  const role = document.getElementById('role-cp-btns');
+  if (role) role.innerHTML = cps.map(c => { const m = cpMeta(c.code);
+    return `<button class="role-btn ${m.cls}" id="rbtn-${c.code}" data-code="${c.code}" onclick="selectRole('${c.code}')" title="Checkpoint ${esc(m.name)}">${m.icon} ${esc(m.name)}</button>`; }).join('');
+  const tg = document.getElementById('chk-toggle');
+  if (tg) {
+    tg.style.gridTemplateColumns = 'repeat(' + cps.length + ',1fr)';
+    tg.innerHTML = cps.map(c => { const m = cpMeta(c.code);
+      return `<button class="chk-btn" id="cbtn-${c.code}" data-code="${c.code}" onclick="setCheckpoint('${c.code}')">${m.icon} ${esc(m.name)}</button>`; }).join('');
+    setCheckpoint(cps.some(c => c.code === currentCheckpoint) ? currentCheckpoint : 'DEPART', true);
+  }
+  const lg = document.getElementById('chk-lock-grid');
+  if (lg) lg.innerHTML = cps.map(c => { const m = cpMeta(c.code);
+    return `<button onclick="lockCheckpoint('${c.code}')" style="padding:24px 16px;background:var(--surface);border:2px solid ${m.color};border-radius:10px;color:${m.color};font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase">${m.icon}<br>${esc(m.name)}</button>`; }).join('');
+  const pw = document.getElementById('pi-switch-btns');
+  if (pw) pw.innerHTML = cps.map(c => { const m = cpMeta(c.code);
+    return `<button onclick="switchPiCheckpoint('${c.code}')" style="background:none;border:1px solid ${m.color};color:${m.color};border-radius:4px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--sans)">${m.icon} ${esc(m.name)}</button>`; }).join('');
+  updateRoleBtns(deviceType === 'admin' ? 'admin' : (lockedCheckpoint || ''));
+}
+
+/* ── ATTRIBUTION DES BRACELETS ───────────────────────────────────── */
+let wbTarget = null; // { comp, person }
+
+function wbPersons() {
+  const out = [];
+  Object.entries(PARTICIPANTS).forEach(([comp, p]) => {
+    const members = (p.cat === 'equipe' && p.membres && p.membres.length) ? p.membres : [p.name];
+    const seen = {};
+    members.forEach(m => { seen[m] = (seen[m] || 0) + 1; out.push({ comp, team: p.name, cat: p.cat, person: seen[m] > 1 ? m + ' (' + seen[m] + ')' : m }); });
+  });
+  return out;
+}
+function wbOf(comp, person) {
+  const e = Object.entries(WRISTBANDS).find(([b, w]) => w.comp === comp && w.person === person);
+  return e ? e[0] : null;
+}
+function wbMsg(text, color) {
+  const el = document.getElementById('wb-msg'); if (!el) return;
+  el.style.color = color || 'var(--green)'; el.textContent = text;
+}
+
+function renderWristbandTab() {
+  const tb = document.getElementById('wb-tbody'); if (!tb) return;
+  const q = (document.getElementById('wb-search')?.value || '').toLowerCase().trim();
+  const onlyMissing = document.getElementById('wb-only-missing')?.checked;
+  const all = wbPersons();
+  const done = all.filter(x => wbOf(x.comp, x.person)).length;
+  const pr = document.getElementById('wb-progress');
+  if (pr) pr.textContent = done + ' / ' + all.length + ' bracelets attribués';
+  const cnt = document.getElementById('wbCount');
+  if (cnt) cnt.innerHTML = all.length ? '<span style="color:var(--amber);font-family:var(--mono)">(' + done + '/' + all.length + ')</span>' : '';
+  let lastComp = null;
+  const rows = all.filter(x => {
+    const b = wbOf(x.comp, x.person);
+    if (onlyMissing && b) return false;
+    return !q || (x.team + ' ' + x.person).toLowerCase().includes(q);
+  }).map(x => {
+    const b = wbOf(x.comp, x.person);
+    const sel = wbTarget && wbTarget.comp === x.comp && wbTarget.person === x.person;
+    const head = x.comp !== lastComp ? esc(x.team) + (x.cat === 'equipe' ? ' <span style="color:var(--text-dim);font-size:11px">· équipe</span>' : ' <span style="color:var(--text-dim);font-size:11px">· solo</span>') : '';
+    lastComp = x.comp;
+    return `<tr style="${sel ? 'background:rgba(var(--amber-rgb),.12)' : ''}">
+      <td style="font-weight:700">${head}</td>
+      <td>${esc(x.person)}</td>
+      <td>${b ? '<span style="font-family:var(--mono);color:var(--green)">' + esc(b) + '</span>' : '<span style="color:var(--text-dim)">—</span>'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button data-wb="select" data-comp="${esc(x.comp)}" data-person="${esc(x.person)}" style="background:rgba(var(--amber-rgb),.15);border:1px solid rgba(var(--amber-rgb),.3);color:var(--amber);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">${b ? 'Remplacer' : 'Attribuer'}</button>
+        ${b ? `<button data-wb="remove" data-badge="${esc(b)}" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">✕</button>` : ''}
+      </div></td></tr>`;
+  });
+  tb.innerHTML = rows.join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:24px">Aucun participant à afficher.</td></tr>';
+  const t = document.getElementById('wb-target'), ts = document.getElementById('wb-target-sub');
+  if (t) { t.textContent = wbTarget ? wbTarget.person : 'Choisissez une personne'; }
+  if (ts) ts.textContent = wbTarget && PARTICIPANTS[wbTarget.comp] ? PARTICIPANTS[wbTarget.comp].name : '';
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-wb]'); if (!b) return;
+  if (b.dataset.wb === 'select') { wbTarget = { comp: b.dataset.comp, person: b.dataset.person }; renderWristbandTab(); document.getElementById('wb-input')?.focus(); }
+  if (b.dataset.wb === 'remove') wbRemove(b.dataset.badge);
+});
+
+async function wbAssignFromInput() {
+  const input = document.getElementById('wb-input');
+  const badge = (input.value || '').trim().toUpperCase();
+  if (!badge) return;
+  if (!wbTarget) { wbMsg('Choisissez d\'abord une personne dans la liste.', 'var(--amber)'); return; }
+  const { comp, person } = wbTarget;
+  const owner = WRISTBANDS[badge];
+  if (owner && !(owner.comp === comp && owner.person === person)) {
+    if (!confirm('Ce bracelet est déjà attribué à ' + owner.person + ' (' + (PARTICIPANTS[owner.comp] ? PARTICIPANTS[owner.comp].name : owner.comp) + ').\nLe réattribuer à ' + person + ' ?')) { input.value = ''; return; }
+  }
+  if (PARTICIPANTS[badge] && badge !== comp && !confirm('Ce code correspond à une référence de concurrent existante. Continuer ?')) { input.value = ''; return; }
+  input.disabled = true;
+  try {
+    // Libérer l'ancien bracelet de cette personne et l'éventuel ancien propriétaire
+    const old = wbOf(comp, person);
+    const toDelete = [old, owner ? badge : null].filter((v, i, a) => v && a.indexOf(v) === i);
+    for (const d of toDelete) await supaFetch('wristbands?badge_id=eq.' + encodeURIComponent(d), { method: 'DELETE', write: true });
+    await supaFetch('wristbands', { method: 'POST', write: true, body: JSON.stringify({ badge_id: badge, comp, person }) });
+    toDelete.forEach(d => delete WRISTBANDS[d]);
+    WRISTBANDS[badge] = { comp, person };
+    saveState();
+    wbMsg('✓ ' + person + ' ← ' + badge);
+    // Personne suivante sans bracelet
+    const all = wbPersons();
+    const i = all.findIndex(x => x.comp === comp && x.person === person);
+    const next = all.slice(i + 1).concat(all.slice(0, i)).find(x => !wbOf(x.comp, x.person));
+    wbTarget = next ? { comp: next.comp, person: next.person } : null;
+    if (!next) wbMsg('✓ Tous les bracelets sont attribués.');
+    updateUI();
+  } catch (e) {
+    wbMsg('⚠ Échec : ' + e.message + ' (la table "wristbands" existe-t-elle ?)', 'var(--red)');
+  }
+  input.value = ''; input.disabled = false; input.focus();
+  renderWristbandTab();
+}
+
+async function wbRemove(badge) {
+  const w = WRISTBANDS[badge]; if (!w) return;
+  if (!confirm('Retirer le bracelet de ' + w.person + ' ?')) return;
+  try {
+    await supaFetch('wristbands?badge_id=eq.' + encodeURIComponent(badge), { method: 'DELETE', write: true });
+    delete WRISTBANDS[badge]; saveState(); updateUI();
+  } catch (e) { wbMsg('⚠ Échec : ' + e.message, 'var(--red)'); }
+  renderWristbandTab();
+}
+
+function helpFilter() {
+  const q = (document.getElementById('help-search')?.value || '').toLowerCase().trim();
+  document.querySelectorAll('#tab-aide details').forEach(d => {
+    const hit = !q || d.textContent.toLowerCase().includes(q);
+    d.style.display = hit ? '' : 'none';
+    if (q && hit) d.open = true;
+  });
+}
+
+/* ── SIMULATION DE CHARGE (100 % locale) ─────────────────────────── */
+let SIM_ACTIVE = false, simTimer = null, simData = null;
+const _origFetch = window.fetch.bind(window);
+window.fetch = async (u, o) => {
+  const isDb = typeof u === 'string' && SUPA_URL && u.startsWith(SUPA_URL);
+  if (!isDb) return _origFetch(u, o);
+  if (SIM_ACTIVE) throw new Error('Simulation : échanges Supabase bloqués');
+  o = o || {};
+  const method = (o.method || 'GET').toUpperCase();
+  const build = () => {
+    if (method === 'GET') return { ...o, headers: {} };   // pas d'en-têtes → pas de preflight, cache CDN
+    const h = { ...(o.headers || {}) };
+    delete h.apikey; delete h.Authorization;
+    h['x-operator-pin'] = OPERATOR_PIN || '';
+    h['x-admin-pin']    = ADMIN_PIN || OPERATOR_PIN || '';
+    return { ...o, headers: h };
+  };
+  let res = await _origFetch(u, build());
+  if (res.status === 401 && method !== 'GET') {
+    let need = 'operator';
+    try { need = (await res.clone().json()).need || need; } catch (e) {}
+    const p = prompt(need === 'admin' ? 'PIN administrateur requis :' : 'PIN requis :');
+    if (p) {
+      if (need === 'admin') ADMIN_PIN = p; else OPERATOR_PIN = p;
+      res = await _origFetch(u, build());
+    }
+  }
+  return res;
+};
+
+function simRng(seed) { let s = seed; return () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296; }
+function simBuild(cfg) {
+  const rnd = simRng(42), base = new Date(); base.setHours(10, 0, 0, 0);
+  const P = {}, W = {}, scans = [], comps = [];
+  const first = ['Alexandre', 'Benoît', 'Camille', 'Dorothée', 'Étienne', 'Fanny', 'Gauthier', 'Hélène', 'Ivan', 'Julie'];
+  let order = 100;
+  const mk = (b, cp, ms) => scans.push({ timestamp: new Date(base.getTime() + ms), badge_id: b, checkpoint: cp, _t: ms });
+  for (let i = 0; i < cfg.solos; i++) {
+    const k = 'S' + String(order++).padStart(5, '0'), nm = first[i % 10] + ' Solo' + i;
+    P[k] = { nom: 'Solo' + i, prenom: first[i % 10], name: nm, cat: 'solo', membres: [] };
+    W['W' + k] = { comp: k, person: nm }; comps.push({ k, bands: ['W' + k], lap: (38 + rnd() * 30) * 60e3 });
+  }
+  for (let i = 0; i < cfg.teams; i++) {
+    const k = 'S' + String(order++).padStart(5, '0'), mem = [], bands = [];
+    for (let m = 0; m < cfg.tsize; m++) { const nm = first[m % 10] + ' Eq' + i + '-' + (m + 1); mem.push(nm); bands.push('W' + k + m); W['W' + k + m] = { comp: k, person: nm }; }
+    P[k] = { nom: 'Équipe ' + (i + 1), prenom: '', name: 'Équipe ' + (i + 1), cat: 'equipe', membres: mem };
+    comps.push({ k, bands, lap: (30 + rnd() * 25) * 60e3 });
+  }
+  for (const c of comps) {
+    // pré-enregistrement de tous les membres, tour de chauffe, tour 2 collectif
+    c.bands.forEach((b, j) => mk(b, 'PRESENCE', -(600e3) + j * 900));
+    mk(c.k, 'WARMUP', 0);
+    let t = c.lap * (0.9 + rnd() * 0.3);
+    mk(c.bands[0], 'INTER', t * 0.5); mk(c.bands[0], 'ARRIVEE', t);
+    let n = 1;
+    while (true) {
+      const b = c.bands[n % c.bands.length], dur = c.lap * (0.85 + rnd() * 0.4);
+      t += 20e3 + rnd() * 90e3;
+      if (t + dur > 24 * 3600e3) break;
+      mk(b, 'DEPART', t); mk(b, 'INTER', t + dur * 0.5); mk(b, 'ARRIVEE', t + dur); t += dur; n++;
+    }
+  }
+  scans.sort((a, b) => a._t - b._t);
+  return { P, W, scans, base, comps };
+}
+
+function simReadCfg() {
+  const n = (id, d) => { const v = parseFloat(document.getElementById(id)?.value); return isNaN(v) ? d : v; };
+  return { solos: n('sim-solos', 100), teams: n('sim-teams', 50), tsize: n('sim-tsize', 8), accel: n('sim-accel', 600),
+    pi: n('sim-pi', 3), display: n('sim-display', 2), admin: n('sim-admin', 2), spec: n('sim-spec', 30), specInt: Math.max(15, n('sim-spec-int', 15)) };
+}
+
+async function simGzipSize(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if (typeof CompressionStream === 'undefined') return Math.round(bytes.length * 0.15);
+  const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));
+  return (await new Response(cs).arrayBuffer()).byteLength;
+}
+
+async function simCompute(dataArg) {
+  const cfg = simReadCfg();
+  const d = dataArg || simBuild(cfg);
+  const N = d.scans.length;
+  // Lignes au format PostgREST (comme renvoyées par Supabase)
+  const rows = d.scans.map((s, i) => ({ id: i + 1, badge_id: s.badge_id, checkpoint: s.checkpoint, timestamp: s.timestamp.toISOString().replace('Z', '+00:00'),
+    created_at: s.timestamp.toISOString().replace('Z', '+00:00').replace(/\.(\d{3})/, (m, ms) => '.' + ms + String(100 + Math.floor(Math.random() * 900))), source: null }));
+  const sample = rows.slice(0, Math.min(rows.length, 4000));
+  const rawRow = JSON.stringify(sample).length / sample.length, gzRow = (await simGzipSize(sample)) / sample.length;
+  const partArr = Object.entries(d.P).map(([k, p], i) => ({ id: i + 1, nom: p.nom, prenom: p.prenom, badge_id: k, name: p.name, cat: p.cat, membres: (p.membres || []).join('|') || null }));
+  const wbArr = Object.entries(d.W).map(([b, w]) => ({ badge_id: b, comp: w.comp, person: w.person, created_at: '2026-06-06T08:00:00.123456+00:00' }));
+  const partRaw = JSON.stringify(partArr).length, partGz = await simGzipSize(partArr);
+  const wbRaw = JSON.stringify(wbArr).length, wbGz = await simGzipSize(wbArr);
+  const cfgRaw = 1800, cfgGz = 600;
+  document.getElementById('sim-size').innerHTML =
+    `Scans simulés : ${N.toLocaleString('fr-FR')} (${(N * rawRow / 1048576).toFixed(2)} Mo en base)<br>` +
+    `Ligne de scan : ${rawRow.toFixed(0)} o brut · ${gzRow.toFixed(0)} o gzip<br>` +
+    `Participants : ${(partRaw / 1024).toFixed(0)} Ko brut · ${(partGz / 1024).toFixed(0)} Ko gzip<br>` +
+    `Bracelets : ${(wbRaw / 1024).toFixed(0)} Ko brut · ${(wbGz / 1024).toFixed(0)} Ko gzip`;
+
+  // Courbe des scans cumulés toutes les 15 s
+  const POLL = 15, steps = 24 * 3600 / POLL, cum = new Float64Array(steps + 1);
+  const t0 = d.base.getTime(); let idx = 0;
+  for (let i = 0; i <= steps; i++) { const ms = i * POLL * 1000; while (idx < N && d.scans[idx]._t <= ms) idx++; cum[i] = idx; }
+  // Parc d'appareils (spectateurs : sessions de 45 min)
+  const dev = [];
+  for (let i = 0; i < cfg.pi + cfg.display + cfg.admin; i++) dev.push({ every: 1, steps, start: 0 });
+  const sess = Math.round(cfg.spec * 24 / 0.75);
+  const rnd = simRng(7);
+  const specDev = k => { const a = []; for (let i = 0; i < sess; i++) a.push({ every: Math.round(k / POLL), steps: Math.round(0.75 * 3600 / POLL), start: Math.round(rnd() * 23.25 * 3600 / POLL) }); return a; };
+  const run = (mode, devices) => {
+    let raw = 0, gz = 0, req = 0, msgs = 0;
+    for (const dv of devices) {
+      const first = cum[Math.min(dv.start, steps)];
+      raw += first * rawRow + partRaw + wbRaw + cfgRaw; gz += first * gzRow + partGz + wbGz + cfgGz; req += 4;
+      for (let n = 0; n < dv.steps; n += dv.every) {
+        const i = Math.min(dv.start + n, steps), Nn = cum[i], prev = cum[Math.max(0, i - dv.every)], delta = Nn - prev;
+        if (mode === 'v1') { raw += Nn * rawRow + partRaw + cfgRaw; gz += Nn * gzRow + partGz + cfgGz; req += Math.max(1, Math.ceil(Nn / 1000)) + 2; }
+        else if (mode === 'v2') {
+          raw += delta * rawRow + cfgRaw; gz += (delta < 30 ? delta * rawRow * 0.55 : delta * gzRow) + cfgGz; req += 2;
+          if (n && (n * POLL) % 300 < dv.every * POLL) { raw += Nn * rawRow + partRaw + wbRaw; gz += Nn * gzRow + partGz + wbGz; req += Math.ceil(Nn / 1000) + 2; }
+        } else if (mode === 'rt') { raw += delta * 350; gz += delta * 350; msgs += delta; if (n && (n * POLL) % 60 < dv.every * POLL) { raw += cfgRaw; gz += cfgGz; req++; } }
+      }
+    }
+    raw += req * 300; gz += req * 300; // en-têtes HTTP (~300 o par requête)
+    return { raw, gz, req, msgs };
+  };
+  const std = dev.concat(specDev(cfg.specInt)), slow = dev.concat(specDev(60));
+  const rows2 = [
+    ['A. Version 2026 (tout retélécharger toutes les 15 s)', run('v1', std)],
+    ['B. Version 2 (seulement les nouveaux scans)', run('v2', std)],
+    ['C. Version 2 + spectateurs toutes les 60 s', run('v2', slow)],
+    ['D. Temps réel (websocket)', run('rt', std)],
+  ];
+  const GB = 1073741824;
+  document.getElementById('sim-proj').innerHTML = rows2.map(([lbl, r]) => {
+    const g = r.gz / GB, w = r.raw / GB;
+    const verdict = w < 4 ? '<span style="color:var(--green)">✓ large</span>' : g < 4 ? '<span style="color:var(--amber)">⚠ OK seulement si la compression est comptée</span>' : '<span style="color:var(--red)">✗ dépasse le quota</span>';
+    return `<tr><td>${lbl}</td><td class="mono">${w.toFixed(2)} Go</td><td class="mono">${g.toFixed(2)} Go</td><td class="mono">${Math.round(r.req / 1000)} k${r.msgs ? ' · ' + (r.msgs / 1000).toFixed(0) + ' k msg' : ''}</td><td>${verdict}</td></tr>`;
+  }).join('');
+  document.getElementById('sim-notes').innerHTML =
+    `Parc simulé : ${cfg.pi} Raspberry, ${cfg.display} écrans, ${cfg.admin} postes admin, ${cfg.spec} spectateurs simultanés en moyenne (${sess} sessions de 45 min). ` +
+    `Quotas de l'offre gratuite Supabase : 5 Go de transfert par mois, 500 Mo de base, 200 connexions temps réel et 2 M de messages par mois. ` +
+    `Vérifiez dans Supabase → Settings → Usage → Egress si la compression est comptée : la course précédente sert de point de calage.`;
+  return d;
+}
+
+async function simStart() {
+  if (SIM_ACTIVE) return;
+  if (!confirm('Lancer la simulation sur cet appareil ?\nLes données affichées seront remplacées temporairement. Aucun envoi vers Supabase.')) return;
+  const cfg = simReadCfg();
+  SIM_ACTIVE = true;
+  clearInterval(supaTimerId);
+  const d = simData = simBuild(cfg);
+  CHECKPOINTS.forEach(c => { if (c.type === 'presence' || c.type === 'mid') c.enabled = true; });
+  renderCheckpointButtons();
+  PARTICIPANTS = d.P; WRISTBANDS = d.W; allScans = []; manualScans = []; previousRanks = {}; storedDeltas = {};
+  RACE_START = new Date(d.base.getTime());
+  startTimer();
+  document.getElementById('sim-state').innerHTML = '<span style="color:var(--amber)">SIMULATION EN COURS — données fictives, Supabase bloqué</span>';
+  await simCompute(d);
+  let virt = -600e3, idx = 0; const times = [];
+  clearInterval(simTimer);
+  simTimer = setInterval(() => {
+    virt += cfg.accel * 250; // ms virtuelles écoulées par tick de 250 ms
+    while (idx < d.scans.length && d.scans[idx]._t <= virt) idx++;
+    allScans = d.scans.slice(0, idx);
+    const t1 = performance.now(); updateUI(); const dt = performance.now() - t1; times.push(dt);
+    const avg = times.reduce((a, b) => a + b, 0) / times.length, max = Math.max(...times);
+    const mem = performance.memory ? (performance.memory.usedJSHeapSize / 1048576).toFixed(0) + ' Mo' : 'n/d';
+    document.getElementById('sim-perf').innerHTML =
+      `Temps simulé : ${Math.max(0, virt / 3600e3).toFixed(1)} h / 24 h<br>Scans traités : ${idx.toLocaleString('fr-FR')} / ${d.scans.length.toLocaleString('fr-FR')}<br>` +
+      `Mise à jour de l'écran : ${dt.toFixed(0)} ms (moy. ${avg.toFixed(0)} · max ${max.toFixed(0)})<br>Éléments à l'écran : ${document.getElementsByTagName('*').length.toLocaleString('fr-FR')}<br>Mémoire JS : ${mem}`;
+    if (virt >= 24 * 3600e3) { clearInterval(simTimer); document.getElementById('sim-state').innerHTML = '<span style="color:var(--green)">Simulation terminée — « Arrêter et recharger » pour revenir aux vraies données</span>'; }
+  }, 250);
+}
+
+function simStop() { SIM_ACTIVE = false; clearInterval(simTimer); location.reload(); }
+
+/* ── IDENTITÉ & COULEURS ─────────────────────────────────────────── */
+const DEFAULT_EVENT = { name: 'UTBM — Ultra Trail de Blegny Mine', short: 'UTBM 24H', sub: 'Classement Live', logoUrl: '' };
+const DEFAULT_BRAND = { primary: '#F5A623', secondary: '#1ABC9C', bg: '#0B0F14', panel: '#16202B' };
+let EVENT = { ...DEFAULT_EVENT };
+let BRAND = { ...DEFAULT_BRAND, record: '#F07300' };
+
+function fileSlug() { return (EVENT.short || 'Classement').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'Classement'; }
+function validHex(h) { return /^#[0-9a-fA-F]{6}$/.test(h); }
+function hexRgb(h) { return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function rgbHex(a) { return '#' + a.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+function mixHex(a, b, t) { const A = hexRgb(a), B = hexRgb(b); return rgbHex(A.map((v, i) => v + (B[i] - v) * t)); }
+function relLum(h) { const c = hexRgb(h).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+function contrast(a, b) { const l1 = relLum(a), l2 = relLum(b); return (Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05); }
+
+function applyIdentity() {
+  const custom = JSON.stringify([BRAND.primary, BRAND.secondary, BRAND.bg, BRAND.panel]) !== JSON.stringify([DEFAULT_BRAND.primary, DEFAULT_BRAND.secondary, DEFAULT_BRAND.bg, DEFAULT_BRAND.panel]);
+  BRAND.record = custom ? BRAND.primary : '#F07300';
+  let st = document.getElementById('brand-style');
+  if (!st) { st = document.createElement('style'); st.id = 'brand-style'; document.head.appendChild(st); }
+  if (!custom) st.textContent = '';
+  else {
+    const P = BRAND.primary, S = BRAND.secondary, B = BRAND.bg, N = BRAND.panel;
+    const rgb = h => hexRgb(h).join(',');
+    st.textContent =
+      ':root{--amber:' + P + ';--amber-rgb:' + rgb(P) + ';--amber-dim:' + mixHex(P, B, .6) + ';--teal:' + S + ';--teal-rgb:' + rgb(S) + ';--record:' + P + ';'
+      + '--ink:' + B + ';--surface:' + mixHex(B, N, .5) + ';--panel:' + N + ';--border:' + mixHex(N, '#ffffff', .07) + ';--muted:' + mixHex(N, '#ffffff', .14) + '}'
+      + 'html.light{--amber:' + mixHex(P, '#000000', .22) + ';--teal:' + mixHex(S, '#000000', .22) + ';--amber-rgb:' + rgb(P) + ';--teal-rgb:' + rgb(S) + ';--record:' + mixHex(P, '#000000', .22) + '}';
+  }
+  document.title = EVENT.short + ' — Classement Live';
+  const logo = document.getElementById('hdr-logo'), nm = document.getElementById('hdr-event-name');
+  const isDefaultName = EVENT.name === DEFAULT_EVENT.name;
+  if (logo) {
+    if (!logo.dataset.def) logo.dataset.def = logo.src;
+    if (EVENT.logoUrl) { logo.src = EVENT.logoUrl; logo.style.display = 'block'; if (nm) nm.style.display = 'none'; }
+    else if (isDefaultName) { logo.src = logo.dataset.def; logo.style.display = 'block'; if (nm) nm.style.display = 'none'; }
+    else { logo.style.display = 'none'; if (nm) { nm.style.display = 'block'; nm.textContent = EVENT.short; } }
+  }
+  const sub = document.getElementById('hdr-event-sub'); if (sub) sub.textContent = EVENT.sub;
+  const ft = document.getElementById('footer-event'); if (ft) ft.textContent = EVENT.name + ' · Système de classement live';
+}
+
+function renderIdentityConfig() {
+  const set = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
+  set('cfg-ev-name', EVENT.name); set('cfg-ev-short', EVENT.short); set('cfg-ev-sub', EVENT.sub); set('cfg-ev-logo', EVENT.logoUrl);
+  ['primary', 'secondary', 'bg', 'panel'].forEach(k => { set('cfg-col-' + k, BRAND[k]); set('cfg-col-' + k + '-p', BRAND[k]); });
+  brandWarn();
+}
+function brandSync(key, val, fromText) {
+  if (fromText && !validHex(val)) return;
+  const t = document.getElementById('cfg-col-' + key), pk = document.getElementById('cfg-col-' + key + '-p');
+  if (fromText) { if (pk) pk.value = val; } else if (t) t.value = val.toUpperCase();
+  brandWarn();
+}
+function brandWarn() {
+  const g = k => { const v = document.getElementById('cfg-col-' + k)?.value; return validHex(v) ? v : BRAND[k]; };
+  const w = [];
+  if (contrast(g('primary'), '#000000') < 4.5) w.push('Le texte noir des boutons sera peu lisible sur la couleur principale.');
+  if (contrast(g('primary'), g('bg')) < 3) w.push('La couleur principale ressort mal sur le fond.');
+  if (contrast(g('secondary'), g('bg')) < 3) w.push('La couleur secondaire ressort mal sur le fond.');
+  if (contrast(g('panel'), g('bg')) < 1.05) w.push('Fond et panneaux sont presque identiques.');
+  const el = document.getElementById('cfg-brand-warn'); if (el) el.textContent = w.length ? '⚠ ' + w.join(' ') : '';
+}
+async function saveIdentity() {
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const cols = {}; let bad = false;
+  ['primary', 'secondary', 'bg', 'panel'].forEach(k => { const h = v('cfg-col-' + k); if (validHex(h)) cols[k] = h.toUpperCase(); else bad = true; });
+  const msg = document.getElementById('cfg-ev-msg');
+  if (bad) { msg.style.color = 'var(--red)'; msg.textContent = 'Code HEX invalide (format #RRGGBB).'; return; }
+  const logo = v('cfg-ev-logo');
+  if (logo && !/^https:\/\//i.test(logo)) { msg.style.color = 'var(--red)'; msg.textContent = 'Le logo doit être une adresse https://…'; return; }
+  EVENT = { name: v('cfg-ev-name') || DEFAULT_EVENT.name, short: v('cfg-ev-short') || DEFAULT_EVENT.short, sub: v('cfg-ev-sub') || DEFAULT_EVENT.sub, logoUrl: logo };
+  BRAND = { ...BRAND, ...cols };
+  applyIdentity(); saveState();
+  try {
+    await pushConfigKey('identity', JSON.stringify({ event: EVENT, brand: cols }));
+    msg.style.color = 'var(--green)'; msg.textContent = '✓ Identité enregistrée et synchronisée sur tous les appareils';
+  } catch (e) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Enregistré localement seulement : ' + e.message; }
+}
+function resetIdentity() {
+  EVENT = { ...DEFAULT_EVENT }; BRAND = { ...DEFAULT_BRAND, record: '#F07300' };
+  applyIdentity(); renderIdentityConfig(); saveState();
+  pushConfigKey('identity', JSON.stringify({ event: EVENT, brand: DEFAULT_BRAND })).catch(() => {});
+}
+function applyIdentityFromConfig(raw) {
+  try {
+    const o = JSON.parse(raw);
+    const nE = { ...DEFAULT_EVENT, ...(o.event || {}) };
+    const nB = { ...DEFAULT_BRAND, ...(o.brand || {}) };
+    if (JSON.stringify(nE) !== JSON.stringify(EVENT) || ['primary', 'secondary', 'bg', 'panel'].some(k => nB[k] !== BRAND[k])) {
+      EVENT = nE; BRAND = { ...BRAND, ...nB };
+      applyIdentity(); renderIdentityConfig(); saveState();
+    }
+  } catch (e) { console.warn('identity config invalide', e); }
+}
+
+// Différé : les variables d'état (deviceType, lockedCheckpoint...) sont déclarées plus bas
+setTimeout(() => { applyIdentity(); renderIdentityConfig(); renderCheckpointButtons(); renderCheckpointConfig(); }, 0);
+
+function renderCheckpointConfig() {
+  const el = document.getElementById('cfg-cp-list');
+  if (!el || el.contains(document.activeElement)) return;
+  const typeLbl = { presence:'Pré-enregistrement', start:'Départ', mid:'Intermédiaire', end:'Arrivée' };
+  el.innerHTML = CHECKPOINTS.map(c => {
+    const fixed = c.type === 'start' || c.type === 'end';
+    return `<div class="config-row"><span class="config-key">${CP_STYLE[c.type].icon} ${typeLbl[c.type]} <span style="color:var(--text-dim);font-family:var(--mono);font-size:10px">${c.code}</span></span>
+      <span style="display:flex;gap:10px;align-items:center">
+      <input class="input-field" id="cfg-cp-name-${c.code}" type="text" value="${esc(c.name)}" maxlength="24" style="width:150px">
+      <label style="font-size:11px;color:var(--text-mid);display:flex;gap:4px;align-items:center"><input type="checkbox" id="cfg-cp-on-${c.code}" ${c.enabled !== false ? 'checked' : ''} ${fixed ? 'disabled' : ''}>actif</label></span></div>`;
+  }).join('');
+}
+
+async function saveCheckpointsConfig() {
+  const msg = document.getElementById('cfg-cp-msg');
+  CHECKPOINTS.forEach(c => {
+    const n = document.getElementById('cfg-cp-name-' + c.code);
+    const o = document.getElementById('cfg-cp-on-' + c.code);
+    if (n && n.value.trim()) c.name = n.value.trim();
+    if (o) c.enabled = (c.type === 'start' || c.type === 'end') ? true : o.checked;
+  });
+  saveState();
+  renderCheckpointButtons();
+  try {
+    await pushConfigKey('checkpoints', JSON.stringify(CHECKPOINTS.map(c => ({ code: c.code, name: c.name, enabled: c.enabled !== false }))));
+    if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✓ Checkpoints enregistrés et synchronisés'; }
+  } catch (e) {
+    if (msg) { msg.style.color = 'var(--amber)'; msg.textContent = '⚠ Enregistré localement seulement : ' + e.message; }
+  }
+  updateUI();
+}
+
+function applyCheckpointsFromConfig(raw) {
+  try {
+    const arr = JSON.parse(raw);
+    let changed = false;
+    arr.forEach(r => {
+      const c = CHECKPOINTS.find(x => x.code === r.code);
+      if (!c) return;
+      const en = (c.type === 'start' || c.type === 'end') ? true : r.enabled !== false;
+      if (r.name && r.name !== c.name) { c.name = r.name; changed = true; }
+      if (en !== (c.enabled !== false)) { c.enabled = en; changed = true; }
+    });
+    if (changed) { saveState(); renderCheckpointButtons(); renderCheckpointConfig(); }
+  } catch (e) { console.warn('checkpoints config invalide', e); }
+}
+
+/* ── Contrôle d'un scan AVANT enregistrement ──────────────────────
+   Simule le scan sur l'historique du concurrent (cache local + lecture
+   Supabase pour voir les scans des autres postes). Refuse un départ
+   si un autre membre est en course, une arrivée / un intermédiaire
+   fait avec un autre bracelet que celui du départ.                   */
+const REFUSAL_TYPES = ['depart_refuse', 'arrivee_refusee', 'inter_refuse'];
+async function evaluateScan(scan) {
+  const r    = resolveWristband(scan.badge_id);
+  const type = cpType(scan.checkpoint);
+  if (!r || !['start', 'mid', 'end'].includes(type)) return { ok: true, refused: false, comp: r ? r.comp : null, person: r ? r.person : null, offline: false, res: null };
+  const comp  = r.comp;
+  const bands = [comp, ...Object.keys(WRISTBANDS).filter(k => WRISTBANDS[k].comp === comp)];
+  let remote = null, offline = false;
+  try {
+    const list = bands.map(b => '"' + b.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"').join(',');
+    remote = await supaFetch('scans?select=*&badge_id=in.(' + encodeURIComponent(list) + ')&order=timestamp.asc');
+  } catch (e) { offline = true; }
+
+  const key = x => x.badge_id + '|' + x.checkpoint + '|' + (+x.timestamp);
+  const seen = new Map();
+  allScans.forEach(x => { const q = resolveWristband(x.badge_id); if (q && q.comp === comp) seen.set(key(x), x); });
+  (remote || []).forEach(row => {
+    const x = { timestamp: new Date(row.timestamp), badge_id: row.badge_id, checkpoint: String(row.checkpoint).toUpperCase() };
+    if (!seen.has(key(x))) seen.set(key(x), x);
+  });
+  const hist = [...seen.values()].sort((a, b) => a.timestamp - b.timestamp);
+
+  const saved = anomalies;
+  const out = processScans([...hist, scan]);
+  const mine = anomalies.filter(a => a.badge_id === scan.badge_id && +a.timestamp === +scan.timestamp);
+  anomalies = saved;
+  const res = [...out.solos, ...out.equipes].find(x => x.badge_id === comp) || null;
+  const bad = mine.find(a => REFUSAL_TYPES.includes(a.type));
+  if (bad) return { ok: false, refused: true, msg: bad.msg, comp, person: r.person, offline, res };
+  return { ok: true, refused: false, warn: mine.length ? mine[0].msg : null, comp, person: r.person, offline, res };
+}
+
+function wristbandLabel(badge) {
+  const r = resolveWristband(badge);
+  if (!r) return badge;
+  return r.person ? r.person + ' (' + PARTICIPANTS[r.comp].name + ')' : PARTICIPANTS[r.comp].name;
+}
+
 function processScans(scans) {
   anomalies = [];
   const state = {};
+  const mk = (name, cat) => ({ name, cat, open: null, laps: [], present: new Set(), warmupDone: false });
 
-  // Initialiser depuis PARTICIPANTS (liste officielle)
-  for (const badge in PARTICIPANTS) {
-    state[badge] = { name: PARTICIPANTS[badge].name, cat: PARTICIPANTS[badge].cat, openLapStart: null, laps: [] };
-  }
+  for (const k in PARTICIPANTS) state[k] = mk(PARTICIPANTS[k].name, PARTICIPANTS[k].cat);
 
-  // Si PARTICIPANTS est vide (chargement en cours), construire l'état
-  // depuis les scans eux-mêmes pour ne pas afficher un classement vide
+  // PARTICIPANTS vide (chargement en cours) : on déduit l'état des scans
   const participantsEmpty = Object.keys(PARTICIPANTS).length === 0;
+  const midEnabled = CHECKPOINTS.some(c => c.type === 'mid' && c.enabled);
+  let cur = null;
+  const WARN_TYPES = ['inter_manquant'];
+  const A = (type, badge_id, timestamp, msg) => {
+    anomalies.push({ type, badge_id, timestamp, msg });
+    if (cur) cur._info = { kind: cpType(cur.checkpoint), status: WARN_TYPES.includes(type) ? 'warn' : 'refused', msg, anomaly: type, comp: cur._info ? cur._info.comp : null };
+  };
 
   for (const scan of scans) {
+    cur = scan;
     const { timestamp, badge_id, checkpoint } = scan;
-    if (!PARTICIPANTS[badge_id]) {
-      if (participantsEmpty) {
-        // Participants pas encore chargés : créer une entrée temporaire
-        if (!state[badge_id]) {
-          state[badge_id] = { name: badge_id, cat: 'solo', openLapStart: null, laps: [] };
-        }
-      } else {
-        anomalies.push({ type:'badge_inconnu', badge_id, timestamp, msg:`Badge inconnu "${badge_id}" — checkpoint ${checkpoint}` });
-        continue;
+    scan._info = { kind: cpType(checkpoint), status: 'ok', comp: null };
+    const r = resolveWristband(badge_id);
+    let comp;
+    if (r) comp = r.comp;
+    else if (participantsEmpty) { comp = badge_id; if (!state[comp]) state[comp] = mk(badge_id, 'solo'); }
+    else { A('badge_inconnu', badge_id, timestamp, `Bracelet inconnu "${badge_id}" — ${checkpoint}`); scan._info.status = 'unknown'; continue; }
+
+    const s    = state[comp];
+    scan._info.comp = comp;
+    const who  = (r && r.person) ? `${r.person} (${s.name})` : s.name;
+    const type = cpType(checkpoint);
+
+    if (type === 'presence') {
+      s.present.add(badge_id);
+
+    } else if (type === 'warmup') {
+      // Tour de chauffe : 1 point par concurrent ayant ≥1 membre pré-enregistré
+      if (!s.warmupDone && s.present.size > 0) {
+        s.warmupDone = true;
+        s.laps.push({ start: timestamp, end: timestamp, duration: 0, warmup: true });
+        // Tous les concurrents pré-enregistrés ont un tour 2 déjà ouvert,
+        // « collectif » : n'importe quel membre ayant passé l'intermédiaire
+        // peut le clôturer (voir mid / end).
+        if (!s.open) s.open = { start: timestamp, badge: null, any: true, mid: null, midBadges: new Set(), scan };
+        scan._info.lapNum = 1;
       }
-    }
-    const s = state[badge_id];
-    if (checkpoint === 'DEPART') {
-      if (s.openLapStart !== null) {
-        anomalies.push({ type:'double_depart', badge_id, timestamp, msg:`Double départ sans arrivée — ${s.name}` });
-      } else {
-        s.openLapStart = timestamp;
+
+    } else if (type === 'start') {
+      if (s.open && s.open.any) A('depart_refuse', badge_id, timestamp, `Départ refusé : le tour 2 (suite du tour de chauffe) de ${s.name} n'est pas encore clôturé`);
+      else if (s.open) {
+        if (s.open.badge === badge_id) A('double_depart', badge_id, timestamp, `Double départ sans arrivée — ${who}`);
+        else A('depart_refuse', badge_id, timestamp, `Départ refusé : ${wristbandLabel(s.open.badge)} est encore en course (${s.name})`);
+      } else { s.open = { start: timestamp, badge: badge_id, mid: null, scan }; scan._info.lapNum = s.laps.length + 1; }
+
+    } else if (type === 'mid') {
+      if (!s.open)                       A('inter_sans_depart', badge_id, timestamp, `Passage intermédiaire sans tour ouvert — ${who}`);
+      else if (s.open.any) {
+        // Tour collectif : chaque membre de l'équipe peut valider l'intermédiaire, une fois
+        if (s.open.midBadges.has(badge_id)) A('inter_double', badge_id, timestamp, `Double passage intermédiaire — ${who}`);
+        else { s.open.midBadges.add(badge_id); if (!s.open.mid) s.open.mid = timestamp; }
       }
-    } else if (checkpoint === 'ARRIVEE') {
-      if (s.openLapStart === null) {
-        anomalies.push({ type:'arrivee_sans_depart', badge_id, timestamp, msg:`Arrivée sans tour ouvert — ${s.name}` });
-      } else {
-        s.laps.push({ start: s.openLapStart, end: timestamp, duration: (timestamp - s.openLapStart) / 1000 });
-        s.openLapStart = null;
+      else if (s.open.badge !== badge_id) A('inter_refuse', badge_id, timestamp, `Intermédiaire refusé : ce bracelet n'est pas celui du départ (${wristbandLabel(s.open.badge)})`);
+      else if (s.open.mid)               A('inter_double', badge_id, timestamp, `Double passage intermédiaire — ${who}`);
+      else s.open.mid = timestamp;
+
+    } else if (type === 'end') {
+      if (!s.open)                        A('arrivee_sans_depart', badge_id, timestamp, `Arrivée sans tour ouvert — ${who}`);
+      else if (s.open.any && midEnabled && !s.open.midBadges.has(badge_id)) A('arrivee_refusee', badge_id, timestamp, `Arrivée refusée : ${who} n'a pas scanné à l'intermédiaire`);
+      else if (!s.open.any && s.open.badge !== badge_id) A('arrivee_refusee', badge_id, timestamp, `Arrivée refusée : celui qui part doit revenir (parti : ${wristbandLabel(s.open.badge)}, arrivé : ${who})`);
+      else {
+        const lap = { start: s.open.start, end: timestamp, duration: (timestamp - s.open.start) / 1000, mid: s.open.mid, badge: badge_id };
+        if (midEnabled && !s.open.mid) { lap.noMid = true; A('inter_manquant', badge_id, timestamp, `Tour validé sans passage intermédiaire — ${who}`); }
+        s.laps.push(lap);
+        if (s.open.scan && s.open.scan._info) s.open.scan._info.closed = 'valide';
+        scan._info.lapNum = s.laps.length; scan._info.duration = lap.duration;
+        s.open = null;
       }
+
+    } else if (type === 'abort') {
+      // Abandon en cours de tour : traité par l'organisation, aucun point
+      if (s.open) { if (s.open.scan && s.open.scan._info) s.open.scan._info.closed = 'abandon'; s.open = null; }
+
+    } else {
+      A('checkpoint_inconnu', badge_id, timestamp, `Checkpoint inconnu "${checkpoint}" — ${who}`);
     }
   }
+
   const results = [];
-  for (const [badge_id, s] of Object.entries(state)) {
-    const n = s.laps.length;
+  for (const [comp, s] of Object.entries(state)) {
+    const n    = s.laps.length;                       // tours validés (chauffe incluse)
+    const real = s.laps.filter(l => !l.warmup);       // tours chronométrés
+    const rn   = real.length;
+    const pts  = s.laps.reduce((acc, l) => acc + (l.warmup ? 1 : lapPoints(l)), 0);
     results.push({
-      badge_id, name: s.name, cat: s.cat,
+      badge_id: comp, name: s.name, cat: s.cat,
       tours:   n,
-      points:  (n > 0 ? s.laps.reduce((acc, l) => acc + lapPoints(l), 0) : 0) + (bonusPoints[badge_id] || 0),
-      onCourse: s.openLapStart !== null, openStart: s.openLapStart,
-      totalTime:   n > 0 ? (s.laps[n-1].end - s.laps[0].start) / 1000 : 0,
-      lastLapTime: n > 0 ? s.laps[n-1].duration : null,
-      bestLapTime: n > 0 ? Math.min(...s.laps.map(l => l.duration)) : null,
-      avgLapTime:  n > 0 ? s.laps.reduce((a, l) => a + l.duration, 0) / n : null,
-      lastArrival: n > 0 ? s.laps[n-1].end : null,
-      laps:        s.laps, // garder les laps pour affichage détail nocturne
-      distance:    n * DISTANCE_TOUR, // n = tours complétés (laps.length), pas les tours en cours
+      points:  pts + (bonusPoints[comp] || 0),
+      onCourse: s.open !== null, openStart: s.open ? s.open.start : null,
+      runner:  s.open ? (s.open.any ? 'Équipe (suite du tour de chauffe)' : wristbandLabel(s.open.badge)) : null,
+      totalTime:   rn > 0 ? (real[rn-1].end - real[0].start) / 1000 : 0,
+      lastLapTime: rn > 0 ? real[rn-1].duration : null,
+      bestLapTime: rn > 0 ? Math.min(...real.map(l => l.duration)) : null,
+      avgLapTime:  rn > 0 ? real.reduce((a, l) => a + l.duration, 0) / rn : null,
+      lastArrival: rn > 0 ? real[rn-1].end : null,
+      laps:        s.laps,
+      distance:    n * DISTANCE_TOUR,
       dplus:       n * DENIVELE_TOUR,
     });
   }
@@ -2272,7 +3102,7 @@ function buildTable(data, compact) {
     // Utiliser le delta mémorisé (persiste jusqu'au prochain changement de rang)
     const delta = storedDeltas[r.badge_id] || '';
     const distTotal = r.distance; // km = tours complétés × distance (pas de tour en cours)
-    const nightLaps = r.laps ? r.laps.filter(l => isNocturne(l.end)).length : 0;
+    const nightLaps = r.laps ? r.laps.filter(l => !l.warmup && isNocturne(l.end)).length : 0;
     const nightTag  = nightLaps > 0
       ? `<div class="tours-open" style="color:var(--purple)">&#9790; ${nightLaps}×${COEFF_NUIT}pts</div>` : '';
     const toursHtml = r.onCourse
@@ -2403,6 +3233,7 @@ function updateUI() {
    CONFIG TAB
    ================================================================ */
 function updateConfigTab() {
+  renderCheckpointConfig();
   const coeffEl  = document.getElementById('cfg-coeff-nuit');
   const nuitDebEl = document.getElementById('cfg-nuit-deb');
   const nuitFinEl = document.getElementById('cfg-nuit-fin');
@@ -2508,20 +3339,13 @@ function renderSpeaker(solos, equipes, gs) {
       <div class="record-who">${gs.totalKm.toFixed(1)} km · ${gs.totalDplus.toFixed(0)} m D+</div>
     </div></div>`;
 
-  // Feed dernières arrivées
-  const temp = {};
+  // Feed dernières arrivées (tours validés par le moteur, tour de chauffe exclu)
   const feed = [];
-  for (const s of allScans) {
-    if (!PARTICIPANTS[s.badge_id]) continue;
-    if (!temp[s.badge_id]) temp[s.badge_id] = { open: null, n: 0 };
-    const t = temp[s.badge_id];
-    if (s.checkpoint === 'DEPART' && !t.open) { t.open = s.timestamp; }
-    else if (s.checkpoint === 'ARRIVEE' && t.open) {
-      t.n++;
-      feed.push({ name: PARTICIPANTS[s.badge_id].name, lapNum: t.n, end: s.timestamp, duration: (s.timestamp - t.open) / 1000 });
-      t.open = null;
-    }
-  }
+  [...solos, ...equipes].forEach(r => r.laps.forEach((l, i) => {
+    if (l.warmup) return;
+    const who = l.badge ? resolveWristband(l.badge) : null;
+    feed.push({ name: who && who.person ? who.person + ' · ' + r.name : r.name, lapNum: i + 1, end: l.end, duration: l.duration });
+  }));
   feed.sort((a,b) => b.end - a.end);
   document.getElementById('speaker-arrivals').innerHTML = feed.slice(0,10).map(l =>
     `<div class="arrival-item">
@@ -2542,8 +3366,8 @@ function renderAnomalies() {
     c.innerHTML = `<div class="anomalies-panel"><div class="no-anomalies">✅ Aucune anomalie détectée</div></div>`;
     return;
   }
-  const icons  = { double_depart:'⚠️', arrivee_sans_depart:'🔴', badge_inconnu:'❓' };
-  const labels = { double_depart:'Double départ', arrivee_sans_depart:'Arrivée sans départ', badge_inconnu:'Badge inconnu' };
+  const icons  = { double_depart:'⚠️', arrivee_sans_depart:'🔴', badge_inconnu:'❓', depart_refuse:'⛔', arrivee_refusee:'⛔', inter_refuse:'⛔', inter_manquant:'⚠️', inter_sans_depart:'🔴', inter_double:'⚠️', checkpoint_inconnu:'❓' };
+  const labels = { double_depart:'Double départ', arrivee_sans_depart:'Arrivée sans départ', badge_inconnu:'Bracelet inconnu', depart_refuse:'Départ refusé', arrivee_refusee:'Arrivée refusée', inter_refuse:'Intermédiaire refusé', inter_manquant:'Intermédiaire manquant', inter_sans_depart:'Interm. sans départ', inter_double:'Double intermédiaire', checkpoint_inconnu:'Checkpoint inconnu' };
   c.innerHTML = `<div class="anomalies-panel">
     <div class="anomalies-title">⚠ Anomalies (${anomalies.length})</div>
     ${anomalies.map(a => `
@@ -2554,7 +3378,7 @@ function renderAnomalies() {
           <div style="display:flex;gap:10px;margin-top:3px">
             <span class="anomaly-badge">${esc(a.badge_id)}</span>
             <span class="anomaly-time">${fmtHour(a.timestamp)}</span>
-            <span style="font-size:10px;color:var(--amber);background:rgba(245,166,35,.1);padding:1px 5px;border-radius:3px">${labels[a.type]||a.type}</span>
+            <span style="font-size:10px;color:var(--amber);background:rgba(var(--amber-rgb),.1);padding:1px 5px;border-radius:3px">${labels[a.type]||a.type}</span>
           </div>
         </div>
       </div>`).join('')}
@@ -2581,7 +3405,7 @@ function renderParticipantsTab() {
         <td style="color:var(--text-dim);font-family:var(--mono)">${i+1}</td>
         <td><b style="color:var(--white)">${esc(p.nom)}</b></td>
         <td>${esc(p.prenom)}</td>
-        <td><span style="font-family:var(--mono);font-size:11px;background:rgba(245,166,35,.1);color:var(--amber);padding:2px 8px;border-radius:3px">${esc(badge)}</span></td>
+        <td><span style="font-family:var(--mono);font-size:11px;background:rgba(var(--amber-rgb),.1);color:var(--amber);padding:2px 8px;border-radius:3px">${esc(badge)}</span></td>
         <td><div style="display:flex;gap:6px">
           <button class="p-action-btn" data-badge="${esc(badge)}" data-action="edit">✏ Modifier</button>
           <button class="p-delete-btn" data-badge="${esc(badge)}" data-action="delete">✕</button>
@@ -2961,19 +3785,16 @@ function startReal() {
 let currentCheckpoint = 'DEPART';
 let manualScans = [];
 
-function setCheckpoint(chk) {
+function setCheckpoint(chk, silent) {
   if (deviceType === 'checkpoint' && lockedCheckpoint && chk !== lockedCheckpoint) return;
   currentCheckpoint = chk;
-  const bDep = document.getElementById('btn-dep');
-  const bArr = document.getElementById('btn-arr');
-  if (bDep) bDep.className = 'chk-btn' + (chk === 'DEPART'  ? ' dep-on' : '');
-  if (bArr) bArr.className = 'chk-btn' + (chk === 'ARRIVEE' ? ' arr-on' : '');
+  activeCheckpoints().forEach(c => {
+    const b = document.getElementById('cbtn-' + c.code);
+    if (b) b.className = 'chk-btn' + (c.code === chk ? ' ' + cpMeta(c.code).on : '');
+  });
   const disp = document.getElementById('chk-display');
-  if (disp) {
-    disp.textContent = chk === 'DEPART' ? 'DEPART' : 'ARRIVEE';
-    disp.style.color  = chk === 'DEPART' ? 'var(--amber)' : 'var(--green)';
-  }
-  focusBadgeInput();
+  if (disp) { const m = cpMeta(chk); disp.textContent = m.name.toUpperCase(); disp.style.color = m.color; }
+  if (!silent) focusBadgeInput();
 }
 
 function focusBadgeInput() {
@@ -3011,14 +3832,26 @@ async function submitScan() {
   wrap.appendChild(spinner);
 
   const scan = { timestamp: new Date(), badge_id: badge, checkpoint: currentCheckpoint };
-  const p = PARTICIPANTS[badge];
+  const rw = resolveWristband(badge);
+  const p  = rw ? { name: wristbandLabel(badge) } : null;
+  const cmA = cpMeta(currentCheckpoint);
+
+  // Contrôle avant enregistrement
+  let evA;
+  try { evA = await evaluateScan(scan); } catch (e) { evA = { refused: false }; }
+  if (evA.refused) {
+    soundError();
+    showFb('⛔ REFUSÉ — ' + evA.msg, 'err');
+    spinner.remove(); input.value = ''; input.className = 'badge-input-big'; input.focus();
+    return;
+  }
 
   manualScans.push(scan);
   allScans.push(scan);
   allScans.sort((a, b) => a.timestamp - b.timestamp);
 
   if (p) {
-    showFb((currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name + ' — enregistrement...', 'ok');
+    showFb(cmA.icon + ' ' + p.name + ' — enregistrement...', 'ok');
   } else {
     showFb('Badge inconnu : ' + badge + ' — enregistrement...', 'err');
   }
@@ -3032,7 +3865,7 @@ async function submitScan() {
       await pushScanToSupabase(scan);
       scan.supaId = 'pushed';
       if (p) soundSuccess(); else soundError();
-      showFb((p ? (currentCheckpoint === 'DEPART' ? '🚦 ' : '🏁 ') + p.name : '⚠ ' + badge) + ' — ✓ Enregistré', p ? 'ok' : 'err');
+      showFb((p ? cmA.icon + ' ' + p.name : '⚠ ' + badge) + ' — ✓ Enregistré' + (evA.warn ? ' · ⚠ ' + evA.warn : ''), p ? 'ok' : 'err');
     } catch(e) {
       soundError();
       showFb('⚠ Erreur envoi : ' + (e.message || e), 'err');
@@ -3068,9 +3901,10 @@ function renderScanLog() {
   const rev = [...manualScans].reverse();
   log.innerHTML = rev.map((s, ri) => {
     const realIdx = manualScans.length - 1 - ri;
-    const p   = PARTICIPANTS[s.badge_id];
-    const cls = s.checkpoint === 'DEPART' ? 'd' : 'a';
-    const lbl = s.checkpoint === 'DEPART' ? 'DEP' : 'ARR';
+    const p   = resolveWristband(s.badge_id) ? { name: wristbandLabel(s.badge_id) } : null;
+    const tp  = cpType(s.checkpoint);
+    const cls = (tp === 'start' || tp === 'presence') ? 'd' : 'a';
+    const lbl = cpMeta(s.checkpoint).name.slice(0, 3).toUpperCase();
     const nameHtml = p
       ? '<span class="log-name">' + esc(p.name) + '</span>'
       : '<span class="log-name" style="color:var(--red)">' + esc(s.badge_id) + ' (inconnu)</span>';
@@ -3212,7 +4046,7 @@ function lockCheckpoint(chk) {
   sessionUnlocked   = true;
   document.getElementById('chk-lock-overlay').style.display = 'none';
   saveState();
-  updateRoleBtns(chk === 'DEPART' ? 'depart' : 'arrivee');
+  updateRoleBtns(chk);
   enterPiMode(chk);
 }
 
@@ -3225,22 +4059,17 @@ function updateSaisieUI() {
     lockedCheckpoint = null;
     locked.style.display   = 'none';
     unlocked.style.display = 'block';
-    const bDep = document.getElementById('btn-dep');
-    const bArr = document.getElementById('btn-arr');
-    if (bDep) { bDep.disabled = false; bDep.style.opacity = '1'; bDep.style.cursor = 'pointer'; }
-    if (bArr) { bArr.disabled = false; bArr.style.opacity = '1'; bArr.style.cursor = 'pointer'; }
+    document.querySelectorAll('#chk-toggle .chk-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; b.style.cursor = 'pointer'; });
     indic.innerHTML = '<span style="color:var(--green);font-family:var(--mono)">&#128275; Admin</span>';
     focusBadgeInput();
   } else if (sessionUnlocked && lockedCheckpoint) {
     // Pi déverrouillé avec checkpoint choisi
     locked.style.display   = 'none';
     unlocked.style.display = 'block';
-    const color = lockedCheckpoint === 'DEPART' ? 'var(--amber)' : 'var(--green)';
-    const icon  = lockedCheckpoint === 'DEPART' ? '&#128678;' : '&#127937;';
-    indic.innerHTML = '<span style="color:' + color + ';font-family:var(--mono);font-weight:700">'
-      + icon + ' ' + lockedCheckpoint + ' &#128275;</span>';
-    document.getElementById('btn-dep').disabled = true;
-    document.getElementById('btn-arr').disabled = true;
+    const lm = cpMeta(lockedCheckpoint);
+    indic.innerHTML = '<span style="color:' + lm.color + ';font-family:var(--mono);font-weight:700">'
+      + lm.icon + ' ' + esc(lm.name.toUpperCase()) + ' &#128275;</span>';
+    document.querySelectorAll('#chk-toggle .chk-btn').forEach(b => { b.disabled = true; });
     focusBadgeInput();
   } else {
     locked.style.display   = OPERATOR_PIN ? 'block' : 'none';
@@ -3256,7 +4085,7 @@ function saveSupaConfig() {
   const url  = document.getElementById('cfg-supa-url').value.trim();
   const anon = document.getElementById('cfg-supa-anon').value.trim();
   const op   = document.getElementById('cfg-supa-op').value.trim();
-  if (!url || !anon) { showMsg('supa-confirm-msg', 'URL et cle publique obligatoires.'); return; }
+  if (!url) { showMsg('supa-confirm-msg', 'URL du relais obligatoire.'); return; }
   SUPA_URL      = url.replace(/\/$/, '');
   SUPA_ANON_KEY = anon;
   if (op) SUPA_OP_KEY = op;
@@ -3300,9 +4129,20 @@ async function supaFetchAll(table, order) {
   return all;
 }
 
+// Les autres appareils ne retéléchargent la liste des participants / bracelets
+// que lorsque cette révision change (évite ~100 Ko toutes les 15 s par appareil).
+let bumpTimer = null;
+function bumpPartRev() {
+  clearTimeout(bumpTimer);
+  bumpTimer = setTimeout(() => { partRev = null; pushConfigKey('participants_rev', Date.now()).catch(() => {}); }, 1500);
+}
+
 async function supaFetch(path, opts) {
   const key    = (opts && opts.write) ? SUPA_OP_KEY || SUPA_ANON_KEY : SUPA_ANON_KEY;
   const method = (opts && opts.method) || 'GET';
+  // Toute suppression/modification de scans => prochain poll complet
+  if (method !== 'GET' && method !== 'POST' && /^scans/.test(path)) scanForceFull = true;
+  if (method !== 'GET' && /^(participants|wristbands)/.test(path)) bumpPartRev();
   const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
     ...opts,
     headers: {
@@ -3381,6 +4221,13 @@ async function fetchRaceConfig() {
 
 // File d'attente des scans non envoyés (coupure réseau)
 let retryQueue   = [];
+// ── Polling incrémental des scans ──
+let scanCache      = [];    // lignes brutes Supabase déjà connues
+let scanLastId     = 0;     // plus grand id connu
+let scanLastFull   = 0;     // timestamp du dernier téléchargement complet
+let partRev        = null;  // dernière révision des participants/bracelets téléchargée
+let scanForceFull  = true;  // forcer un téléchargement complet au prochain poll
+const SCAN_FULL_EVERY = 5 * 60 * 1000; // détection des suppressions toutes les 5 min
 let bonusPoints  = {}; // { badge_id: N } — points bonus manuels (défis)
 let retryTimer = null;
 
@@ -3398,6 +4245,7 @@ async function pushScanToSupabase(scan) {
         badge_id:   scan.badge_id,
         checkpoint: scan.checkpoint,
         timestamp:  scan.timestamp.toISOString(),
+        ...(scan.source === 'organisation' ? { source: 'organisation' } : {}),
       })
     });
   } catch(e) {
@@ -3464,17 +4312,31 @@ function updateRetryIndicator() {
 }
 
 async function fetchSupabase() {
-  if (!SUPA_URL || !SUPA_ANON_KEY) return;
+  if (!SUPA_URL || !SUPA_ANON_KEY || SIM_ACTIVE) return;
   const statusEl = document.getElementById('supa-status-cfg');
   // Si des scans sont en attente, les renvoyer maintenant
   if (retryQueue.length > 0) flushRetryQueue();
   try {
     // Lire les 3 tables en parallèle à chaque poll
-    const [scanRows, partRows, cfgRows] = await Promise.all([
-      supaFetchAll('scans', 'timestamp.asc'),
-      supaFetch('participants?select=*'),
+    const nowMs = Date.now();
+    const doFull = scanForceFull || !scanLastId || (nowMs - scanLastFull) > SCAN_FULL_EVERY;
+    const [scanRows, cfgRows] = await Promise.all([
+      doFull
+        ? supaFetchAll('scans', 'timestamp.asc')
+        : supaFetch('scans?select=*&id=gt.' + scanLastId + '&order=id.asc&limit=1000'),
       supaFetch('config?select=*'),
     ]);
+    // Participants : seulement si la révision a changé (ou rafraîchissement complet)
+    const cfgRev   = cfgRows ? ((cfgRows.find(r => r.key === 'participants_rev') || {}).value || null) : null;
+    const needPart = doFull || partRev === null || (cfgRev !== null && cfgRev !== partRev);
+    const partRows = needPart ? await supaFetch('participants?select=*') : null;
+    if (needPart) {
+      partRev = cfgRev || '0';
+      try {
+        const wb = await supaFetch('wristbands?select=*');
+        if (wb) { const m = {}; wb.forEach(r => { m[r.badge_id] = { comp: r.comp, person: r.person || null }; }); WRISTBANDS = m; saveState(); }
+      } catch (e) { /* table absente : mode sans bracelets individuels */ }
+    }
 
     // ── 1. CONFIG COURSE — Supabase est l'UNIQUE source de verite ──
     if (cfgRows) {
@@ -3491,6 +4353,10 @@ async function fetchSupabase() {
       const nuitFin = get('heure_nuit_fin');
       let cfgChanged = false;
       applyBonusFromConfig(cfgRows);
+      const cpRaw = get('checkpoints');
+      if (cpRaw) applyCheckpointsFromConfig(cpRaw);
+      const idRaw = get('identity');
+      if (idRaw) applyIdentityFromConfig(idRaw);
       if (get('distance_tour')  && !isNaN(dist)   && dist   > 0  && dist   !== DISTANCE_TOUR)  { DISTANCE_TOUR  = dist;    cfgChanged = true; }
       if (get('denivele_tour')  && !isNaN(dpluss)  && dpluss >= 0 && dpluss !== DENIVELE_TOUR)  { DENIVELE_TOUR  = dpluss;  cfgChanged = true; }
       if (get('duree_course')   && !isNaN(duree)  && duree  > 0  && duree  !== DUREE_COURSE)   { DUREE_COURSE   = duree;   cfgChanged = true; }
@@ -3551,12 +4417,22 @@ async function fetchSupabase() {
     }
 
     // ── 3. SCANS ────────────────────────────────────────────
-    const scans = (scanRows || []).map(r => ({
+    if (doFull) {
+      scanCache = scanRows || [];
+      scanForceFull = false;
+      scanLastFull = nowMs;
+    } else if (scanRows && scanRows.length) {
+      const known = new Set(scanCache.map(r => r.id));
+      scanRows.forEach(r => { if (!known.has(r.id)) scanCache.push(r); });
+    }
+    scanLastId = scanCache.reduce((m, r) => (typeof r.id === 'number' && r.id > m ? r.id : m), 0);
+    const scans = scanCache.map(r => ({
       timestamp:  new Date(r.timestamp),
       badge_id:   r.badge_id,
-      checkpoint: r.checkpoint.toUpperCase(),
+      checkpoint: String(r.checkpoint).toUpperCase(),
       id:         r.id,
-    })).filter(r => !isNaN(r.timestamp));
+      ...(r.source ? { source: r.source } : {}),
+    })).filter(r => !isNaN(r.timestamp)).sort((a, b) => a.timestamp - b.timestamp);
 
     // Ajouter les scans manuels locaux pas encore confirmés par Supabase
     const supaIds = new Set(scans.map(r => r.id).filter(Boolean));
@@ -3741,9 +4617,9 @@ function enterPiMode(chk) {
   document.getElementById('chk-lock-overlay').style.display = 'none';
 
   // Configurer couleur et label
-  const isDepart = chk === 'DEPART';
-  const color    = isDepart ? 'var(--amber)' : 'var(--green)';
-  const label    = isDepart ? '🚦  CHECKPOINT DÉPART' : '🏁  CHECKPOINT ARRIVÉE';
+  const pm       = cpMeta(chk);
+  const color    = pm.color;
+  const label    = pm.icon + '  CHECKPOINT ' + pm.name.toUpperCase();
   const hdrEl    = document.getElementById('pi-header-chk');
   if (hdrEl) { hdrEl.textContent = label; hdrEl.style.color = color; }
   piEl.style.borderTop = '4px solid ' + color;
@@ -3872,44 +4748,41 @@ async function submitPiScan() {
   if (input.disabled) return;
 
   const chk  = lockedCheckpoint || currentCheckpoint;
+  const cm   = cpMeta(chk);
   const scan = { timestamp: new Date(), badge_id: badge, checkpoint: chk };
-  const p    = PARTICIPANTS[badge];
+  const rw   = resolveWristband(badge);
+  const team = rw ? PARTICIPANTS[rw.comp] : null;
+  // Affichage : personne si connue, sinon nom du concurrent
+  const displayName = rw ? esc(rw.person || team.name) : '⚠️ Inconnu';
+  const teamLine    = (rw && rw.person) ? '<div class="pi-feedback-sub">' + esc(team.name) + '</div>' : '';
 
-  // ── Calculer le contexte du tour AVANT d'ajouter le scan ──
-  // Compter les scans existants pour ce badge
-  const prevScans = allScans.filter(s => s.badge_id === badge);
-  let lapNum = 0;       // numéro du tour concerné
-  let lapDuration = null; // durée si c'est une arrivée
-  let lastDepTime = null;
-
-  for (const s of prevScans) {
-    if (s.checkpoint === 'DEPART')  { lapNum++; lastDepTime = s.timestamp; }
-    if (s.checkpoint === 'ARRIVEE') { lastDepTime = null; }
-  }
-
-  if (chk === 'DEPART') {
-    // Ce départ ouvre le tour lapNum+1
-    lapNum = lapNum + 1;
-  } else {
-    // Cette arrivée clôture le tour lapNum
-    if (lastDepTime) lapDuration = (scan.timestamp - lastDepTime) / 1000;
-  }
-
-  // Vider et désactiver le champ immédiatement
+  // Vider et désactiver le champ immédiatement (anti double-scan)
   input.value    = '';
   input.disabled = true;
   input.style.opacity = '.5';
 
-  // Feedback "envoi en cours" — déjà avec le nom, sans l'ID
   soundSending();
-  showScanAnimation(p ? 'Enregistrement — ' + p.name : 'Enregistrement...');
-  const displayName = p ? esc(p.name) : '⚠️ Inconnu';
+  showScanAnimation(rw ? 'Contrôle — ' + (rw.person || team.name) : 'Enregistrement...');
   showPiFeedback(
-    '<div class="pi-feedback-icon">⟳</div>'
-    + '<div class="pi-feedback-name">' + displayName + '</div>'
-    + '<div class="pi-feedback-sub">Envoi en cours...</div>',
-    !!p
-  );
+    '<div class="pi-feedback-icon">⟳</div><div class="pi-feedback-name">' + displayName + '</div>'
+    + teamLine + '<div class="pi-feedback-sub">Contrôle en cours...</div>', !!rw);
+
+  // ── Contrôle AVANT enregistrement (un seul coureur à la fois, même bracelet) ──
+  let ev;
+  try { ev = await evaluateScan(scan); }
+  catch (e) { ev = { ok: true, refused: false, offline: true, res: null }; }
+
+  if (ev.refused) {
+    soundError();
+    showPiFeedback(
+      '<div class="pi-feedback-icon">⛔</div><div class="pi-feedback-name">' + displayName + '</div>'
+      + teamLine
+      + '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--red,#e74c3c)">REFUSÉ</div>'
+      + '<div class="pi-feedback-sub">' + esc(ev.msg) + '</div>', false);
+    hideScanAnimation();
+    input.disabled = false; input.style.opacity = '1'; input.focus();
+    return;
+  }
 
   // Enregistrer
   piScans.unshift(scan);
@@ -3917,7 +4790,6 @@ async function submitPiScan() {
   allScans.sort((a,b) => a.timestamp - b.timestamp);
   manualScans.push(scan);
 
-  // Push Supabase
   let pushOk = false;
   try {
     await pushScanToSupabase(scan);
@@ -3926,61 +4798,42 @@ async function submitPiScan() {
   } catch(e) {
     console.warn('submitPiScan push error:', e.message);
   }
+  const statusLine = (pushOk ? '✓ Enregistré' : '⚠ Local uniquement') + (ev.offline ? ' · contrôle hors-ligne' : '');
+  const warnLine   = ev.warn ? '<div class="pi-feedback-sub" style="color:var(--amber)">⚠ ' + esc(ev.warn) + '</div>' : '';
 
-  const statusLine = pushOk ? '✓ Enregistré' : '⚠ Local uniquement';
-
-  // ── Feedback final ──────────────────────────────────────────
-  if (p) {
+  if (rw) {
     soundSuccess();
-    if (chk === 'DEPART') {
-      // Départ : afficher pour quel tour il part
-      showPiFeedback(
-        '<div class="pi-feedback-icon">🚦</div>'
-        + '<div class="pi-feedback-name">' + esc(p.name) + '</div>'
-        + '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--amber)">Tour ' + lapNum + '</div>'
-        + '<div class="pi-feedback-sub">' + statusLine + '</div>',
-        true
-      );
-    } else {
-      // Arrivée : tour bouclé + chrono du tour
-      const chronoHtml = lapDuration !== null
-        ? '<div class="pi-feedback-sub" style="font-size:28px;font-weight:700;font-family:var(--mono);color:var(--teal)">' + fmtTime(lapDuration) + '</div>'
-        : '';
-      showPiFeedback(
-        '<div class="pi-feedback-icon">🏁</div>'
-        + '<div class="pi-feedback-name">' + esc(p.name) + '</div>'
-        + '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--green)">Tour ' + lapNum + ' bouclé !</div>'
-        + chronoHtml
-        + '<div class="pi-feedback-sub">' + statusLine + '</div>',
-        true
-      );
+    const res  = ev.res;
+    let big = '', icon = cm.icon;
+    if (cm.type === 'start') {
+      big = '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--amber)">Tour ' + (res ? res.tours + 1 : '') + '</div>';
+    } else if (cm.type === 'end') {
+      const lapNum = res ? res.tours : '';
+      const chrono = res && res.lastLapTime !== null
+        ? '<div class="pi-feedback-sub" style="font-size:28px;font-weight:700;font-family:var(--mono);color:var(--teal)">' + fmtTime(res.lastLapTime) + '</div>' : '';
+      big = '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--green)">Tour ' + lapNum + ' bouclé !</div>' + chrono;
+    } else if (cm.type === 'mid') {
+      big = '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--teal)">' + esc(cm.name) + ' ✓</div>';
+    } else if (cm.type === 'presence') {
+      big = '<div class="pi-feedback-sub" style="font-size:22px;font-weight:700;color:var(--purple)">Pré-enregistré ✓</div>';
     }
+    showPiFeedback(
+      '<div class="pi-feedback-icon">' + icon + '</div><div class="pi-feedback-name">' + displayName + '</div>'
+      + teamLine + big + warnLine + '<div class="pi-feedback-sub">' + statusLine + '</div>', true);
   } else if (Object.keys(PARTICIPANTS).length === 0) {
     soundSuccess();
     showPiFeedback(
-      '<div class="pi-feedback-icon">⏳</div>'
-      + '<div class="pi-feedback-name" style="font-size:28px">Chargement participants...</div>'
-      + '<div class="pi-feedback-sub">' + statusLine + '</div>',
-      true
-    );
+      '<div class="pi-feedback-icon">⏳</div><div class="pi-feedback-name" style="font-size:28px">Chargement participants...</div>'
+      + '<div class="pi-feedback-sub">' + statusLine + '</div>', true);
   } else {
     soundError();
-    // Badge inconnu : pas d'ID affiché, juste le message
-    const chkLabel = chk === 'DEPART' ? 'Départ' : 'Arrivée';
     showPiFeedback(
-      '<div class="pi-feedback-icon">⚠️</div>'
-      + '<div class="pi-feedback-name">Participant inconnu</div>'
-      + '<div class="pi-feedback-sub">' + chkLabel + ' · ' + statusLine + '</div>',
-      false
-    );
+      '<div class="pi-feedback-icon">⚠️</div><div class="pi-feedback-name">Bracelet inconnu</div>'
+      + '<div class="pi-feedback-sub">' + esc(cm.name) + ' · ' + statusLine + '</div>', false);
   }
 
   updatePiScanList();
   updatePiCount();
-
-  // Champ bloqué pendant toute la durée de l'animation (2s)
-  // impossible de scanner un second badge pendant ce délai
-  // Réactivation immédiate après confirmation Supabase
   hideScanAnimation();
   input.disabled      = false;
   input.style.opacity = '1';
@@ -4016,9 +4869,10 @@ function updatePiScanList() {
     return;
   }
   el.innerHTML = piScans.slice(0, 8).map(s => {
-    const p   = PARTICIPANTS[s.badge_id];
-    const cls = s.checkpoint === 'DEPART' ? 'd' : 'a';
-    const lbl = s.checkpoint === 'DEPART' ? 'DÉP' : 'ARR';
+    const p   = resolveWristband(s.badge_id) ? { name: wristbandLabel(s.badge_id) } : null;
+    const tp  = cpType(s.checkpoint);
+    const cls = (tp === 'start' || tp === 'presence') ? 'd' : 'a';
+    const lbl = cpMeta(s.checkpoint).name.slice(0, 3).toUpperCase();
     return '<div class="pi-scan-entry">'
       + '<span class="pi-scan-time">' + fmtHour(s.timestamp) + '</span>'
       + '<span class="pi-scan-chk ' + cls + '">' + lbl + '</span>'
@@ -4214,7 +5068,7 @@ function makeLbRow(r, i) {
     </div>
     <div class="name-cell">
       <div class="name-primary" style="font-size:12px">${esc(r.name)} ${inCourse}</div>
-      <div class="name-badge" style="color:var(--teal)">${speedRanks.includes(r.badge_id) ? speedMedals[speedRanks.indexOf(r.badge_id)] + ' ' : ''}${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
+      <div class="name-badge" style="color:var(--teal)">⚡ ${r.bestLapTime ? fmtTime(r.bestLapTime) : '—'}</div>
     </div>
     <div><div class="tours-num" style="font-size:${i<3?16:13}px">${r.tours}</div>${ptsHtml}</div>
     <div class="dist-val" style="font-size:11px">${distTot} km</div>
@@ -4508,12 +5362,11 @@ function selectRole(role) {
   }
 
   // Checkpoint : demander le PIN
-  const chk = role === 'depart' ? 'DEPART' : 'ARRIVEE';
+  const chk = ROLE_ALIAS[role] || role;
   pendingRole = chk;
-  const icon = chk === 'DEPART' ? '🚦' : '🏁';
-  document.getElementById('qpin-icon').textContent  = icon;
-  document.getElementById('qpin-title').textContent =
-    'Checkpoint ' + (chk === 'DEPART' ? 'Départ' : 'Arrivée');
+  const qm = cpMeta(chk);
+  document.getElementById('qpin-icon').textContent  = qm.icon;
+  document.getElementById('qpin-title').textContent = 'Checkpoint ' + qm.name;
   document.getElementById('qpin-sub').textContent =
     'Saisissez le PIN pour verrouiller ce checkpoint';
   document.getElementById('qpin-input').value = '';
@@ -4558,11 +5411,13 @@ function exitPiModeIfActive() {
 }
 
 function updateRoleBtns(activeRole) {
-  document.getElementById('rbtn-admin').classList.toggle('active', activeRole === 'admin');
-  document.getElementById('rbtn-dep').classList.toggle('active',
-    activeRole === 'depart' || (lockedCheckpoint === 'DEPART' && deviceType === 'checkpoint'));
-  document.getElementById('rbtn-arr').classList.toggle('active',
-    activeRole === 'arrivee' || (lockedCheckpoint === 'ARRIVEE' && deviceType === 'checkpoint'));
+  const act = ROLE_ALIAS[activeRole] || activeRole;
+  const ba = document.getElementById('rbtn-admin');
+  if (ba) ba.classList.toggle('active', act === 'admin');
+  activeCheckpoints().forEach(c => {
+    const b = document.getElementById('rbtn-' + c.code);
+    if (b) b.classList.toggle('active', act === c.code || (lockedCheckpoint === c.code && deviceType === 'checkpoint'));
+  });
 }
 
 /* ================================================================
@@ -4577,13 +5432,13 @@ function switchPiCheckpoint(newChk) {
   saveState();
 
   // Mettre à jour l'affichage Pi
-  const isDepart = newChk === 'DEPART';
-  const color    = isDepart ? 'var(--amber)' : 'var(--green)';
-  const label    = isDepart ? '🚦  CHECKPOINT DÉPART' : '🏁  CHECKPOINT ARRIVÉE';
+  const sm       = cpMeta(newChk);
+  const color    = sm.color;
+  const label    = sm.icon + '  CHECKPOINT ' + sm.name.toUpperCase();
   const hdrEl    = document.getElementById('pi-header-chk');
   if (hdrEl) { hdrEl.textContent = label; hdrEl.style.color = color; }
   document.getElementById('pi-mode').style.borderTop = '4px solid ' + color;
-  updateRoleBtns(isDepart ? 'depart' : 'arrivee');
+  updateRoleBtns(newChk);
 
   // Focus champ badge
   setTimeout(() => { const inp = document.getElementById('pi-badge-input'); if (inp) inp.focus(); }, 200);
@@ -4698,8 +5553,7 @@ function openScanEditModal(idx) {
     }
   }
 
-  const p = PARTICIPANTS[badge];
-  document.getElementById('sem-title').textContent = '✏️ Modifier le tour — ' + (p ? p.name : badge);
+  document.getElementById('sem-title').textContent = '✏️ Modifier le tour — ' + wristbandLabel(badge);
   document.getElementById('sem-badge').value = badge;
   document.getElementById('sem-dep-idx').value = depIdx;
   document.getElementById('sem-arr-idx').value = arrIdx;
@@ -4723,8 +5577,7 @@ function openScanEditModal(idx) {
 
 function semUpdateName() {
   const badge = document.getElementById('sem-badge').value.trim().toUpperCase();
-  const p = PARTICIPANTS[badge];
-  document.getElementById('sem-name').textContent = p ? p.name : (badge ? '⚠ Inconnu' : '');
+  document.getElementById('sem-name').textContent = resolveWristband(badge) ? wristbandLabel(badge) : (badge ? '⚠ Inconnu' : '');
 }
 
 function semUpdateDuration() {
@@ -4821,8 +5674,7 @@ async function saveScanEdit() {
 async function deleteScan(idx) {
   const scan = allScans[idx];
   if (!scan) return;
-  const p    = PARTICIPANTS[scan.badge_id];
-  const name = p ? p.name : scan.badge_id;
+  const name = wristbandLabel(scan.badge_id);
   if (!confirm('Supprimer : ' + name + ' — ' + scan.checkpoint + ' — ' + fmtHour(scan.timestamp))) return;
 
   // Supprimer dans Supabase — par id si disponible, sinon par badge+checkpoint+timestamp
@@ -4843,183 +5695,147 @@ async function deleteScan(idx) {
   renderPassagesTable();
 }
 
+function passagesFilterOptions() {
+  const sel = document.getElementById('passages-filter-chk');
+  if (!sel) return;
+  const codes = [...CHECKPOINTS.map(c => c.code), 'WARMUP', 'ABANDON'];
+  const sig = codes.join(',') + '|' + CHECKPOINTS.map(c => c.name).join(',');
+  if (sel.dataset.sig === sig) return;
+  const cur = sel.value;
+  sel.dataset.sig = sig;
+  sel.innerHTML = '<option value="">Tous les checkpoints</option>'
+    + CHECKPOINTS.map(c => `<option value="${c.code}">${esc(c.name)} seulement</option>`).join('')
+    + '<option value="WARMUP">Tour de chauffe</option><option value="ABANDON">Abandons</option>';
+  sel.value = cur;
+}
+
+function passageChkHtml(code) {
+  if (code === 'WARMUP')  return '<span class="chk-dep">⚡ CHAUFFE</span>';
+  if (code === 'ABANDON') return '<span class="chk-dep" style="color:var(--red)">⛔ ABANDON</span>';
+  const m = cpMeta(code);
+  return '<span style="color:' + m.color + ';font-weight:700">' + m.icon + ' ' + esc(m.name.toUpperCase()) + '</span>';
+}
+
 function renderPassagesTable() {
-  const search  = (document.getElementById('passages-search')?.value || '').toLowerCase().trim();
+  const search    = (document.getElementById('passages-search')?.value || '').toLowerCase().trim();
   const filterChk = document.getElementById('passages-filter-chk')?.value || '';
   const sortKey   = document.getElementById('passages-sort')?.value || passagesSortKey;
+  passagesFilterOptions();
 
-  // Construire la liste des passages depuis allScans
-  // Calculer le numéro de tour et la durée pour chaque passage
-  const lapState = {};
-  const rows = [];
+  // Le moteur annote chaque scan (_info : statut, tour, durée, refus)
+  processScans(allScans);
 
-  for (const scan of allScans) {
-    const bid = scan.badge_id;
-    if (!lapState[bid]) lapState[bid] = { lapNum: 0, lastDep: null, lastDepIdx: null, lastDepSrc: null };
-    const st = lapState[bid];
-    const p  = PARTICIPANTS[bid];
-    const name = p ? p.name : bid;
-
-    if (scan.checkpoint === 'DEPART') {
-      if (st.lastDep !== null) {
-        // Double départ : marquer le précédent comme invalide
-        if (st.lastDepIdx !== null) rows[st.lastDepIdx].statut = 'invalide';
-      }
-      const srcDep = scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local');
-      st.lapNum++;
-      st.lastDep    = scan.timestamp;
-      st.lastDepIdx = rows.length;
-      st.lastDepSrc = srcDep; // mémoriser pour le statut à l'arrivée
-      rows.push({
-        badge_id:   bid, name,
-        checkpoint: 'DEPART',
-        timestamp:  scan.timestamp,
-        lapNum:     st.lapNum,
-        duration:   null,
-        statut:     srcDep === 'organisation' ? 'manuel' : 'ouvert',
-        source:     srcDep,
-        known:      !!p,
-      });
-    } else if (scan.checkpoint === 'ARRIVEE') {
-      if (st.lastDep === null) {
-        // Arrivée sans départ
-        rows.push({
-          badge_id: bid, name,
-          checkpoint: 'ARRIVEE',
-          timestamp:  scan.timestamp,
-          lapNum:     st.lapNum,
-          duration:   null,
-          statut:     'invalide',
-          source:     scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local'),
-          known:      !!p,
-        });
-      } else {
-        const dur = (scan.timestamp - st.lastDep) / 1000;
-        // Marquer le départ correspondant comme validé
-        if (st.lastDepIdx !== null) rows[st.lastDepIdx].statut = 'valide';
-        const srcArr = scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local');
-        const isManual = srcArr === 'organisation' || st.lastDepSrc === 'organisation';
-        // Mettre à jour le statut du départ correspondant
-        if (st.lastDepIdx !== null) {
-          rows[st.lastDepIdx].statut = isManual ? 'manuel' : 'valide';
-        }
-        rows.push({
-          badge_id: bid, name,
-          checkpoint: 'ARRIVEE',
-          timestamp:  scan.timestamp,
-          lapNum:     st.lapNum,
-          duration:   dur,
-          statut:     isManual ? 'manuel' : 'valide',
-          source:     srcArr,
-          known:      !!p,
-        });
-        st.lastDep    = null;
-        st.lastDepIdx = null;
-        st.lastDepSrc = null;
-      }
-    }
-  }
-
-  // Filtrer
-  let filtered = rows.filter(r => {
-    if (filterChk && r.checkpoint !== filterChk) return false;
-    if (search) {
-      const haystack = (r.badge_id + ' ' + r.name).toLowerCase();
-      if (!haystack.includes(search)) return false;
-    }
-    return true;
+  const rows = allScans.map((scan, idx) => {
+    const info = scan._info || { status: 'ok' };
+    const rw   = resolveWristband(scan.badge_id);
+    const team = rw ? PARTICIPANTS[rw.comp] : null;
+    const src  = scan.source === 'organisation' ? 'organisation' : (scan.id ? 'supabase' : 'local');
+    return {
+      idx, scan, info, src,
+      badge_id: scan.badge_id, checkpoint: scan.checkpoint, timestamp: scan.timestamp,
+      name: rw ? (rw.person ? rw.person + ' · ' + team.name : team.name) : scan.badge_id,
+      sortName: rw ? team.name : scan.badge_id,
+      known: !!rw,
+      lapNum: info.lapNum || null,
+      duration: info.duration !== undefined ? info.duration : null,
+    };
   });
 
-  // Trier
+  let filtered = rows.filter(r => {
+    if (filterChk && r.checkpoint !== filterChk) return false;
+    if (search && !(r.badge_id + ' ' + r.name).toLowerCase().includes(search)) return false;
+    return true;
+  });
   filtered.sort((a, b) => {
     switch (sortKey) {
       case 'time-asc':  return a.timestamp - b.timestamp;
       case 'time-desc': return b.timestamp - a.timestamp;
-      case 'name-asc':  return a.name.localeCompare(b.name);
-      case 'name-desc': return b.name.localeCompare(a.name);
+      case 'name-asc':  return a.sortName.localeCompare(b.sortName);
+      case 'name-desc': return b.sortName.localeCompare(a.sortName);
       case 'badge-asc': return a.badge_id.localeCompare(b.badge_id);
       default:          return b.timestamp - a.timestamp;
     }
   });
 
-  // Mettre à jour le compteur dans l'onglet
   const countEl = document.getElementById('passagesCount');
-  if (countEl) countEl.innerHTML = rows.length > 0
-    ? '<span style="color:var(--amber);font-family:var(--mono)">(' + rows.length + ')</span>' : '';
-
-  // Info
+  if (countEl) countEl.innerHTML = rows.length > 0 ? '<span style="color:var(--amber);font-family:var(--mono)">(' + rows.length + ')</span>' : '';
   const infoEl = document.getElementById('passages-info');
   if (infoEl) infoEl.textContent = filtered.length + ' passage' + (filtered.length > 1 ? 's' : '')
     + (search || filterChk ? ' (filtrés sur ' + rows.length + ' total)' : '');
 
-  // Tbody
-  const tbody = document.getElementById('passages-tbody');
-  if (!tbody) return;
-
+  const oldTbody = document.getElementById('passages-tbody');
+  if (!oldTbody) return;
+  const newTbody = oldTbody.cloneNode(false);
+  oldTbody.parentNode.replaceChild(newTbody, oldTbody);
+  newTbody.id = 'passages-tbody';
+  newTbody.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx), action = btn.dataset.action;
+    if (action === 'edit')    openScanEditModal(idx);
+    if (action === 'delete')  deleteScan(idx);
+    if (action === 'abandon') closeLapAbandon(idx);
+  });
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage correspondant</td></tr>';
+    newTbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:24px">Aucun passage correspondant</td></tr>';
     return;
   }
 
-  // Event delegation : édition/suppression
-  const oldTbody = document.getElementById('passages-tbody');
-  if (oldTbody) {
-    const newTbody = oldTbody.cloneNode(false);
-    oldTbody.parentNode.replaceChild(newTbody, oldTbody);
-    newTbody.id = 'passages-tbody';
-    newTbody.addEventListener('click', e => {
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      const idx    = parseInt(btn.dataset.idx);
-      const action = btn.dataset.action;
-      if (action === 'edit')   openScanEditModal(idx);
-      if (action === 'delete') deleteScan(idx);
-    });
-  }
-  const tbody2 = document.getElementById('passages-tbody');
-  if (!tbody2) return;
-  tbody2.innerHTML = filtered.map((r, i) => {
-    const chkHtml = r.checkpoint === 'DEPART'
-      ? '<span class="chk-dep">🚦 DÉP</span>'
-      : '<span class="chk-arr">🏁 ARR</span>';
-    const srcHtml = r.source === 'supabase'
-      ? '<span class="src-supa">Supabase</span>'
-      : '<span class="src-local">Local</span>';
+  const btnStyle = (c, bg) => `background:${bg};border:1px solid ${c};color:${c};border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer`;
+  newTbody.innerHTML = filtered.map((r, i) => {
+    const info = r.info, kind = info.kind;
+    // Statut
+    let statusHtml;
+    if (info.status === 'refused' || info.status === 'unknown')
+      statusHtml = '<span class="status-ko" title="' + esc(info.msg || '') + '">✗ Ignoré — ' + esc((info.msg || 'bracelet inconnu').slice(0, 60)) + '</span>';
+    else if (info.status === 'warn')
+      statusHtml = '<span class="status-manual" title="' + esc(info.msg || '') + '">⚠ Validé sans intermédiaire</span>';
+    else if (kind === 'start' || (kind === 'warmup' && info.lapNum))
+      statusHtml = info.closed === 'valide' ? '<span class="status-ok">✓ Tour validé</span>'
+                 : info.closed === 'abandon' ? '<span class="status-ko">⛔ Abandon</span>'
+                 : '<span class="status-open">⏳ En cours</span>';
+    else if (kind === 'end') statusHtml = '<span class="status-ok">✓ Validé</span>';
+    else if (kind === 'warmup' && !info.lapNum) statusHtml = '<span class="status-manual">Aucun pré-enregistré</span>';
+    else statusHtml = '<span class="status-ok">✓ Enregistré</span>';
+    if (r.src === 'organisation' && info.status === 'ok') statusHtml += ' <span class="status-manual">✎ Manuel</span>';
+
     const durHtml = r.duration !== null
-      ? '<span class="mono" style="color:var(--teal)">' + fmtTime(r.duration) + '</span>'
-      : '<span style="color:var(--text-dim)">—</span>';
-    const statusHtml = r.statut === 'valide'
-      ? '<span class="status-ok">✓ Validé</span>'
-      : r.statut === 'manuel'
-        ? '<span class="status-manual">✎ Complété manuellement</span>'
-        : r.statut === 'invalide'
-          ? '<span class="status-ko">✗ Invalide</span>'
-          : '<span class="status-open">⏳ Ouvert</span>';
-    const nameStyle = r.known ? '' : 'color:var(--red)';
-    // Trouver l'index réel dans allScans pour l'édition
-    const scanIdx = allScans.findIndex(s =>
-      s.badge_id === r.badge_id &&
-      s.checkpoint === r.checkpoint &&
-      Math.abs(s.timestamp - r.timestamp) < 1000
-    );
-    const actionsHtml = `<div style="display:flex;gap:4px">
-      <button data-idx="${scanIdx}" data-action="edit"
-        style="background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);color:var(--amber);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">✏</button>
-      <button data-idx="${scanIdx}" data-action="delete"
-        style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">✕</button>
-    </div>`;
+      ? '<span class="mono" style="color:var(--teal)">' + fmtTime(r.duration) + '</span>' : '<span style="color:var(--text-dim)">—</span>';
+    const editable = (kind === 'start' || kind === 'end') && info.status !== 'unknown';
+    const canAbandon = info.status !== 'refused' && !info.closed && (kind === 'start' || (kind === 'warmup' && info.lapNum));
+    const abandonBadge = kind === 'warmup' ? (info.comp || r.badge_id) : r.badge_id;
+    const actions = '<div style="display:flex;gap:4px">'
+      + (editable ? `<button data-idx="${r.idx}" data-action="edit" style="${btnStyle('var(--amber)','rgba(var(--amber-rgb),.15)')}">✏</button>` : '')
+      + (canAbandon ? `<button data-idx="${r.idx}" data-action="abandon" title="Clôturer le tour (abandon, sans point)" style="${btnStyle('var(--purple)','rgba(155,89,182,.12)')}">⛔ Abandon</button>` : '')
+      + `<button data-idx="${r.idx}" data-action="delete" style="${btnStyle('var(--red)','rgba(231,76,60,.1)')}">✕</button></div>`;
     return '<tr>'
-      + '<td style="color:var(--text-dim);font-family:var(--mono)">' + (i+1) + '</td>'
+      + '<td style="color:var(--text-dim);font-family:var(--mono)">' + (i + 1) + '</td>'
       + '<td><span style="font-family:var(--mono);font-size:11px;color:var(--amber)">' + esc(r.badge_id) + '</span></td>'
-      + '<td><span style="' + nameStyle + '">' + esc(r.name) + (!r.known ? ' ⚠' : '') + '</span></td>'
-      + '<td>' + chkHtml + '</td>'
+      + '<td><span style="' + (r.known ? '' : 'color:var(--red)') + '">' + esc(r.name) + (!r.known ? ' ⚠' : '') + '</span></td>'
+      + '<td>' + passageChkHtml(r.checkpoint) + '</td>'
       + '<td><span style="font-family:var(--mono);font-size:12px">' + fmtHour(r.timestamp) + '</span></td>'
       + '<td><span style="font-family:var(--mono);font-weight:700;color:var(--white)">' + (r.lapNum || '—') + '</span></td>'
       + '<td>' + durHtml + '</td>'
       + '<td>' + statusHtml + '</td>'
-      + '<td>' + actionsHtml + '</td>'
-      + '</tr>';
+      + '<td>' + actions + '</td></tr>';
   }).join('');
+}
+
+// Clôture d'un tour par l'organisation (abandon) : aucun point pour ce tour
+async function closeLapAbandon(idx) {
+  const scan = allScans[idx];
+  if (!scan) return;
+  const comp = scan._info && scan._info.comp;
+  const badge = scan.checkpoint === 'WARMUP' ? comp : scan.badge_id;
+  const label = wristbandLabel(scan.badge_id);
+  if (!confirm('Clôturer le tour en cours de : ' + label + ' ?\nAucun point ne sera attribué pour ce tour.\nLe concurrent pourra repartir ensuite.')) return;
+  const ab = { timestamp: new Date(), badge_id: badge, checkpoint: 'ABANDON', source: 'organisation' };
+  try { await pushScanToSupabase(ab); ab.supaId = 'pushed'; }
+  catch (e) { alert('Envoi impossible : ' + e.message + '\nL\'abandon n\'est appliqué que localement.'); }
+  allScans.push(ab);
+  allScans.sort((a, b) => a.timestamp - b.timestamp);
+  updateUI();
+  renderPassagesTable();
 }
 
 /* ================================================================
@@ -5169,19 +5985,17 @@ function soundSending() {
    ================================================================ */
 
 function getPreRegistered() {
-  // Participants ayant un scan DEPART sans ARRIVEE correspondante
-  // (= pré-enregistrés, pas encore rentrés)
-  const state = {};
+  // Concurrents (clé PARTICIPANTS) dont ≥1 membre a scanné PRESENCE
+  // et dont le tour de chauffe n'a pas encore été validé.
+  const pre = new Set(), done = new Set();
   for (const scan of allScans) {
-    const b = scan.badge_id;
-    if (!state[b]) state[b] = { deps: 0, arrs: 0 };
-    if (scan.checkpoint === 'DEPART')  state[b].deps++;
-    if (scan.checkpoint === 'ARRIVEE') state[b].arrs++;
+    const r = resolveWristband(scan.badge_id);
+    if (!r) continue;
+    const t = cpType(scan.checkpoint);
+    if (t === 'presence') pre.add(r.comp);
+    if (t === 'warmup')   done.add(r.comp);
   }
-  // Un participant est pré-enregistré si deps > arrs (tour ouvert)
-  return Object.entries(state)
-    .filter(([b, s]) => s.deps > s.arrs)
-    .map(([b]) => b);
+  return [...pre].filter(c => !done.has(c));
 }
 
 function updateWarmupPreview() {
@@ -5209,15 +6023,14 @@ async function validateWarmupLap() {
 
   const preReg = getPreRegistered();
   if (preReg.length === 0) {
-    alert('Aucun participant pré-enregistré trouvé.\nAssurez-vous que les participants ont scanné au départ.');
+    alert('Aucun participant pré-enregistré trouvé.\nAssurez-vous que les participants ont scanné leur bracelet au point Présence.');
     return;
   }
 
   const ok = confirm(
-    'Valider le tour de chauffe pour ' + preReg.length + ' participant(s) ?\n\n'
-    + 'Cette action va :\n'
-    + '• Injecter 1 scan ARRIVÉE pour chacun (tour 1 validé)\n'
-    + '• Injecter 1 scan DÉPART pour chacun (tour 2 lancé)\n\n'
+    'Valider le tour de chauffe pour ' + preReg.length + ' concurrent(s) ?\n\n'
+    + 'Chaque concurrent pré-enregistré reçoit 1 point (un seul, même en équipe).\n'
+    + 'Les solos sont ensuite considérés en course sur le tour 2.\n\n'
     + 'Action irréversible.'
   );
   if (!ok) return;
@@ -5226,38 +6039,18 @@ async function validateWarmupLap() {
   if (msgEl) { msgEl.style.color = 'var(--amber)'; msgEl.textContent = '⏳ Injection en cours...'; }
 
   const now    = new Date();
-  const nowP1  = new Date(now.getTime() + 1000); // +1s pour le départ
   let injected = 0;
   let errors   = 0;
 
-  for (const badge of preReg) {
-    // Scan ARRIVÉE — valide le tour de chauffe
-    const scanArr = {
-      timestamp:  now,
-      badge_id:   badge,
-      checkpoint: 'ARRIVEE',
-      source:     'organisation', // marqué comme injection manuelle
-    };
-    // Scan DÉPART — lance le tour 2
-    const scanDep = {
-      timestamp:  nowP1,
-      badge_id:   badge,
-      checkpoint: 'DEPART',
-      source:     'organisation',
-    };
-
+  for (const comp of preReg) {
+    const scanW = { timestamp: now, badge_id: comp, checkpoint: 'WARMUP', source: 'organisation' };
     try {
-      await pushScanToSupabase(scanArr);
-      scanArr.supaId = 'pushed';
-      await pushScanToSupabase(scanDep);
-      scanDep.supaId = 'pushed';
-      allScans.push(scanArr);
-      allScans.push(scanDep);
+      await pushScanToSupabase(scanW);
+      scanW.supaId = 'pushed';
+      allScans.push(scanW);
       injected++;
     } catch(e) {
-      console.warn('Warmup injection error for', badge, ':', e.message);
-      // Ajouter quand même localement — le poll les lira depuis Supabase si push OK
-      if (scanArr.supaId) allScans.push(scanArr); // arr OK, dep KO
+      console.warn('Warmup injection error for', comp, ':', e.message);
       errors++;
     }
   }
@@ -5296,7 +6089,7 @@ function corrUpdatePreview() {
     return;
   }
 
-  const p = PARTICIPANTS[badge];
+  const p = resolveWristband(badge) ? { name: wristbandLabel(badge) } : null;
   if (nameEl) {
     nameEl.textContent = p ? p.name : '⚠ Inconnu';
     nameEl.style.color = p ? 'var(--white)' : 'var(--red)';
@@ -5374,8 +6167,7 @@ async function applyTourCorrection() {
   allScans.sort((a, b) => a.timestamp - b.timestamp);
 
   // Historique
-  const p = PARTICIPANTS[badge];
-  const name = p ? p.name : badge;
+  const name = wristbandLabel(badge);
   corrHistory.unshift({ name, badge, n: injected, ts: new Date() });
   renderCorrHistory();
 
@@ -5498,6 +6290,7 @@ function switchTab(name, btn) {
   if (name === 'passages')    { setTimeout(() => { lockPassages(); }, 50); }
   if (name === 'correction')  { setTimeout(() => { corrUpdatePreview(); document.getElementById('corr-badge')?.focus(); }, 50); }
   if (name === 'participants') { setTimeout(updateWarmupPreview, 50); }
+  if (name === 'bracelets')    { setTimeout(() => { renderWristbandTab(); document.getElementById('wb-input')?.focus(); }, 50); }
   if (name === 'saisie') {
     if (deviceType === 'admin') {
       // Admin : toujours accès direct
@@ -5536,10 +6329,13 @@ function switchTab(name, btn) {
     if (saved.heureNuitFin) HEURE_NUIT_FIN   = saved.heureNuitFin;
     // Utiliser les creds sauvegardés seulement s'ils existent,
     // sinon les valeurs hardcodées restent en place
-    if (saved.supaUrl     && saved.supaUrl.length > 10)     SUPA_URL      = saved.supaUrl;
-    if (saved.supaAnonKey && saved.supaAnonKey.length > 10) SUPA_ANON_KEY = saved.supaAnonKey;
-    if (saved.supaOpKey   && saved.supaOpKey.length > 10)   SUPA_OP_KEY   = saved.supaOpKey;
+    // Anciennes clés enregistrées dans le navigateur : ignorées puis effacées (voir scrub plus bas)
+    if (saved.supaUrl && saved.supaUrl.indexOf('/api/db') > 0) SUPA_URL = saved.supaUrl;
+    if (saved.supaAnonKey || saved.supaOpKey) setTimeout(() => { try { saveState(); } catch(e){} }, 0);
     if (saved.operatorPin)  OPERATOR_PIN     = saved.operatorPin;
+    if (saved.checkpoints)  applyCheckpointsFromConfig(JSON.stringify(saved.checkpoints));
+    if (saved.wristbands)   WRISTBANDS = saved.wristbands;
+    if (saved.identity)     applyIdentityFromConfig(JSON.stringify(saved.identity));
     if (saved.lockedChk)    lockedCheckpoint = saved.lockedChk;
     // Restaurer participants SEULEMENT en mode démo
     // En mode Supabase, la source de vérité est la base de données
@@ -5614,7 +6410,7 @@ function switchTab(name, btn) {
   setInterval(() => { if (dataMode !== 'sheets') updateUI(); }, 30000);
   // Mettre à jour les boutons de rôle selon l'état restauré
   if (deviceType === 'checkpoint' && lockedCheckpoint) {
-    updateRoleBtns(lockedCheckpoint === 'DEPART' ? 'depart' : 'arrivee');
+    updateRoleBtns(lockedCheckpoint);
   } else {
     updateRoleBtns('admin');
   }
