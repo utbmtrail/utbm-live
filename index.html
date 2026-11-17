@@ -1771,7 +1771,7 @@ let piTimerRafId    = null;
 
 /* Supabase — credentials pré-configurés */
 /* Les clés Supabase ne sont plus dans la page : tout passe par le relais sécurisé (api/db) */
-let SUPA_URL        = 'https://utbm-live.vercel.app/api/db';
+let SUPA_URL        = (/^https?:$/.test(location.protocol) && location.hostname !== 'localhost') ? location.origin + '/api/db' : 'https://utbm-live.vercel.app/api/db';  // site web : son propre relais ; fichier local (Raspberry) : production
 let SUPA_ANON_KEY   = 'proxy';   // valeur factice (indicateur « connecté »)
 let SUPA_OP_KEY     = 'proxy';   // valeur factice
 let ADMIN_PIN       = '';        // PIN administrateur (session uniquement, jamais enregistré)
